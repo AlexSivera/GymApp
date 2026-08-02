@@ -1,0 +1,19 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'body_weight_dao.dart';
+
+// ignore_for_file: type=lint
+mixin _$BodyWeightDaoMixin on DatabaseAccessor<AppDatabase> {
+  $BodyWeightLogsTable get bodyWeightLogs => attachedDatabase.bodyWeightLogs;
+  BodyWeightDaoManager get managers => BodyWeightDaoManager(this);
+}
+
+class BodyWeightDaoManager {
+  final _$BodyWeightDaoMixin _db;
+  BodyWeightDaoManager(this._db);
+  $$BodyWeightLogsTableTableManager get bodyWeightLogs =>
+      $$BodyWeightLogsTableTableManager(
+        _db.attachedDatabase,
+        _db.bodyWeightLogs,
+      );
+}

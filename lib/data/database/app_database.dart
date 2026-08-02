@@ -6,6 +6,8 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import 'converters.dart';
+import 'daos/body_weight_dao.dart';
+import 'daos/workout_sessions_dao.dart';
 import 'enums.dart';
 import 'tables/body_weight_logs_table.dart';
 import 'tables/exercises_table.dart';
@@ -30,6 +32,9 @@ part 'app_database.g.dart';
   PersonalRecords,
   BodyWeightLogs,
   UserSettings,
+], daos: [
+  WorkoutSessionsDao,
+  BodyWeightDao,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
