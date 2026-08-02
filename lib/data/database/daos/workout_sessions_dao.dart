@@ -38,4 +38,24 @@ class WorkoutSessionsDao extends DatabaseAccessor<AppDatabase>
           ..limit(limit))
         .watch();
   }
+
+  // Inclusive of [start], exclusive of [end] — used to draw month markers.
+  Stream<List<WorkoutSession>> watchSessionsInRange(DateTime start, DateTime end) {
+    return (select(workoutSessions)
+          ..where((s) =>
+              s.date.isBiggerOrEqualValue(start) & s.date.isSmallerThanValue(end)))
+        .watch();
+  }
+
+  Future<int> createSession(WorkoutSessionsCompanion entry) {
+    return into(workoutSessions).insert(entry);
+  }
+
+  Future<bool> updateSession(WorkoutSession session) {
+    return update(workoutSessions).replace(session);
+  }
+
+  Future<int> deleteSession(int id) {
+    return (delete(workoutSessions)..where((s) => s.id.equals(id))).go();
+  }
 }
