@@ -33,13 +33,15 @@ class WorkoutSessionScreen extends ConsumerWidget {
           return const Scaffold(body: Center(child: Text('Entrenamiento no encontrado')));
         }
 
-        final restSecondsByExercise = session.routineDayId == null
-            ? const <int, int>{}
-            : {
-                for (final re in ref.watch(dayExercisesProvider(session.routineDayId!)).valueOrNull ??
-                    const [])
-                  re.exerciseId: re.restSeconds ?? 90,
-              };
+        final routineExercises = session.routineDayId == null
+            ? const <RoutineExercise>[]
+            : ref.watch(dayExercisesProvider(session.routineDayId!)).valueOrNull ?? const [];
+        final restSecondsByExercise = {
+          for (final re in routineExercises) re.exerciseId: re.restSeconds ?? 90,
+        };
+        final repsRangeByExercise = {
+          for (final re in routineExercises) re.exerciseId: (re.targetRepsMin, re.targetRepsMax),
+        };
 
         return Scaffold(
           appBar: AppBar(
@@ -88,13 +90,20 @@ class WorkoutSessionScreen extends ConsumerWidget {
                             ? 'Sin series todavía'
                             : '${sets.length} serie${sets.length == 1 ? '' : 's'} registrada${sets.length == 1 ? '' : 's'}'),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => ExerciseLoggingScreen(
-                            sessionExerciseId: sessionExercise.id,
-                            exerciseName: exerciseName,
-                            restSeconds: restSecondsByExercise[sessionExercise.exerciseId] ?? 90,
-                          ),
-                        )),
+                        onTap: () {
+                          final repsRange = repsRangeByExercise[sessionExercise.exerciseId];
+                          Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) => ExerciseLoggingScreen(
+                              sessionExerciseId: sessionExercise.id,
+                              exerciseId: sessionExercise.exerciseId,
+                              sessionId: sessionId,
+                              exerciseName: exerciseName,
+                              restSeconds: restSecondsByExercise[sessionExercise.exerciseId] ?? 90,
+                              targetRepsMin: repsRange?.$1 ?? 8,
+                              targetRepsMax: repsRange?.$2 ?? 12,
+                            ),
+                          ));
+                        },
                       ),
                     ),
                   );

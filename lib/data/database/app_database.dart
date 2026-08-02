@@ -8,6 +8,8 @@ import 'package:path_provider/path_provider.dart';
 import 'converters.dart';
 import 'daos/body_weight_dao.dart';
 import 'daos/exercises_dao.dart';
+import 'daos/personal_records_dao.dart';
+import 'daos/progress_dao.dart';
 import 'daos/routines_dao.dart';
 import 'daos/session_logging_dao.dart';
 import 'daos/workout_sessions_dao.dart';
@@ -41,6 +43,8 @@ part 'app_database.g.dart';
   ExercisesDao,
   RoutinesDao,
   SessionLoggingDao,
+  PersonalRecordsDao,
+  ProgressDao,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
