@@ -7,6 +7,9 @@ import 'package:path_provider/path_provider.dart';
 
 import 'converters.dart';
 import 'daos/body_weight_dao.dart';
+import 'daos/exercises_dao.dart';
+import 'daos/routines_dao.dart';
+import 'daos/session_logging_dao.dart';
 import 'daos/workout_sessions_dao.dart';
 import 'enums.dart';
 import 'tables/body_weight_logs_table.dart';
@@ -35,6 +38,9 @@ part 'app_database.g.dart';
 ], daos: [
   WorkoutSessionsDao,
   BodyWeightDao,
+  ExercisesDao,
+  RoutinesDao,
+  SessionLoggingDao,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -42,6 +48,15 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   int get schemaVersion => 1;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        beforeOpen: (details) async {
+          // Required for onDelete: KeyAction.cascade to actually take effect —
+          // SQLite ignores foreign key constraints unless this is set per connection.
+          await customStatement('PRAGMA foreign_keys = ON');
+        },
+      );
 }
 
 LazyDatabase _openConnection() {

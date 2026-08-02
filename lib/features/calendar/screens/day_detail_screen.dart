@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
+import '../../workout_session/screens/workout_session_screen.dart';
 
 class DayDetailScreen extends ConsumerStatefulWidget {
   const DayDetailScreen({super.key, required this.date, this.existingSession});
@@ -156,6 +157,16 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
             onPressed: _save,
             child: Text(widget.existingSession == null ? 'Crear entrenamiento' : 'Guardar cambios'),
           ),
+          if (widget.existingSession != null) ...[
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => WorkoutSessionScreen(sessionId: widget.existingSession!.id),
+              )),
+              icon: const Icon(Icons.fitness_center),
+              label: const Text('Registrar series'),
+            ),
+          ],
         ],
       ),
     );

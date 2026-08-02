@@ -10,6 +10,10 @@ class WorkoutSessionsDao extends DatabaseAccessor<AppDatabase>
     with _$WorkoutSessionsDaoMixin {
   WorkoutSessionsDao(super.db);
 
+  Stream<WorkoutSession?> watchById(int id) {
+    return (select(workoutSessions)..where((s) => s.id.equals(id))).watchSingleOrNull();
+  }
+
   Stream<WorkoutSession?> watchSessionForDate(DateTime date) {
     final start = DateTime(date.year, date.month, date.day);
     final end = start.add(const Duration(days: 1));
