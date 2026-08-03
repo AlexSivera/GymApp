@@ -17,6 +17,7 @@ Future<void> seedExercisesIfEmpty(AppDatabase db) async {
         secondaryMuscles: Value(seed.secondaryMuscles),
         equipment: Value(seed.equipment),
         instructions: Value(seed.instructions),
+        imagePaths: Value([seed.imageAsset]),
       ),
   ]);
 }

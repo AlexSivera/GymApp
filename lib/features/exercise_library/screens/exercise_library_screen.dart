@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/exercise_thumbnail.dart';
 import '../providers/exercise_library_providers.dart';
 import 'create_exercise_screen.dart';
 import 'exercise_detail_screen.dart';
@@ -85,6 +86,7 @@ class ExerciseLibraryScreen extends ConsumerWidget {
                     itemBuilder: (context, index) {
                       final exercise = exercises[index];
                       return ListTile(
+                        leading: ExerciseThumbnail(imagePaths: exercise.imagePaths),
                         title: Text(exercise.name),
                         subtitle: Text(exercise.primaryMuscles.join(', ')),
                         trailing: exercise.isCustom

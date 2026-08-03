@@ -17,6 +17,24 @@ class ExerciseDetailScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (exercise.imagePaths.isNotEmpty) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(
+                exercise.imagePaths.first,
+                width: double.infinity,
+                height: 220,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  height: 220,
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  child: Icon(Icons.fitness_center,
+                      size: 48, color: theme.colorScheme.onSurfaceVariant),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

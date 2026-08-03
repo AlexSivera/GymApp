@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/exercise_thumbnail.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../services/workout_session/start_session.dart';
@@ -64,6 +65,7 @@ class RoutineDayEditorScreen extends ConsumerWidget {
                 child: AppCard(
                   padding: EdgeInsets.zero,
                   child: ListTile(
+                    leading: ExerciseThumbnail(imagePaths: exercise?.imagePaths ?? const []),
                     title: Text(exercise?.name ?? 'Ejercicio eliminado'),
                     subtitle: Text(_summarize(entry)),
                     trailing: IconButton(
