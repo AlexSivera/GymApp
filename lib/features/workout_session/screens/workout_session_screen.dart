@@ -6,11 +6,13 @@ import 'package:intl/intl.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
+import '../../../services/insights_engine/session_summary.dart';
 import '../../exercise_library/providers/exercise_library_providers.dart';
 import '../../exercise_library/screens/exercise_library_screen.dart';
 import '../../routines/providers/routines_providers.dart';
 import '../providers/workout_session_providers.dart';
 import 'exercise_logging_screen.dart';
+import 'session_summary_screen.dart';
 
 class WorkoutSessionScreen extends ConsumerWidget {
   const WorkoutSessionScreen({super.key, required this.sessionId});
@@ -49,7 +51,7 @@ class WorkoutSessionScreen extends ConsumerWidget {
             actions: [
               if (session.status != SessionStatus.completed)
                 TextButton(
-                  onPressed: () => _completeSession(ref, session),
+                  onPressed: () => _completeSession(context, ref, session),
                   child: const Text('Completar'),
                 ),
             ],
@@ -116,13 +118,20 @@ class WorkoutSessionScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _completeSession(WidgetRef ref, WorkoutSession session) async {
-    await ref.read(appDatabaseProvider).workoutSessionsDao.updateSession(
+  Future<void> _completeSession(BuildContext context, WidgetRef ref, WorkoutSession session) async {
+    final db = ref.read(appDatabaseProvider);
+    await db.workoutSessionsDao.updateSession(
           session.copyWith(
             status: SessionStatus.completed,
             completedAt: Value(DateTime.now()),
           ),
         );
+
+    final summary = await computeSessionSummary(db, sessionId: sessionId);
+    if (!context.mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => SessionSummaryScreen(summary: summary)),
+    );
   }
 
   Future<void> _addExercise(BuildContext context, WidgetRef ref, int currentCount) async {

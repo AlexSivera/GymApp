@@ -39,4 +39,47 @@ class ProgressDao extends DatabaseAccessor<AppDatabase> with _$ProgressDaoMixin 
     final sortedDays = bestPerDay.keys.toList()..sort();
     return [for (final d in sortedDays) (date: d, value: bestPerDay[d]!)];
   }
+
+  // Total volume (Σ weight × reps) across all exercises, [start] inclusive, [end] exclusive.
+  Future<double> totalVolumeInRange(DateTime start, DateTime end) async {
+    final byExercise = await volumeByExerciseInRange(start, end);
+    return byExercise.values.fold<double>(0.0, (sum, v) => sum + v);
+  }
+
+  // Volume per exercise in the range — used to roll up into muscle-group totals.
+  Future<Map<int, double>> volumeByExerciseInRange(DateTime start, DateTime end) async {
+    final query = select(workoutSets).join([
+      innerJoin(sessionExercises, sessionExercises.id.equalsExp(workoutSets.sessionExerciseId)),
+      innerJoin(workoutSessions, workoutSessions.id.equalsExp(sessionExercises.workoutSessionId)),
+    ])
+      ..where(workoutSessions.status.equalsValue(SessionStatus.completed) &
+          workoutSessions.date.isBiggerOrEqualValue(start) &
+          workoutSessions.date.isSmallerThanValue(end) &
+          workoutSets.weightKg.isNotNull() &
+          workoutSets.reps.isNotNull());
+
+    final rows = await query.get();
+    final result = <int, double>{};
+    for (final row in rows) {
+      final set = row.readTable(workoutSets);
+      final sessionExercise = row.readTable(sessionExercises);
+      final volume = set.weightKg! * set.reps!;
+      result[sessionExercise.exerciseId] = (result[sessionExercise.exerciseId] ?? 0) + volume;
+    }
+    return result;
+  }
+
+  // Distinct exercise ids that have at least one logged set in a completed session.
+  Future<List<int>> exerciseIdsWithHistory() async {
+    final query = selectOnly(sessionExercises, distinct: true)
+      ..addColumns([sessionExercises.exerciseId])
+      ..join([
+        innerJoin(workoutSessions, workoutSessions.id.equalsExp(sessionExercises.workoutSessionId)),
+        innerJoin(workoutSets, workoutSets.sessionExerciseId.equalsExp(sessionExercises.id)),
+      ])
+      ..where(workoutSessions.status.equalsValue(SessionStatus.completed));
+
+    final rows = await query.get();
+    return rows.map((row) => row.read(sessionExercises.exerciseId)!).toList();
+  }
 }

@@ -26,4 +26,12 @@ class PersonalRecordsDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<int> insert(PersonalRecordsCompanion entry) => into(personalRecords).insert(entry);
+
+  Future<int> countAchievedInRange(DateTime start, DateTime end) async {
+    final rows = await (select(personalRecords)
+          ..where((p) =>
+              p.achievedAt.isBiggerOrEqualValue(start) & p.achievedAt.isSmallerThanValue(end)))
+        .get();
+    return rows.length;
+  }
 }

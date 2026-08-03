@@ -51,6 +51,29 @@ class WorkoutSessionsDao extends DatabaseAccessor<AppDatabase>
         .watch();
   }
 
+  Future<List<WorkoutSession>> getCompletedSessionsInRange(DateTime start, DateTime end) {
+    return (select(workoutSessions)
+          ..where((s) =>
+              s.status.equalsValue(SessionStatus.completed) &
+              s.date.isBiggerOrEqualValue(start) &
+              s.date.isSmallerThanValue(end)))
+        .get();
+  }
+
+  Future<List<WorkoutSession>> getLastCompletedSessionForRoutineDay(
+    int routineDayId, {
+    required int excludeSessionId,
+  }) {
+    return (select(workoutSessions)
+          ..where((s) =>
+              s.routineDayId.equals(routineDayId) &
+              s.id.equals(excludeSessionId).not() &
+              s.status.equalsValue(SessionStatus.completed))
+          ..orderBy([(s) => OrderingTerm.desc(s.date)])
+          ..limit(1))
+        .get();
+  }
+
   Future<int> createSession(WorkoutSessionsCompanion entry) {
     return into(workoutSessions).insert(entry);
   }
