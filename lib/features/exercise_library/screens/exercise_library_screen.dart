@@ -8,20 +8,32 @@ import '../providers/exercise_library_providers.dart';
 import 'create_exercise_screen.dart';
 import 'exercise_detail_screen.dart';
 
+// Selection state for multiSelect mode — a plain provider (not tied to this
+// widget's lifecycle) so it doesn't matter that ExerciseLibraryScreen is
+// stateless; autoDispose clears it once nothing is watching (i.e. once the
+// screen is popped).
+final _multiSelectionProvider = StateProvider.autoDispose<Set<int>>((ref) => {});
+
 // When [pickerMode] is true, tapping an exercise returns it to the caller
 // via Navigator.pop instead of opening its detail page — used when adding
 // an exercise to a routine day. The info button still opens the detail
 // page in that case, without selecting the exercise.
+//
+// When [multiSelect] is also true, tapping toggles a checkbox instead, and
+// a bottom bar lets the user confirm the whole batch — pops a
+// `List<Exercise>` instead of a single `Exercise`.
 class ExerciseLibraryScreen extends ConsumerWidget {
-  const ExerciseLibraryScreen({super.key, this.pickerMode = false});
+  const ExerciseLibraryScreen({super.key, this.pickerMode = false, this.multiSelect = false});
 
   final bool pickerMode;
+  final bool multiSelect;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tab = ref.watch(exerciseLibraryTabProvider);
     final viewMode = ref.watch(exerciseViewModeProvider);
     final favoriteIds = ref.watch(favoriteExerciseIdsProvider).valueOrNull?.toSet() ?? const {};
+    final selectedIds = multiSelect ? ref.watch(_multiSelectionProvider) : const <int>{};
 
     return Scaffold(
       appBar: AppBar(
@@ -80,6 +92,8 @@ class ExerciseLibraryScreen extends ConsumerWidget {
                   pickerMode: pickerMode,
                   viewMode: viewMode,
                   favoriteIds: favoriteIds,
+                  multiSelect: multiSelect,
+                  selectedIds: selectedIds,
                 ),
               ExerciseLibraryTab.favorites => _ExerciseCollection(
                   exercises: ref.watch(favoriteExercisesProvider),
@@ -87,6 +101,8 @@ class ExerciseLibraryScreen extends ConsumerWidget {
                   pickerMode: pickerMode,
                   viewMode: viewMode,
                   favoriteIds: favoriteIds,
+                  multiSelect: multiSelect,
+                  selectedIds: selectedIds,
                 ),
               ExerciseLibraryTab.all => _ExerciseCollection(
                   exercises: ref.watch(filteredExercisesProvider),
@@ -94,11 +110,14 @@ class ExerciseLibraryScreen extends ConsumerWidget {
                   pickerMode: pickerMode,
                   viewMode: viewMode,
                   favoriteIds: favoriteIds,
+                  multiSelect: multiSelect,
+                  selectedIds: selectedIds,
                 ),
             },
           ),
         ],
       ),
+      bottomNavigationBar: multiSelect ? _MultiSelectBar(selectedIds: selectedIds) : null,
     );
   }
 
@@ -194,6 +213,8 @@ class _ExerciseCollection extends StatelessWidget {
     required this.pickerMode,
     required this.viewMode,
     required this.favoriteIds,
+    required this.multiSelect,
+    required this.selectedIds,
   });
 
   final List<Exercise> exercises;
@@ -201,6 +222,8 @@ class _ExerciseCollection extends StatelessWidget {
   final bool pickerMode;
   final ExerciseViewMode viewMode;
   final Set<int> favoriteIds;
+  final bool multiSelect;
+  final Set<int> selectedIds;
 
   @override
   Widget build(BuildContext context) {
@@ -216,13 +239,29 @@ class _ExerciseCollection extends StatelessWidget {
       );
     }
     return viewMode == ExerciseViewMode.list
-        ? _ExerciseListView(exercises: exercises, pickerMode: pickerMode, favoriteIds: favoriteIds)
-        : _ExerciseGridView(exercises: exercises, pickerMode: pickerMode, favoriteIds: favoriteIds);
+        ? _ExerciseListView(
+            exercises: exercises,
+            pickerMode: pickerMode,
+            favoriteIds: favoriteIds,
+            multiSelect: multiSelect,
+            selectedIds: selectedIds,
+          )
+        : _ExerciseGridView(
+            exercises: exercises,
+            pickerMode: pickerMode,
+            favoriteIds: favoriteIds,
+            multiSelect: multiSelect,
+            selectedIds: selectedIds,
+          );
   }
 }
 
-void _openExercise(BuildContext context, bool pickerMode, Exercise exercise) {
-  if (pickerMode) {
+void _openExercise(BuildContext context, WidgetRef ref, bool pickerMode, bool multiSelect, Exercise exercise) {
+  if (multiSelect) {
+    final current = {...ref.read(_multiSelectionProvider)};
+    if (!current.remove(exercise.id)) current.add(exercise.id);
+    ref.read(_multiSelectionProvider.notifier).state = current;
+  } else if (pickerMode) {
     Navigator.of(context).pop(exercise);
   } else {
     Navigator.of(context)
@@ -236,11 +275,19 @@ void _openDetail(BuildContext context, Exercise exercise) {
 }
 
 class _ExerciseListView extends ConsumerWidget {
-  const _ExerciseListView({required this.exercises, required this.pickerMode, required this.favoriteIds});
+  const _ExerciseListView({
+    required this.exercises,
+    required this.pickerMode,
+    required this.favoriteIds,
+    required this.multiSelect,
+    required this.selectedIds,
+  });
 
   final List<Exercise> exercises;
   final bool pickerMode;
   final Set<int> favoriteIds;
+  final bool multiSelect;
+  final Set<int> selectedIds;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -251,8 +298,14 @@ class _ExerciseListView extends ConsumerWidget {
       itemBuilder: (context, index) {
         final exercise = exercises[index];
         final isFavorite = favoriteIds.contains(exercise.id);
+        final isSelected = selectedIds.contains(exercise.id);
         return ListTile(
-          leading: ExerciseThumbnail(imagePaths: exercise.imagePaths),
+          leading: multiSelect
+              ? Checkbox(
+                  value: isSelected,
+                  onChanged: (_) => _openExercise(context, ref, pickerMode, multiSelect, exercise),
+                )
+              : ExerciseThumbnail(imagePaths: exercise.imagePaths),
           title: Text(exercise.name),
           subtitle: Text(exercise.primaryMuscles.join(', ')),
           trailing: Row(
@@ -268,7 +321,7 @@ class _ExerciseListView extends ConsumerWidget {
                     color: isFavorite ? Colors.amber : theme.colorScheme.onSurfaceVariant),
                 onPressed: () => ref.read(favoritesDaoProvider).toggleFavorite(exercise.id),
               ),
-              if (pickerMode)
+              if (pickerMode && !multiSelect)
                 IconButton(
                   tooltip: 'Ver ficha',
                   icon: const Icon(Icons.info_outline),
@@ -276,7 +329,7 @@ class _ExerciseListView extends ConsumerWidget {
                 ),
             ],
           ),
-          onTap: () => _openExercise(context, pickerMode, exercise),
+          onTap: () => _openExercise(context, ref, pickerMode, multiSelect, exercise),
         );
       },
     );
@@ -284,11 +337,19 @@ class _ExerciseListView extends ConsumerWidget {
 }
 
 class _ExerciseGridView extends ConsumerWidget {
-  const _ExerciseGridView({required this.exercises, required this.pickerMode, required this.favoriteIds});
+  const _ExerciseGridView({
+    required this.exercises,
+    required this.pickerMode,
+    required this.favoriteIds,
+    required this.multiSelect,
+    required this.selectedIds,
+  });
 
   final List<Exercise> exercises;
   final bool pickerMode;
   final Set<int> favoriteIds;
+  final bool multiSelect;
+  final Set<int> selectedIds;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -305,9 +366,10 @@ class _ExerciseGridView extends ConsumerWidget {
       itemBuilder: (context, index) {
         final exercise = exercises[index];
         final isFavorite = favoriteIds.contains(exercise.id);
+        final isSelected = selectedIds.contains(exercise.id);
         return InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => _openExercise(context, pickerMode, exercise),
+          onTap: () => _openExercise(context, ref, pickerMode, multiSelect, exercise),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -320,16 +382,31 @@ class _ExerciseGridView extends ConsumerWidget {
                         child: ExerciseImage(imagePaths: exercise.imagePaths, iconSize: 36),
                       ),
                     ),
+                    if (isSelected)
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: theme.colorScheme.primary, width: 3),
+                          ),
+                        ),
+                      ),
                     Positioned(
                       top: 4,
                       left: 4,
-                      child: _RoundIconButton(
-                        icon: isFavorite ? Icons.star : Icons.star_border,
-                        color: isFavorite ? Colors.amber : Colors.white,
-                        onTap: () => ref.read(favoritesDaoProvider).toggleFavorite(exercise.id),
-                      ),
+                      child: multiSelect
+                          ? _RoundIconButton(
+                              icon: isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+                              color: isSelected ? theme.colorScheme.primary : Colors.white,
+                              onTap: () => _openExercise(context, ref, pickerMode, multiSelect, exercise),
+                            )
+                          : _RoundIconButton(
+                              icon: isFavorite ? Icons.star : Icons.star_border,
+                              color: isFavorite ? Colors.amber : Colors.white,
+                              onTap: () => ref.read(favoritesDaoProvider).toggleFavorite(exercise.id),
+                            ),
                     ),
-                    if (pickerMode)
+                    if (pickerMode && !multiSelect)
                       Positioned(
                         top: 4,
                         right: 4,
@@ -359,6 +436,39 @@ class _ExerciseGridView extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _MultiSelectBar extends ConsumerWidget {
+  const _MultiSelectBar({required this.selectedIds});
+
+  final Set<int> selectedIds;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: selectedIds.isEmpty
+                ? null
+                : () {
+                    final all = [
+                      ...ref.read(allExercisesProvider).valueOrNull ?? const <Exercise>[],
+                    ];
+                    final chosen = all.where((e) => selectedIds.contains(e.id)).toList();
+                    Navigator.of(context).pop(chosen);
+                  },
+            child: Text(selectedIds.isEmpty
+                ? 'Selecciona ejercicios'
+                : 'Añadir ${selectedIds.length} ejercicio${selectedIds.length == 1 ? '' : 's'}'),
+          ),
+        ),
+      ),
     );
   }
 }

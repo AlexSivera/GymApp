@@ -10,7 +10,9 @@ import '../../../data/database/database_provider.dart';
 import '../../../services/workout_session/start_session.dart';
 import '../../exercise_library/providers/exercise_library_providers.dart';
 import '../../exercise_library/screens/exercise_library_screen.dart';
+import '../models/exercise_config.dart';
 import '../providers/routines_providers.dart';
+import 'batch_exercise_config_screen.dart';
 
 class RoutineDayEditorScreen extends ConsumerWidget {
   const RoutineDayEditorScreen({super.key, required this.routineDayId, required this.dayName});
@@ -123,25 +125,32 @@ class RoutineDayEditorScreen extends ConsumerWidget {
   }
 
   Future<void> _addExercise(BuildContext context, WidgetRef ref) async {
-    final exercise = await Navigator.of(context).push<Exercise>(
-      MaterialPageRoute(builder: (_) => const ExerciseLibraryScreen(pickerMode: true)),
+    final exercises = await Navigator.of(context).push<List<Exercise>>(
+      MaterialPageRoute(
+        builder: (_) => const ExerciseLibraryScreen(pickerMode: true, multiSelect: true),
+      ),
     );
-    if (exercise == null || !context.mounted) return;
+    if (exercises == null || exercises.isEmpty || !context.mounted) return;
 
-    final config = await _showConfigDialog(context);
-    if (config == null) return;
+    final configs = await Navigator.of(context).push<Map<int, ExerciseConfig>>(
+      MaterialPageRoute(builder: (_) => BatchExerciseConfigScreen(exercises: exercises)),
+    );
+    if (configs == null) return;
 
-    final currentCount = ref.read(dayExercisesProvider(routineDayId)).valueOrNull?.length ?? 0;
-    await ref.read(routinesDaoProvider).addExerciseToDay(RoutineExercisesCompanion.insert(
-          routineDayId: routineDayId,
-          exerciseId: exercise.id,
-          orderIndex: currentCount,
-          targetSets: config.sets,
-          targetRepsMin: config.repsMin,
-          targetRepsMax: config.repsMax,
-          targetRir: Value(config.rir),
-          restSeconds: Value(config.restSeconds),
-        ));
+    var orderIndex = ref.read(dayExercisesProvider(routineDayId)).valueOrNull?.length ?? 0;
+    for (final exercise in exercises) {
+      final config = configs[exercise.id] ?? ExerciseConfig.defaults;
+      await ref.read(routinesDaoProvider).addExerciseToDay(RoutineExercisesCompanion.insert(
+            routineDayId: routineDayId,
+            exerciseId: exercise.id,
+            orderIndex: orderIndex++,
+            targetSets: config.sets,
+            targetRepsMin: config.repsMin,
+            targetRepsMax: config.repsMax,
+            targetRir: Value(config.rir),
+            restSeconds: Value(config.restSeconds),
+          ));
+    }
   }
 
   Future<void> _editExercise(BuildContext context, WidgetRef ref, RoutineExercise entry) async {
@@ -164,7 +173,7 @@ class RoutineDayEditorScreen extends ConsumerWidget {
         ));
   }
 
-  Future<_ExerciseConfig?> _showConfigDialog(
+  Future<ExerciseConfig?> _showConfigDialog(
     BuildContext context, {
     int initialSets = 3,
     int initialRepsMin = 8,
@@ -172,7 +181,7 @@ class RoutineDayEditorScreen extends ConsumerWidget {
     int? initialRir,
     int? initialRest = 90,
   }) {
-    return showDialog<_ExerciseConfig>(
+    return showDialog<ExerciseConfig>(
       context: context,
       builder: (context) => _ExerciseConfigDialog(
         initialSets: initialSets,
@@ -183,22 +192,6 @@ class RoutineDayEditorScreen extends ConsumerWidget {
       ),
     );
   }
-}
-
-class _ExerciseConfig {
-  const _ExerciseConfig({
-    required this.sets,
-    required this.repsMin,
-    required this.repsMax,
-    required this.rir,
-    required this.restSeconds,
-  });
-
-  final int sets;
-  final int repsMin;
-  final int repsMax;
-  final int? rir;
-  final int? restSeconds;
 }
 
 class _ExerciseConfigDialog extends StatefulWidget {
@@ -278,7 +271,7 @@ class _ExerciseConfigDialogState extends State<_ExerciseConfigDialog> {
             final repsMax = int.tryParse(_repsMax.text) ?? widget.initialRepsMax;
             final rir = int.tryParse(_rir.text);
             final rest = int.tryParse(_rest.text);
-            Navigator.of(context).pop(_ExerciseConfig(
+            Navigator.of(context).pop(ExerciseConfig(
               sets: sets,
               repsMin: repsMin,
               repsMax: repsMax,
