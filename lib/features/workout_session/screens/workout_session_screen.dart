@@ -280,8 +280,6 @@ class _ExerciseRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sets = ref.watch(setsForExerciseProvider(sessionExercise.id)).valueOrNull ?? const [];
-    final isDone = sessionExercise.status == SessionExerciseStatus.completed ||
-        sessionExercise.status == SessionExerciseStatus.skipped;
     final isExpanded = ref.watch(expandedSessionExerciseIdProvider) == sessionExercise.id;
 
     return AppCard(
@@ -292,17 +290,7 @@ class _ExerciseRow extends ConsumerWidget {
             leading: ExerciseThumbnail(imagePaths: imagePaths),
             title: Text(exerciseName),
             subtitle: Text(_setsSummary(sets)),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _StatusIcon(status: sessionExercise.status),
-                Checkbox(
-                  value: isDone,
-                  activeColor: AppTheme.statusCompleted,
-                  onChanged: (checked) => _toggleDone(ref, checked ?? false),
-                ),
-              ],
-            ),
+            trailing: _StatusIcon(status: sessionExercise.status),
             onTap: () => _toggleExpanded(ref, sets),
           ),
           AnimatedSize(
@@ -358,13 +346,6 @@ class _ExerciseRow extends ConsumerWidget {
         isCompleted: const Value(false),
       ));
     }
-  }
-
-  Future<void> _toggleDone(WidgetRef ref, bool checked) async {
-    await ref.read(sessionLoggingDaoProvider).updateSessionExerciseStatus(
-          sessionExercise.id,
-          checked ? SessionExerciseStatus.completed : SessionExerciseStatus.pending,
-        );
   }
 
   String _setsSummary(List<WorkoutSet> sets) {
@@ -783,7 +764,7 @@ class _ActiveSetCardState extends ConsumerState<_ActiveSetCard> {
             child: ElevatedButton.icon(
               onPressed: _submitting ? null : _markSet,
               icon: const Icon(Icons.check),
-              label: const Text('Marcar serie'),
+              label: const Text('Finalizar serie'),
             ),
           ),
         ],
