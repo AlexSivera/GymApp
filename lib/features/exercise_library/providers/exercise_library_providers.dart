@@ -11,17 +11,13 @@ final _progressDaoProvider = Provider(
   (ref) => ref.watch(appDatabaseProvider).progressDao,
 );
 
-final favoritesDaoProvider = Provider(
-  (ref) => ref.watch(appDatabaseProvider).favoritesDao,
-);
-
 final allExercisesProvider = StreamProvider<List<Exercise>>((ref) {
   return ref.watch(_exercisesDaoProvider).watchAll();
 });
 
 enum ExerciseViewMode { list, grid }
 
-enum ExerciseLibraryTab { recent, favorites, categories, all }
+enum ExerciseLibraryTab { recent, categories, all }
 
 final exerciseViewModeProvider = StateProvider<ExerciseViewMode>((ref) => ExerciseViewMode.list);
 
@@ -61,14 +57,4 @@ final recentExercisesProvider = Provider<List<Exercise>>((ref) {
   final ids = ref.watch(recentExerciseIdsProvider).valueOrNull ?? const [];
   final byId = {for (final e in ref.watch(allExercisesProvider).valueOrNull ?? const []) e.id: e};
   return [for (final id in ids) if (byId[id] != null) byId[id]!];
-});
-
-final favoriteExerciseIdsProvider = StreamProvider<List<int>>((ref) {
-  return ref.watch(favoritesDaoProvider).watchFavoriteExerciseIds();
-});
-
-final favoriteExercisesProvider = Provider<List<Exercise>>((ref) {
-  final ids = ref.watch(favoriteExerciseIdsProvider).valueOrNull?.toSet() ?? const {};
-  final all = ref.watch(allExercisesProvider).valueOrNull ?? const [];
-  return all.where((e) => ids.contains(e.id)).toList();
 });

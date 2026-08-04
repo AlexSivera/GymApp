@@ -32,7 +32,6 @@ class ExerciseLibraryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tab = ref.watch(exerciseLibraryTabProvider);
     final viewMode = ref.watch(exerciseViewModeProvider);
-    final favoriteIds = ref.watch(favoriteExerciseIdsProvider).valueOrNull?.toSet() ?? const {};
     final selectedIds = multiSelect ? ref.watch(_multiSelectionProvider) : const <int>{};
 
     return Scaffold(
@@ -91,16 +90,6 @@ class ExerciseLibraryScreen extends ConsumerWidget {
                   emptyMessage: 'Todavía no has usado ningún ejercicio.',
                   pickerMode: pickerMode,
                   viewMode: viewMode,
-                  favoriteIds: favoriteIds,
-                  multiSelect: multiSelect,
-                  selectedIds: selectedIds,
-                ),
-              ExerciseLibraryTab.favorites => _ExerciseCollection(
-                  exercises: ref.watch(favoriteExercisesProvider),
-                  emptyMessage: 'Marca ejercicios como favoritos para verlos aquí.',
-                  pickerMode: pickerMode,
-                  viewMode: viewMode,
-                  favoriteIds: favoriteIds,
                   multiSelect: multiSelect,
                   selectedIds: selectedIds,
                 ),
@@ -109,7 +98,6 @@ class ExerciseLibraryScreen extends ConsumerWidget {
                   emptyMessage: 'No se encontraron ejercicios.',
                   pickerMode: pickerMode,
                   viewMode: viewMode,
-                  favoriteIds: favoriteIds,
                   multiSelect: multiSelect,
                   selectedIds: selectedIds,
                 ),
@@ -125,8 +113,6 @@ class ExerciseLibraryScreen extends ConsumerWidget {
     switch (tab) {
       case ExerciseLibraryTab.recent:
         return 'Recientes';
-      case ExerciseLibraryTab.favorites:
-        return 'Favoritos';
       case ExerciseLibraryTab.categories:
         return 'Categorías';
       case ExerciseLibraryTab.all:
@@ -212,7 +198,6 @@ class _ExerciseCollection extends StatelessWidget {
     required this.emptyMessage,
     required this.pickerMode,
     required this.viewMode,
-    required this.favoriteIds,
     required this.multiSelect,
     required this.selectedIds,
   });
@@ -221,7 +206,6 @@ class _ExerciseCollection extends StatelessWidget {
   final String emptyMessage;
   final bool pickerMode;
   final ExerciseViewMode viewMode;
-  final Set<int> favoriteIds;
   final bool multiSelect;
   final Set<int> selectedIds;
 
@@ -242,14 +226,12 @@ class _ExerciseCollection extends StatelessWidget {
         ? _ExerciseListView(
             exercises: exercises,
             pickerMode: pickerMode,
-            favoriteIds: favoriteIds,
             multiSelect: multiSelect,
             selectedIds: selectedIds,
           )
         : _ExerciseGridView(
             exercises: exercises,
             pickerMode: pickerMode,
-            favoriteIds: favoriteIds,
             multiSelect: multiSelect,
             selectedIds: selectedIds,
           );
@@ -278,14 +260,12 @@ class _ExerciseListView extends ConsumerWidget {
   const _ExerciseListView({
     required this.exercises,
     required this.pickerMode,
-    required this.favoriteIds,
     required this.multiSelect,
     required this.selectedIds,
   });
 
   final List<Exercise> exercises;
   final bool pickerMode;
-  final Set<int> favoriteIds;
   final bool multiSelect;
   final Set<int> selectedIds;
 
@@ -297,15 +277,9 @@ class _ExerciseListView extends ConsumerWidget {
       itemCount: exercises.length,
       itemBuilder: (context, index) {
         final exercise = exercises[index];
-        final isFavorite = favoriteIds.contains(exercise.id);
         final isSelected = selectedIds.contains(exercise.id);
         return ListTile(
-          leading: multiSelect
-              ? Checkbox(
-                  value: isSelected,
-                  onChanged: (_) => _openExercise(context, ref, pickerMode, multiSelect, exercise),
-                )
-              : ExerciseThumbnail(imagePaths: exercise.imagePaths),
+          leading: ExerciseThumbnail(imagePaths: exercise.imagePaths),
           title: Text(exercise.name),
           subtitle: Text(exercise.primaryMuscles.join(', ')),
           trailing: Row(
@@ -316,16 +290,16 @@ class _ExerciseListView extends ConsumerWidget {
                   padding: const EdgeInsets.only(right: 4),
                   child: Icon(Icons.person_outline, color: theme.colorScheme.primary, size: 18),
                 ),
-              IconButton(
-                icon: Icon(isFavorite ? Icons.star : Icons.star_border,
-                    color: isFavorite ? Colors.amber : theme.colorScheme.onSurfaceVariant),
-                onPressed: () => ref.read(favoritesDaoProvider).toggleFavorite(exercise.id),
-              ),
               if (pickerMode && !multiSelect)
                 IconButton(
                   tooltip: 'Ver ficha',
                   icon: const Icon(Icons.info_outline),
                   onPressed: () => _openDetail(context, exercise),
+                ),
+              if (multiSelect)
+                Checkbox(
+                  value: isSelected,
+                  onChanged: (_) => _openExercise(context, ref, pickerMode, multiSelect, exercise),
                 ),
             ],
           ),
@@ -340,14 +314,12 @@ class _ExerciseGridView extends ConsumerWidget {
   const _ExerciseGridView({
     required this.exercises,
     required this.pickerMode,
-    required this.favoriteIds,
     required this.multiSelect,
     required this.selectedIds,
   });
 
   final List<Exercise> exercises;
   final bool pickerMode;
-  final Set<int> favoriteIds;
   final bool multiSelect;
   final Set<int> selectedIds;
 
@@ -365,7 +337,6 @@ class _ExerciseGridView extends ConsumerWidget {
       itemCount: exercises.length,
       itemBuilder: (context, index) {
         final exercise = exercises[index];
-        final isFavorite = favoriteIds.contains(exercise.id);
         final isSelected = selectedIds.contains(exercise.id);
         return InkWell(
           borderRadius: BorderRadius.circular(16),
@@ -391,22 +362,20 @@ class _ExerciseGridView extends ConsumerWidget {
                           ),
                         ),
                       ),
-                    Positioned(
-                      top: 4,
-                      left: 4,
-                      child: multiSelect
-                          ? _RoundIconButton(
-                              icon: isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-                              color: isSelected ? theme.colorScheme.primary : Colors.white,
-                              onTap: () => _openExercise(context, ref, pickerMode, multiSelect, exercise),
-                            )
-                          : _RoundIconButton(
-                              icon: isFavorite ? Icons.star : Icons.star_border,
-                              color: isFavorite ? Colors.amber : Colors.white,
-                              onTap: () => ref.read(favoritesDaoProvider).toggleFavorite(exercise.id),
-                            ),
-                    ),
-                    if (pickerMode && !multiSelect)
+                    // Selector (multiSelect) or the picker's info button both
+                    // live on the right — the thumbnail itself is the only
+                    // thing anchored to the left.
+                    if (multiSelect)
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: _RoundIconButton(
+                          icon: isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+                          color: isSelected ? theme.colorScheme.primary : Colors.white,
+                          onTap: () => _openExercise(context, ref, pickerMode, multiSelect, exercise),
+                        ),
+                      )
+                    else if (pickerMode)
                       Positioned(
                         top: 4,
                         right: 4,

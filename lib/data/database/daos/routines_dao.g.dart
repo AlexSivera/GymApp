@@ -6,7 +6,6 @@ part of 'routines_dao.dart';
 mixin _$RoutinesDaoMixin on DatabaseAccessor<AppDatabase> {
   $RoutinesTable get routines => attachedDatabase.routines;
   $RoutineDaysTable get routineDays => attachedDatabase.routineDays;
-  $ExercisesTable get exercises => attachedDatabase.exercises;
   $RoutineExercisesTable get routineExercises =>
       attachedDatabase.routineExercises;
   RoutinesDaoManager get managers => RoutinesDaoManager(this);
@@ -19,8 +18,6 @@ class RoutinesDaoManager {
       $$RoutinesTableTableManager(_db.attachedDatabase, _db.routines);
   $$RoutineDaysTableTableManager get routineDays =>
       $$RoutineDaysTableTableManager(_db.attachedDatabase, _db.routineDays);
-  $$ExercisesTableTableManager get exercises =>
-      $$ExercisesTableTableManager(_db.attachedDatabase, _db.exercises);
   $$RoutineExercisesTableTableManager get routineExercises =>
       $$RoutineExercisesTableTableManager(
         _db.attachedDatabase,

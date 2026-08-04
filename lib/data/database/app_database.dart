@@ -8,7 +8,6 @@ import 'package:path_provider/path_provider.dart';
 import 'converters.dart';
 import 'daos/body_weight_dao.dart';
 import 'daos/exercises_dao.dart';
-import 'daos/favorites_dao.dart';
 import 'daos/personal_records_dao.dart';
 import 'daos/progress_dao.dart';
 import 'daos/routines_dao.dart';
@@ -18,7 +17,6 @@ import 'daos/workout_sessions_dao.dart';
 import 'enums.dart';
 import 'tables/body_weight_logs_table.dart';
 import 'tables/exercises_table.dart';
-import 'tables/favorite_exercises_table.dart';
 import 'tables/personal_records_table.dart';
 import 'tables/routines_table.dart';
 import 'tables/user_settings_table.dart';
@@ -40,7 +38,6 @@ part 'app_database.g.dart';
   PersonalRecords,
   BodyWeightLogs,
   UserSettings,
-  FavoriteExercises,
 ], daos: [
   WorkoutSessionsDao,
   BodyWeightDao,
@@ -50,14 +47,13 @@ part 'app_database.g.dart';
   PersonalRecordsDao,
   ProgressDao,
   UserSettingsDao,
-  FavoritesDao,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -65,7 +61,15 @@ class AppDatabase extends _$AppDatabase {
           if (from < 2) {
             await m.addColumn(sessionExercises, sessionExercises.status);
             await m.addColumn(userSettings, userSettings.weeklyTargetSessions);
-            await m.createTable(favoriteExercises);
+            // v2 also introduced a `favorite_exercises` table, later dropped
+            // in v3 — intentionally not created here so upgraders never
+            // build a table only to remove it a step later.
+          }
+          if (from < 3) {
+            await m.addColumn(routineExercises, routineExercises.targetWeight);
+            // Drops the table from schema v2 installs; a no-op for anyone
+            // jumping straight from v1.
+            await m.database.customStatement('DROP TABLE IF EXISTS favorite_exercises');
           }
         },
         beforeOpen: (details) async {

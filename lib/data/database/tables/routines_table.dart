@@ -28,6 +28,7 @@ class RoutineExercises extends Table {
   IntColumn get targetSets => integer()();
   IntColumn get targetRepsMin => integer()();
   IntColumn get targetRepsMax => integer()();
+  RealColumn get targetWeight => real().nullable()();
   IntColumn get targetRir => integer().nullable()();
   IntColumn get restSeconds => integer().nullable()();
   TextColumn get notes => text().nullable()();

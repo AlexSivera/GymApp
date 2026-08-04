@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_motion.dart';
+import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/exercise_thumbnail.dart';
 import '../../../data/database/app_database.dart';
@@ -10,9 +12,7 @@ import '../../../data/database/database_provider.dart';
 import '../../../services/workout_session/start_session.dart';
 import '../../exercise_library/providers/exercise_library_providers.dart';
 import '../../exercise_library/screens/exercise_library_screen.dart';
-import '../models/exercise_config.dart';
 import '../providers/routines_providers.dart';
-import 'batch_exercise_config_screen.dart';
 
 class RoutineDayEditorScreen extends ConsumerWidget {
   const RoutineDayEditorScreen({super.key, required this.routineDayId, required this.dayName});
@@ -67,19 +67,10 @@ class RoutineDayEditorScreen extends ConsumerWidget {
               return Padding(
                 key: ValueKey(entry.id),
                 padding: const EdgeInsets.only(bottom: 8),
-                child: AppCard(
-                  padding: EdgeInsets.zero,
-                  child: ListTile(
-                    leading: ExerciseThumbnail(imagePaths: exercise?.imagePaths ?? const []),
-                    title: Text(exercise?.name ?? 'Ejercicio eliminado'),
-                    subtitle: Text(_summarize(entry)),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () =>
-                          ref.read(routinesDaoProvider).removeExerciseFromDay(entry.id),
-                    ),
-                    onTap: () => _editExercise(context, ref, entry),
-                  ),
+                child: _RoutineExerciseRow(
+                  entry: entry,
+                  exerciseName: exercise?.name ?? 'Ejercicio eliminado',
+                  imagePaths: exercise?.imagePaths ?? const [],
                 ),
               );
             },
@@ -101,16 +92,6 @@ class RoutineDayEditorScreen extends ConsumerWidget {
     await ref.read(routinesDaoProvider).reorderExercises(list.map((e) => e.id).toList());
   }
 
-  String _summarize(RoutineExercise entry) {
-    final parts = <String>[
-      '${entry.targetSets} series',
-      '${entry.targetRepsMin}-${entry.targetRepsMax} reps',
-      if (entry.targetRir != null) 'RIR ${entry.targetRir}',
-      if (entry.restSeconds != null) 'descanso ${entry.restSeconds}s',
-    ];
-    return parts.join(' · ');
-  }
-
   Future<void> _startWorkout(BuildContext context, WidgetRef ref) async {
     final db = ref.read(appDatabaseProvider);
     final today = DateTime.now();
@@ -124,110 +105,118 @@ class RoutineDayEditorScreen extends ConsumerWidget {
     if (context.mounted) context.go('/workout');
   }
 
+  // Multi-select the exercises, then drop straight back onto this screen —
+  // each gets sane defaults (3×8-12, descanso 90s) and can be tweaked
+  // inline by expanding its row, instead of a separate config step.
   Future<void> _addExercise(BuildContext context, WidgetRef ref) async {
     final exercises = await Navigator.of(context).push<List<Exercise>>(
       MaterialPageRoute(
         builder: (_) => const ExerciseLibraryScreen(pickerMode: true, multiSelect: true),
       ),
     );
-    if (exercises == null || exercises.isEmpty || !context.mounted) return;
-
-    final configs = await Navigator.of(context).push<Map<int, ExerciseConfig>>(
-      MaterialPageRoute(builder: (_) => BatchExerciseConfigScreen(exercises: exercises)),
-    );
-    if (configs == null) return;
+    if (exercises == null || exercises.isEmpty) return;
 
     var orderIndex = ref.read(dayExercisesProvider(routineDayId)).valueOrNull?.length ?? 0;
     for (final exercise in exercises) {
-      final config = configs[exercise.id] ?? ExerciseConfig.defaults;
       await ref.read(routinesDaoProvider).addExerciseToDay(RoutineExercisesCompanion.insert(
             routineDayId: routineDayId,
             exerciseId: exercise.id,
             orderIndex: orderIndex++,
-            targetSets: config.sets,
-            targetRepsMin: config.repsMin,
-            targetRepsMax: config.repsMax,
-            targetRir: Value(config.rir),
-            restSeconds: Value(config.restSeconds),
+            targetSets: 3,
+            targetRepsMin: 8,
+            targetRepsMax: 12,
+            restSeconds: const Value(90),
           ));
     }
   }
+}
 
-  Future<void> _editExercise(BuildContext context, WidgetRef ref, RoutineExercise entry) async {
-    final config = await _showConfigDialog(
-      context,
-      initialSets: entry.targetSets,
-      initialRepsMin: entry.targetRepsMin,
-      initialRepsMax: entry.targetRepsMax,
-      initialRir: entry.targetRir,
-      initialRest: entry.restSeconds,
-    );
-    if (config == null) return;
+class _RoutineExerciseRow extends ConsumerWidget {
+  const _RoutineExerciseRow({
+    required this.entry,
+    required this.exerciseName,
+    required this.imagePaths,
+  });
 
-    await ref.read(routinesDaoProvider).updateRoutineExercise(entry.copyWith(
-          targetSets: config.sets,
-          targetRepsMin: config.repsMin,
-          targetRepsMax: config.repsMax,
-          targetRir: Value(config.rir),
-          restSeconds: Value(config.restSeconds),
-        ));
-  }
+  final RoutineExercise entry;
+  final String exerciseName;
+  final List<String> imagePaths;
 
-  Future<ExerciseConfig?> _showConfigDialog(
-    BuildContext context, {
-    int initialSets = 3,
-    int initialRepsMin = 8,
-    int initialRepsMax = 12,
-    int? initialRir,
-    int? initialRest = 90,
-  }) {
-    return showDialog<ExerciseConfig>(
-      context: context,
-      builder: (context) => _ExerciseConfigDialog(
-        initialSets: initialSets,
-        initialRepsMin: initialRepsMin,
-        initialRepsMax: initialRepsMax,
-        initialRir: initialRir,
-        initialRest: initialRest,
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isExpanded = ref.watch(expandedRoutineExerciseIdProvider) == entry.id;
+
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          ListTile(
+            leading: ExerciseThumbnail(imagePaths: imagePaths),
+            title: Text(exerciseName),
+            subtitle: Text(_summarize(entry)),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () => ref.read(routinesDaoProvider).removeExerciseFromDay(entry.id),
+            ),
+            onTap: () {
+              final notifier = ref.read(expandedRoutineExerciseIdProvider.notifier);
+              notifier.state = notifier.state == entry.id ? null : entry.id;
+            },
+          ),
+          AnimatedSize(
+            duration: AppMotion.normal,
+            curve: AppMotion.curve,
+            alignment: Alignment.topCenter,
+            child: isExpanded
+                ? _RoutineExerciseFields(key: ValueKey('fields-${entry.id}'), entry: entry)
+                : const SizedBox(width: double.infinity),
+          ),
+        ],
       ),
     );
   }
+
+  String _summarize(RoutineExercise entry) {
+    final parts = <String>[
+      '${entry.targetSets} series',
+      '${entry.targetRepsMin}-${entry.targetRepsMax} reps',
+      if (entry.targetWeight != null) '${_fmt(entry.targetWeight!)} kg',
+      if (entry.targetRir != null) 'RIR ${entry.targetRir}',
+      if (entry.restSeconds != null) 'descanso ${entry.restSeconds}s',
+    ];
+    return parts.join(' · ');
+  }
+
+  String _fmt(double value) =>
+      value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
 }
 
-class _ExerciseConfigDialog extends StatefulWidget {
-  const _ExerciseConfigDialog({
-    required this.initialSets,
-    required this.initialRepsMin,
-    required this.initialRepsMax,
-    required this.initialRir,
-    required this.initialRest,
-  });
+class _RoutineExerciseFields extends ConsumerStatefulWidget {
+  const _RoutineExerciseFields({super.key, required this.entry});
 
-  final int initialSets;
-  final int initialRepsMin;
-  final int initialRepsMax;
-  final int? initialRir;
-  final int? initialRest;
+  final RoutineExercise entry;
 
   @override
-  State<_ExerciseConfigDialog> createState() => _ExerciseConfigDialogState();
+  ConsumerState<_RoutineExerciseFields> createState() => _RoutineExerciseFieldsState();
 }
 
-class _ExerciseConfigDialogState extends State<_ExerciseConfigDialog> {
+class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> {
   late final TextEditingController _sets;
   late final TextEditingController _repsMin;
   late final TextEditingController _repsMax;
+  late final TextEditingController _weight;
   late final TextEditingController _rir;
   late final TextEditingController _rest;
 
   @override
   void initState() {
     super.initState();
-    _sets = TextEditingController(text: '${widget.initialSets}');
-    _repsMin = TextEditingController(text: '${widget.initialRepsMin}');
-    _repsMax = TextEditingController(text: '${widget.initialRepsMax}');
-    _rir = TextEditingController(text: widget.initialRir?.toString() ?? '');
-    _rest = TextEditingController(text: widget.initialRest?.toString() ?? '');
+    _sets = TextEditingController(text: '${widget.entry.targetSets}');
+    _repsMin = TextEditingController(text: '${widget.entry.targetRepsMin}');
+    _repsMax = TextEditingController(text: '${widget.entry.targetRepsMax}');
+    _weight = TextEditingController(text: widget.entry.targetWeight?.toString() ?? '');
+    _rir = TextEditingController(text: widget.entry.targetRir?.toString() ?? '');
+    _rest = TextEditingController(text: widget.entry.restSeconds?.toString() ?? '');
   }
 
   @override
@@ -235,61 +224,62 @@ class _ExerciseConfigDialogState extends State<_ExerciseConfigDialog> {
     _sets.dispose();
     _repsMin.dispose();
     _repsMax.dispose();
+    _weight.dispose();
     _rir.dispose();
     _rest.dispose();
     super.dispose();
   }
 
+  Future<void> _persist() async {
+    await ref.read(routinesDaoProvider).updateRoutineExercise(widget.entry.copyWith(
+          targetSets: int.tryParse(_sets.text) ?? widget.entry.targetSets,
+          targetRepsMin: int.tryParse(_repsMin.text) ?? widget.entry.targetRepsMin,
+          targetRepsMax: int.tryParse(_repsMax.text) ?? widget.entry.targetRepsMax,
+          targetWeight: Value(double.tryParse(_weight.text.replaceAll(',', '.'))),
+          targetRir: Value(int.tryParse(_rir.text)),
+          restSeconds: Value(int.tryParse(_rest.text)),
+        ));
+  }
+
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Configurar ejercicio'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _numberField(_sets, 'Series'),
-          const SizedBox(height: 12),
+          const Divider(height: AppSpacing.lg),
           Row(
             children: [
-              Expanded(child: _numberField(_repsMin, 'Reps mín.')),
-              const SizedBox(width: 12),
-              Expanded(child: _numberField(_repsMax, 'Reps máx.')),
+              Expanded(child: _field(_sets, 'Series')),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(child: _field(_repsMin, 'Reps mín.')),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(child: _field(_repsMax, 'Reps máx.')),
             ],
           ),
-          const SizedBox(height: 12),
-          _numberField(_rir, 'RIR (opcional)'),
-          const SizedBox(height: 12),
-          _numberField(_rest, 'Descanso en segundos (opcional)'),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Expanded(child: _field(_weight, 'Peso objetivo (kg)', decimal: true)),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(child: _field(_rir, 'RIR (opcional)')),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(child: _field(_rest, 'Descanso (s)')),
+            ],
+          ),
         ],
       ),
-      actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
-        TextButton(
-          onPressed: () {
-            final sets = int.tryParse(_sets.text) ?? widget.initialSets;
-            final repsMin = int.tryParse(_repsMin.text) ?? widget.initialRepsMin;
-            final repsMax = int.tryParse(_repsMax.text) ?? widget.initialRepsMax;
-            final rir = int.tryParse(_rir.text);
-            final rest = int.tryParse(_rest.text);
-            Navigator.of(context).pop(ExerciseConfig(
-              sets: sets,
-              repsMin: repsMin,
-              repsMax: repsMax,
-              rir: rir,
-              restSeconds: rest,
-            ));
-          },
-          child: const Text('Guardar'),
-        ),
-      ],
     );
   }
 
-  Widget _numberField(TextEditingController controller, String label) {
+  Widget _field(TextEditingController controller, String label, {bool decimal = false}) {
     return TextField(
       controller: controller,
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
+      keyboardType: TextInputType.numberWithOptions(decimal: decimal),
+      decoration: InputDecoration(labelText: label, isDense: true),
+      onEditingComplete: _persist,
+      onTapOutside: (_) => _persist(),
     );
   }
 }
