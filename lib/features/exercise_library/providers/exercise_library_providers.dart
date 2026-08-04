@@ -11,6 +11,10 @@ final allExercisesProvider = StreamProvider<List<Exercise>>((ref) {
   return ref.watch(_exercisesDaoProvider).watchAll();
 });
 
+enum ExerciseViewMode { list, grid }
+
+final exerciseViewModeProvider = StateProvider<ExerciseViewMode>((ref) => ExerciseViewMode.list);
+
 final exerciseSearchQueryProvider = StateProvider<String>((ref) => '');
 
 final exerciseMuscleFilterProvider = StateProvider<String?>((ref) => null);

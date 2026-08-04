@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/database/app_database.dart';
+import '../../exercise_library/screens/exercise_library_screen.dart';
 import '../providers/routines_providers.dart';
 import 'routine_editor_screen.dart';
 
@@ -14,7 +15,18 @@ class RoutinesScreen extends ConsumerWidget {
     final routinesAsync = ref.watch(routinesListProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Rutinas')),
+      appBar: AppBar(
+        title: const Text('Rutinas'),
+        actions: [
+          IconButton(
+            tooltip: 'Ver ejercicios',
+            icon: const Icon(Icons.menu_book_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ExerciseLibraryScreen()),
+            ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _createRoutine(context, ref),
         child: const Icon(Icons.add),
