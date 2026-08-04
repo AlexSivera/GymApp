@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
@@ -338,15 +339,23 @@ class _StatusIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Widget icon;
     switch (status) {
       case SessionExerciseStatus.pending:
-        return const Icon(Icons.crop_square, size: 20, color: AppTheme.statusEmpty);
+        icon = const Icon(Icons.crop_square, size: 20, color: AppTheme.statusEmpty);
       case SessionExerciseStatus.inProgress:
-        return const Icon(Icons.circle, size: 12, color: AppTheme.statusPlanned);
+        icon = const Icon(Icons.circle, size: 12, color: AppTheme.statusPlanned);
       case SessionExerciseStatus.completed:
-        return const Icon(Icons.check_circle, size: 20, color: AppTheme.statusCompleted);
+        icon = const Icon(Icons.check_circle, size: 20, color: AppTheme.statusCompleted);
       case SessionExerciseStatus.skipped:
-        return const Icon(Icons.remove_circle, size: 20, color: AppTheme.statusSkipped);
+        icon = const Icon(Icons.remove_circle, size: 20, color: AppTheme.statusSkipped);
     }
+    return AnimatedSwitcher(
+      duration: AppMotion.fast,
+      switchInCurve: AppMotion.curve,
+      transitionBuilder: (child, animation) =>
+          ScaleTransition(scale: animation, child: FadeTransition(opacity: animation, child: child)),
+      child: KeyedSubtree(key: ValueKey(status), child: icon),
+    );
   }
 }

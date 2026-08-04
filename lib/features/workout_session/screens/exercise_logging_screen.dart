@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
@@ -404,9 +405,14 @@ class _SetRowState extends ConsumerState<_SetRow> {
           SizedBox(
             width: 48,
             child: IconButton(
-              icon: Icon(
-                isDone ? Icons.check_circle : Icons.check_circle_outline,
-                color: isDone ? AppTheme.statusCompleted : theme.colorScheme.onSurfaceVariant,
+              icon: AnimatedSwitcher(
+                duration: AppMotion.fast,
+                transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+                child: Icon(
+                  isDone ? Icons.check_circle : Icons.check_circle_outline,
+                  key: ValueKey(isDone),
+                  color: isDone ? AppTheme.statusCompleted : theme.colorScheme.onSurfaceVariant,
+                ),
               ),
               onPressed: isDone ? null : () => widget.onComplete(widget.set, weight: _weight, reps: _reps),
             ),

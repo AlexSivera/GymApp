@@ -9,6 +9,20 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
+    signingConfigs {
+        // Committed on purpose (debug keystores aren't secret) so every
+        // Codemagic build signs with the same key — otherwise each CI
+        // container generates its own ~/.android/debug.keystore and the
+        // resulting APK can't be installed over a previous build without
+        // uninstalling first (and losing local app data).
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
     	sourceCompatibility = JavaVersion.VERSION_17

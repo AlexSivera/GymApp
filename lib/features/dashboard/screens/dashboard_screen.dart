@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/widgets/fade_slide_in.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/hero_today_card.dart';
 import '../widgets/insight_of_day_card.dart';
@@ -32,72 +33,84 @@ class DashboardScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
-          todaysSession.when(
-            data: (session) => HeroTodayCard(session: session),
-            loading: () => const _CardPlaceholder(),
-            error: (e, _) => _CardError(message: '$e'),
+          FadeSlideIn(
+            index: 0,
+            child: todaysSession.when(
+              data: (session) => HeroTodayCard(session: session),
+              loading: () => const _CardPlaceholder(),
+              error: (e, _) => _CardError(message: '$e'),
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              Expanded(
-                child: streak.when(
-                  data: (value) => StatTile(
-                    icon: Icons.local_fire_department_outlined,
-                    label: 'Racha',
-                    value: '$value',
+          FadeSlideIn(
+            index: 1,
+            child: Row(
+              children: [
+                Expanded(
+                  child: streak.when(
+                    data: (value) => StatTile(
+                      icon: Icons.local_fire_department_outlined,
+                      label: 'Racha',
+                      value: '$value',
+                    ),
+                    loading: () => const _CardPlaceholder(),
+                    error: (e, _) => _CardError(message: '$e'),
                   ),
-                  loading: () => const _CardPlaceholder(),
-                  error: (e, _) => _CardError(message: '$e'),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: bodyWeight.when(
-                  data: (log) => StatTile(
-                    icon: Icons.monitor_weight_outlined,
-                    label: 'Peso corporal',
-                    value: log == null ? '—' : '${log.weightKg} kg',
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: bodyWeight.when(
+                    data: (log) => StatTile(
+                      icon: Icons.monitor_weight_outlined,
+                      label: 'Peso corporal',
+                      value: log == null ? '—' : '${log.weightKg} kg',
+                    ),
+                    loading: () => const _CardPlaceholder(),
+                    error: (e, _) => _CardError(message: '$e'),
                   ),
-                  loading: () => const _CardPlaceholder(),
-                  error: (e, _) => _CardError(message: '$e'),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: totalWorkouts.when(
-                  data: (value) => StatTile(
-                    icon: Icons.fitness_center_outlined,
-                    label: 'Entrenamientos',
-                    value: '$value',
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: totalWorkouts.when(
+                    data: (value) => StatTile(
+                      icon: Icons.fitness_center_outlined,
+                      label: 'Entrenamientos',
+                      value: '$value',
+                    ),
+                    loading: () => const _CardPlaceholder(),
+                    error: (e, _) => _CardError(message: '$e'),
                   ),
-                  loading: () => const _CardPlaceholder(),
-                  error: (e, _) => _CardError(message: '$e'),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
-          WeeklyGoalCard(goal: weeklyGoal),
+          FadeSlideIn(index: 2, child: WeeklyGoalCard(goal: weeklyGoal)),
           const SizedBox(height: AppSpacing.md),
-          lastSession.when(
-            data: (session) => LastSessionCard(session: session),
-            loading: () => const _CardPlaceholder(),
-            error: (e, _) => _CardError(message: '$e'),
+          FadeSlideIn(
+            index: 3,
+            child: lastSession.when(
+              data: (session) => LastSessionCard(session: session),
+              loading: () => const _CardPlaceholder(),
+              error: (e, _) => _CardError(message: '$e'),
+            ),
           ),
           nextSession.whenOrNull(data: (session) {
                 if (session == null) return null;
                 return Padding(
                   padding: const EdgeInsets.only(top: AppSpacing.md),
-                  child: NextSessionCard(session: session),
+                  child: FadeSlideIn(index: 4, child: NextSessionCard(session: session)),
                 );
               }) ??
               const SizedBox.shrink(),
           const SizedBox(height: AppSpacing.md),
-          insight.when(
-            data: (value) => InsightOfDayCard(message: value.message),
-            loading: () => const _CardPlaceholder(),
-            error: (e, _) => _CardError(message: '$e'),
+          FadeSlideIn(
+            index: 5,
+            child: insight.when(
+              data: (value) => InsightOfDayCard(message: value.message),
+              loading: () => const _CardPlaceholder(),
+              error: (e, _) => _CardError(message: '$e'),
+            ),
           ),
         ],
       ),

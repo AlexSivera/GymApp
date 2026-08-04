@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_motion.dart';
 import '../providers/rest_timer_controller.dart';
 
 // Persistent countdown banner driven by [restTimerControllerProvider]. Ticks
@@ -36,10 +37,18 @@ class _RestTimerBannerState extends ConsumerState<RestTimerBanner> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final restState = ref.watch(restTimerControllerProvider);
-    if (!restState.isActive) return const SizedBox.shrink();
 
+    return AnimatedSize(
+      duration: AppMotion.fast,
+      curve: AppMotion.curve,
+      alignment: Alignment.bottomCenter,
+      child: restState.isActive ? _buildBanner(context, restState) : const SizedBox(width: double.infinity),
+    );
+  }
+
+  Widget _buildBanner(BuildContext context, RestTimerState restState) {
+    final theme = Theme.of(context);
     final remaining = restState.remainingSeconds();
     final minutes = remaining ~/ 60;
     final seconds = remaining % 60;

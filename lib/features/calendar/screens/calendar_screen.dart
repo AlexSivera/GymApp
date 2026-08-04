@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/database/app_database.dart';
@@ -158,7 +159,9 @@ class _DayCell extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.all(4),
-      child: Container(
+      child: AnimatedContainer(
+        duration: AppMotion.fast,
+        curve: AppMotion.curve,
         decoration: BoxDecoration(
           color: fill?.withValues(alpha: 0.22) ?? AppTheme.statusEmpty.withValues(alpha: 0.5),
           shape: BoxShape.circle,

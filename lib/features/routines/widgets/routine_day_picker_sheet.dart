@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_spacing.dart';
 import '../../../data/database/app_database.dart';
@@ -40,12 +41,29 @@ class RoutineDayPickerSheet extends ConsumerWidget {
                 error: (e, _) => Text('$e'),
                 data: (routines) {
                   if (routines.isEmpty) {
-                    return Text(
-                      'Todavía no tienes rutinas creadas.',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Todavía no tienes rutinas creadas.',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              context.go('/routines');
+                            },
+                            child: const Text('Crear rutina'),
+                          ),
+                        ),
+                      ],
                     );
                   }
                   return ListView.builder(

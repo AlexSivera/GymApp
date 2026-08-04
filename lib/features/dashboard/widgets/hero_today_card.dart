@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
@@ -20,10 +21,51 @@ class HeroTodayCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final hasRoutines = ref.watch(routinesListProvider).valueOrNull?.isNotEmpty ?? true;
+    return AnimatedSwitcher(
+      duration: AppMotion.normal,
+      switchInCurve: AppMotion.curve,
+      switchOutCurve: AppMotion.curve,
+      transitionBuilder: (child, animation) =>
+          FadeTransition(opacity: animation, child: child),
+      child: KeyedSubtree(
+        key: ValueKey('${session?.id}-${session?.status}-${session?.routineDayId}-$hasRoutines'),
+        child: _buildContent(context, ref),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final session = this.session;
 
     if (session == null || session.status == SessionStatus.rest) {
+      final hasNoRoutines =
+          session == null && (ref.watch(routinesListProvider).valueOrNull?.isEmpty ?? false);
+
+      if (hasNoRoutines) {
+        return AppCard(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('👋 Primeros pasos', style: theme.textTheme.labelMedium),
+              const SizedBox(height: AppSpacing.sm),
+              Text('Crea tu primera rutina para empezar a entrenar.',
+                  style: theme.textTheme.titleLarge),
+              const SizedBox(height: AppSpacing.lg),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => context.go('/routines'),
+                  child: const Text('Crear rutina'),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
       return AppCard(
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(

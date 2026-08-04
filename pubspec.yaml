@@ -52,6 +52,7 @@ dependencies:
 
   # Temporizador de descanso / recordatorios
   flutter_local_notifications: ^18.0.1
+  timezone: ^0.10.1
 
   # Utilidades de fecha para el calendario
   table_calendar: ^3.1.3

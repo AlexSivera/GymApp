@@ -40,10 +40,28 @@ class RoutinesScreen extends ConsumerWidget {
         data: (routines) {
           if (routines.isEmpty) {
             return Center(
-              child: Text(
-                'Todavía no has creado ninguna rutina.',
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.xxl),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.list_alt_outlined, size: 40, color: theme.colorScheme.onSurfaceVariant),
+                    const SizedBox(height: AppSpacing.lg),
+                    Text('Todavía no has creado ninguna rutina', style: theme.textTheme.titleMedium),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      'Organiza tus días de entrenamiento (ej. Push / Pull / Legs) para empezar a planificar.',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    ElevatedButton(
+                      onPressed: () => _createRoutine(context, ref),
+                      child: const Text('Crear tu primera rutina'),
+                    ),
+                  ],
+                ),
               ),
             );
           }
