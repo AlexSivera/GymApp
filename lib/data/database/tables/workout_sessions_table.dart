@@ -25,6 +25,8 @@ class SessionExercises extends Table {
       integer().references(WorkoutSessions, #id, onDelete: KeyAction.cascade)();
   IntColumn get exerciseId => integer().references(Exercises, #id)();
   IntColumn get orderIndex => integer()();
+  IntColumn get status => intEnum<SessionExerciseStatus>()
+      .withDefault(Constant(SessionExerciseStatus.pending.index))();
   TextColumn get notes => text().nullable()();
 }
 

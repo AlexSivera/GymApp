@@ -69,6 +69,25 @@ class ProgressDao extends DatabaseAccessor<AppDatabase> with _$ProgressDaoMixin 
     return result;
   }
 
+  // Exercise ids ordered by most-recently-logged set — powers the exercise
+  // picker's "Recientes" tab.
+  Future<List<int>> recentlyUsedExerciseIds({int limit = 20}) async {
+    final query = select(workoutSets).join([
+      innerJoin(sessionExercises, sessionExercises.id.equalsExp(workoutSets.sessionExerciseId)),
+    ])
+      ..where(workoutSets.completedAt.isNotNull())
+      ..orderBy([OrderingTerm.desc(workoutSets.completedAt)]);
+
+    final rows = await query.get();
+    final seen = <int>[];
+    for (final row in rows) {
+      final exerciseId = row.readTable(sessionExercises).exerciseId;
+      if (!seen.contains(exerciseId)) seen.add(exerciseId);
+      if (seen.length >= limit) break;
+    }
+    return seen;
+  }
+
   // Distinct exercise ids that have at least one logged set in a completed session.
   Future<List<int>> exerciseIdsWithHistory() async {
     final query = selectOnly(sessionExercises, distinct: true)

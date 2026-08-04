@@ -24,4 +24,8 @@ final sessionForSelectedDayProvider = StreamProvider<WorkoutSession?>((ref) {
   return ref.watch(_workoutSessionsDaoProvider).watchSessionForDate(day);
 });
 
+// Multi-select mode, entered via long-press on a day.
+final calendarSelectionModeProvider = StateProvider<bool>((ref) => false);
+final calendarSelectedDaysProvider = StateProvider<Set<DateTime>>((ref) => {});
+
 DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);

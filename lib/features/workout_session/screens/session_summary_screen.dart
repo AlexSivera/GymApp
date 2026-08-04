@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/app_card.dart';
 import '../../../services/insights_engine/session_summary.dart';
@@ -100,7 +101,7 @@ class SessionSummaryScreen extends StatelessWidget {
           ],
           const SizedBox(height: 24),
           FilledButton(
-            onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+            onPressed: () => context.go('/dashboard'),
             child: const Text('Volver al inicio'),
           ),
         ],

@@ -74,8 +74,55 @@ class WorkoutSessionsDao extends DatabaseAccessor<AppDatabase>
         .get();
   }
 
+  // The single in-progress session, if any — drives the dynamic "Entreno" tab.
+  Stream<WorkoutSession?> watchActiveSession() {
+    return (select(workoutSessions)
+          ..where((s) => s.status.equalsValue(SessionStatus.inProgress))
+          ..limit(1))
+        .watchSingleOrNull();
+  }
+
+  // Earliest planned session strictly after today — "próximo entrenamiento".
+  Stream<WorkoutSession?> watchNextPlannedSession() {
+    final start = DateTime.now();
+    final startOfTomorrow = DateTime(start.year, start.month, start.day).add(const Duration(days: 1));
+    return (select(workoutSessions)
+          ..where((s) =>
+              s.status.equalsValue(SessionStatus.planned) &
+              s.date.isBiggerOrEqualValue(startOfTomorrow))
+          ..orderBy([(s) => OrderingTerm.asc(s.date)])
+          ..limit(1))
+        .watchSingleOrNull();
+  }
+
+  Future<WorkoutSession?> getSessionForDate(DateTime date) {
+    final start = DateTime(date.year, date.month, date.day);
+    final end = start.add(const Duration(days: 1));
+    return (select(workoutSessions)
+          ..where((s) =>
+              s.date.isBiggerOrEqualValue(start) & s.date.isSmallerThanValue(end))
+          ..limit(1))
+        .getSingleOrNull();
+  }
+
+  // Planned sessions from [date] (inclusive) onward, oldest first — used to
+  // find the contiguous chain of upcoming workouts when reorganizing a
+  // missed day.
+  Future<List<WorkoutSession>> getPlannedSessionsFrom(DateTime date) {
+    final start = DateTime(date.year, date.month, date.day);
+    return (select(workoutSessions)
+          ..where((s) =>
+              s.status.equalsValue(SessionStatus.planned) & s.date.isBiggerOrEqualValue(start))
+          ..orderBy([(s) => OrderingTerm.asc(s.date)]))
+        .get();
+  }
+
   Future<int> createSession(WorkoutSessionsCompanion entry) {
     return into(workoutSessions).insert(entry);
+  }
+
+  Future<void> createSessions(List<WorkoutSessionsCompanion> entries) {
+    return batch((b) => b.insertAll(workoutSessions, entries));
   }
 
   Future<bool> updateSession(WorkoutSession session) {
@@ -84,5 +131,9 @@ class WorkoutSessionsDao extends DatabaseAccessor<AppDatabase>
 
   Future<int> deleteSession(int id) {
     return (delete(workoutSessions)..where((s) => s.id.equals(id))).go();
+  }
+
+  Future<void> deleteSessions(List<int> ids) {
+    return (delete(workoutSessions)..where((s) => s.id.isIn(ids))).go();
   }
 }

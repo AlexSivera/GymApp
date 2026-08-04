@@ -19,6 +19,16 @@ final sessionExercisesProvider = StreamProvider.family<List<SessionExercise>, in
   return ref.watch(sessionLoggingDaoProvider).watchSessionExercises(sessionId);
 });
 
+final sessionExerciseByIdProvider = StreamProvider.family<SessionExercise?, int>((ref, id) {
+  return ref.watch(sessionLoggingDaoProvider).watchById(id);
+});
+
 final setsForExerciseProvider = StreamProvider.family<List<WorkoutSet>, int>((ref, sessionExerciseId) {
   return ref.watch(sessionLoggingDaoProvider).watchSets(sessionExerciseId);
+});
+
+// The single in-progress session, if any. Drives the dynamic "Entreno" tab:
+// it only appears in the bottom nav while this has data.
+final activeSessionProvider = StreamProvider<WorkoutSession?>((ref) {
+  return ref.watch(_workoutSessionsDaoProvider).watchActiveSession();
 });

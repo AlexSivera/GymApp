@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/theme/app_motion.dart';
 import '../features/calendar/screens/calendar_screen.dart';
 import '../features/dashboard/screens/dashboard_screen.dart';
-import '../features/insights/screens/insights_screen.dart';
-import '../features/progress/screens/progress_screen.dart';
+import '../features/profile/screens/profile_screen.dart';
 import '../features/routines/screens/routines_screen.dart';
+import '../features/workout_session/providers/workout_session_providers.dart';
+import '../features/workout_session/screens/workout_branch_screen.dart';
+
+// Branch indices — used to keep the shell's nav-bar wiring and the route
+// table in sync instead of hard-coding raw ints everywhere.
+const _dashboardBranch = 0;
+const _calendarBranch = 1;
+const _routinesBranch = 2;
+const _profileBranch = 3;
+const _workoutBranch = 4;
 
 final appRouter = GoRouter(
   initialLocation: '/dashboard',
@@ -23,37 +34,95 @@ final appRouter = GoRouter(
           GoRoute(path: '/routines', builder: (context, state) => const RoutinesScreen()),
         ]),
         StatefulShellBranch(routes: [
-          GoRoute(path: '/progress', builder: (context, state) => const ProgressScreen()),
+          GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
         ]),
+        // No sessionId in the path on purpose: this branch always resolves
+        // whatever session is currently in progress, so it stays valid even
+        // if the active session changes (or disappears) while it's open.
         StatefulShellBranch(routes: [
-          GoRoute(path: '/insights', builder: (context, state) => const InsightsScreen()),
+          GoRoute(path: '/workout', builder: (context, state) => const WorkoutBranchScreen()),
         ]),
       ],
     ),
   ],
 );
 
-class _AppShell extends StatelessWidget {
+class _AppShell extends ConsumerWidget {
   const _AppShell({required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hasActiveSession = ref.watch(activeSessionProvider).valueOrNull != null;
+    // Deliberately no auto-redirect when the session ends: the user may
+    // still be looking at the just-finished session's summary screen,
+    // pushed on top of this branch's own navigator. The tab simply drops
+    // out of the bottom nav so they can't tap back into it later.
+
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: (index) =>
+      bottomNavigationBar: _BottomNav(
+        currentIndex: navigationShell.currentIndex,
+        showWorkoutTab: hasActiveSession,
+        onSelect: (index) =>
             navigationShell.goBranch(index, initialLocation: index == navigationShell.currentIndex),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Inicio'),
-          NavigationDestination(icon: Icon(Icons.calendar_today_outlined), selectedIcon: Icon(Icons.calendar_today), label: 'Calendario'),
-          NavigationDestination(icon: Icon(Icons.list_alt_outlined), selectedIcon: Icon(Icons.list_alt), label: 'Rutinas'),
-          NavigationDestination(icon: Icon(Icons.show_chart_outlined), selectedIcon: Icon(Icons.show_chart), label: 'Progreso'),
-          NavigationDestination(icon: Icon(Icons.insights_outlined), selectedIcon: Icon(Icons.insights), label: 'Insights'),
-        ],
       ),
     );
   }
+}
+
+class _BottomNav extends StatelessWidget {
+  const _BottomNav({
+    required this.currentIndex,
+    required this.showWorkoutTab,
+    required this.onSelect,
+  });
+
+  final int currentIndex;
+  final bool showWorkoutTab;
+  final ValueChanged<int> onSelect;
+
+  static const _fixedDestinations = [
+    _NavItem(_dashboardBranch, Icons.home_outlined, Icons.home, 'Inicio'),
+    _NavItem(_calendarBranch, Icons.calendar_today_outlined, Icons.calendar_today, 'Calendario'),
+    _NavItem(_routinesBranch, Icons.list_alt_outlined, Icons.list_alt, 'Rutinas'),
+    _NavItem(_profileBranch, Icons.person_outline, Icons.person, 'Perfil'),
+  ];
+  static const _workoutItem =
+      _NavItem(_workoutBranch, Icons.fitness_center_outlined, Icons.fitness_center, 'Entreno');
+
+  @override
+  Widget build(BuildContext context) {
+    final items = List<_NavItem>.of(_fixedDestinations);
+    if (showWorkoutTab) {
+      // Center slot: after Calendario, before Rutinas.
+      items.insert(2, _workoutItem);
+    }
+
+    return NavigationBar(
+      selectedIndex: items.indexWhere((i) => i.branchIndex == currentIndex).clamp(0, items.length - 1),
+      onDestinationSelected: (uiIndex) => onSelect(items[uiIndex].branchIndex),
+      destinations: [
+        for (final item in items)
+          NavigationDestination(
+            icon: AnimatedSwitcher(
+              duration: AppMotion.fast,
+              child: Icon(item.icon, key: ValueKey(item.branchIndex)),
+            ),
+            selectedIcon: Icon(item.selectedIcon),
+            label: item.label,
+          ),
+      ],
+    );
+  }
+}
+
+class _NavItem {
+  const _NavItem(this.branchIndex, this.icon, this.selectedIcon, this.label);
+
+  final int branchIndex;
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
 }

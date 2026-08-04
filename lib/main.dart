@@ -13,6 +13,7 @@ void main() async {
 
   final db = AppDatabase();
   await seedExercisesIfEmpty(db);
+  await db.userSettingsDao.ensureDefaultRow();
 
   runApp(ProviderScope(
     overrides: [appDatabaseProvider.overrideWithValue(db)],

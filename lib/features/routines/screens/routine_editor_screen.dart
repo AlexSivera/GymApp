@@ -103,6 +103,13 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
         ));
   }
 
+  Future<void> _reorderDays(List<RoutineDay> current, int oldIndex, int newIndex) async {
+    final list = [...current];
+    final item = list.removeAt(oldIndex);
+    list.insert(newIndex, item);
+    await ref.read(routinesDaoProvider).reorderDays(list.map((d) => d.id).toList());
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -165,26 +172,31 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
                           ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                     );
                   }
-                  return Column(
-                    children: [
-                      for (final day in days)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: AppCard(
-                            padding: EdgeInsets.zero,
-                            child: ListTile(
-                              title: Text(day.name),
-                              trailing: const Icon(Icons.chevron_right),
-                              onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                                builder: (_) => RoutineDayEditorScreen(
-                                  routineDayId: day.id,
-                                  dayName: day.name,
-                                ),
-                              )),
-                            ),
+                  return ReorderableListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: days.length,
+                    onReorderItem: (oldIndex, newIndex) => _reorderDays(days, oldIndex, newIndex),
+                    itemBuilder: (context, index) {
+                      final day = days[index];
+                      return Padding(
+                        key: ValueKey(day.id),
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: AppCard(
+                          padding: EdgeInsets.zero,
+                          child: ListTile(
+                            title: Text(day.name),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => RoutineDayEditorScreen(
+                                routineDayId: day.id,
+                                dayName: day.name,
+                              ),
+                            )),
                           ),
                         ),
-                    ],
+                      );
+                    },
                   );
                 },
               ),

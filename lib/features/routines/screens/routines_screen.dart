@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import '../../../core/theme/app_spacing.dart';
+import '../../../core/widgets/app_card.dart';
 import '../../../data/database/app_database.dart';
 import '../../exercise_library/screens/exercise_library_screen.dart';
 import '../providers/routines_providers.dart';
@@ -45,21 +48,12 @@ class RoutinesScreen extends ConsumerWidget {
             );
           }
           return ListView.builder(
-            padding: const EdgeInsets.only(top: 8, bottom: 80),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 96),
             itemCount: routines.length,
-            itemBuilder: (context, index) {
-              final routine = routines[index];
-              return ListTile(
-                title: Text(routine.name),
-                subtitle: routine.description == null || routine.description!.isEmpty
-                    ? null
-                    : Text(routine.description!),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => RoutineEditorScreen(routineId: routine.id)),
-                ),
-              );
-            },
+            itemBuilder: (context, index) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: _RoutineCard(routine: routines[index]),
+            ),
           );
         },
       ),
@@ -98,5 +92,44 @@ class RoutinesScreen extends ConsumerWidget {
         MaterialPageRoute(builder: (_) => RoutineEditorScreen(routineId: id)),
       );
     }
+  }
+}
+
+class _RoutineCard extends ConsumerWidget {
+  const _RoutineCard({required this.routine});
+
+  final Routine routine;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final exerciseCount = ref.watch(routineExerciseCountProvider(routine.id)).valueOrNull;
+
+    return AppCard(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => RoutineEditorScreen(routineId: routine.id)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(routine.name, style: theme.textTheme.titleMedium),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    '${exerciseCount ?? '—'} ejercicios · actualizada ${DateFormat('d MMM', 'es').format(routine.updatedAt)}',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right),
+          ],
+        ),
+      ),
+    );
   }
 }

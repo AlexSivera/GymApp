@@ -33,6 +33,32 @@ Future<int> startSessionFromRoutineDay(
   });
 }
 
+// Promotes an existing `planned` session (created from Home's "Elegir
+// rutina" or the calendar) into an in-progress one, pre-populating its
+// exercises from the routine day — without creating a second session row
+// for the same date.
+Future<int> startPlannedSession(AppDatabase db, {required WorkoutSession session}) async {
+  return db.transaction(() async {
+    await db.workoutSessionsDao.updateSession(session.copyWith(
+      status: SessionStatus.inProgress,
+      startedAt: Value(DateTime.now()),
+    ));
+
+    if (session.routineDayId != null) {
+      final routineExercises =
+          await db.routinesDao.watchExercisesForDay(session.routineDayId!).first;
+      for (final entry in routineExercises) {
+        await db.sessionLoggingDao.addSessionExercise(SessionExercisesCompanion.insert(
+          workoutSessionId: session.id,
+          exerciseId: entry.exerciseId,
+          orderIndex: entry.orderIndex,
+        ));
+      }
+    }
+    return session.id;
+  });
+}
+
 // Creates an empty in-progress freestyle session (no routine) for [date].
 Future<int> startFreestyleSession(AppDatabase db, {required DateTime date}) {
   return db.workoutSessionsDao.createSession(

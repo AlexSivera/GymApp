@@ -8,14 +8,17 @@ import 'package:path_provider/path_provider.dart';
 import 'converters.dart';
 import 'daos/body_weight_dao.dart';
 import 'daos/exercises_dao.dart';
+import 'daos/favorites_dao.dart';
 import 'daos/personal_records_dao.dart';
 import 'daos/progress_dao.dart';
 import 'daos/routines_dao.dart';
 import 'daos/session_logging_dao.dart';
+import 'daos/user_settings_dao.dart';
 import 'daos/workout_sessions_dao.dart';
 import 'enums.dart';
 import 'tables/body_weight_logs_table.dart';
 import 'tables/exercises_table.dart';
+import 'tables/favorite_exercises_table.dart';
 import 'tables/personal_records_table.dart';
 import 'tables/routines_table.dart';
 import 'tables/user_settings_table.dart';
@@ -37,6 +40,7 @@ part 'app_database.g.dart';
   PersonalRecords,
   BodyWeightLogs,
   UserSettings,
+  FavoriteExercises,
 ], daos: [
   WorkoutSessionsDao,
   BodyWeightDao,
@@ -45,16 +49,25 @@ part 'app_database.g.dart';
   SessionLoggingDao,
   PersonalRecordsDao,
   ProgressDao,
+  UserSettingsDao,
+  FavoritesDao,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (Migrator m, int from, int to) async {
+          if (from < 2) {
+            await m.addColumn(sessionExercises, sessionExercises.status);
+            await m.addColumn(userSettings, userSettings.weeklyTargetSessions);
+            await m.createTable(favoriteExercises);
+          }
+        },
         beforeOpen: (details) async {
           // Required for onDelete: KeyAction.cascade to actually take effect —
           // SQLite ignores foreign key constraints unless this is set per connection.

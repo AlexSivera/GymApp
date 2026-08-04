@@ -6,4 +6,5 @@ class UserSettings extends Table {
   TextColumn get units => text().withDefault(const Constant('kg'))();
   TextColumn get name => text().nullable()();
   TextColumn get goals => text().nullable()();
+  IntColumn get weeklyTargetSessions => integer().withDefault(const Constant(4))();
 }

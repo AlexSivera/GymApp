@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/exercise_thumbnail.dart';
@@ -9,7 +10,6 @@ import '../../../data/database/database_provider.dart';
 import '../../../services/workout_session/start_session.dart';
 import '../../exercise_library/providers/exercise_library_providers.dart';
 import '../../exercise_library/screens/exercise_library_screen.dart';
-import '../../workout_session/screens/workout_session_screen.dart';
 import '../providers/routines_providers.dart';
 
 class RoutineDayEditorScreen extends ConsumerWidget {
@@ -54,13 +54,16 @@ class RoutineDayEditorScreen extends ConsumerWidget {
               ),
             );
           }
-          return ListView.builder(
+          return ReorderableListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: routineExercises.length,
+            onReorderItem: (oldIndex, newIndex) =>
+                _reorder(ref, routineExercises, oldIndex, newIndex),
             itemBuilder: (context, index) {
               final entry = routineExercises[index];
               final exercise = exercisesById[entry.exerciseId];
               return Padding(
+                key: ValueKey(entry.id),
                 padding: const EdgeInsets.only(bottom: 8),
                 child: AppCard(
                   padding: EdgeInsets.zero,
@@ -84,6 +87,18 @@ class RoutineDayEditorScreen extends ConsumerWidget {
     );
   }
 
+  Future<void> _reorder(
+    WidgetRef ref,
+    List<RoutineExercise> current,
+    int oldIndex,
+    int newIndex,
+  ) async {
+    final list = [...current];
+    final item = list.removeAt(oldIndex);
+    list.insert(newIndex, item);
+    await ref.read(routinesDaoProvider).reorderExercises(list.map((e) => e.id).toList());
+  }
+
   String _summarize(RoutineExercise entry) {
     final parts = <String>[
       '${entry.targetSets} series',
@@ -96,15 +111,15 @@ class RoutineDayEditorScreen extends ConsumerWidget {
 
   Future<void> _startWorkout(BuildContext context, WidgetRef ref) async {
     final db = ref.read(appDatabaseProvider);
-    final sessionId = await startSessionFromRoutineDay(
-      db,
-      routineDayId: routineDayId,
-      date: DateTime.now(),
-    );
-    if (!context.mounted) return;
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => WorkoutSessionScreen(sessionId: sessionId)),
-    );
+    final today = DateTime.now();
+    final existing = await db.workoutSessionsDao.getSessionForDate(today);
+
+    if (existing != null && existing.status == SessionStatus.planned) {
+      await startPlannedSession(db, session: existing.copyWith(routineDayId: Value(routineDayId)));
+    } else {
+      await startSessionFromRoutineDay(db, routineDayId: routineDayId, date: today);
+    }
+    if (context.mounted) context.go('/workout');
   }
 
   Future<void> _addExercise(BuildContext context, WidgetRef ref) async {

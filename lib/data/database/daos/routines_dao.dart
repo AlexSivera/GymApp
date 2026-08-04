@@ -34,12 +34,39 @@ class RoutinesDao extends DatabaseAccessor<AppDatabase> with _$RoutinesDaoMixin 
         .watch();
   }
 
+  // Total exercises across every day of the routine — used by the routine
+  // list cards ("N ejercicios").
+  Future<int> countExercisesInRoutine(int routineId) async {
+    final query = selectOnly(routineExercises)
+      ..addColumns([routineExercises.id])
+      ..join([innerJoin(routineDays, routineDays.id.equalsExp(routineExercises.routineDayId))])
+      ..where(routineDays.routineId.equals(routineId));
+    final rows = await query.get();
+    return rows.length;
+  }
+
+  Stream<RoutineDay?> watchDayById(int id) {
+    return (select(routineDays)..where((d) => d.id.equals(id))).watchSingleOrNull();
+  }
+
   Future<int> createDay(RoutineDaysCompanion entry) => into(routineDays).insert(entry);
 
   Future<bool> updateDay(RoutineDay day) => update(routineDays).replace(day);
 
   Future<int> deleteDay(int id) =>
       (delete(routineDays)..where((d) => d.id.equals(id))).go();
+
+  Future<void> reorderDays(List<int> dayIdsInOrder) async {
+    await batch((b) {
+      for (var i = 0; i < dayIdsInOrder.length; i++) {
+        b.update(
+          routineDays,
+          RoutineDaysCompanion(dayOrder: Value(i)),
+          where: (d) => d.id.equals(dayIdsInOrder[i]),
+        );
+      }
+    });
+  }
 
   Stream<List<RoutineExercise>> watchExercisesForDay(int routineDayId) {
     return (select(routineExercises)
@@ -56,4 +83,16 @@ class RoutinesDao extends DatabaseAccessor<AppDatabase> with _$RoutinesDaoMixin 
 
   Future<int> removeExerciseFromDay(int id) =>
       (delete(routineExercises)..where((e) => e.id.equals(id))).go();
+
+  Future<void> reorderExercises(List<int> routineExerciseIdsInOrder) async {
+    await batch((b) {
+      for (var i = 0; i < routineExerciseIdsInOrder.length; i++) {
+        b.update(
+          routineExercises,
+          RoutineExercisesCompanion(orderIndex: Value(i)),
+          where: (e) => e.id.equals(routineExerciseIdsInOrder[i]),
+        );
+      }
+    });
+  }
 }

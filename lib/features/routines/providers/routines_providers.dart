@@ -22,3 +22,11 @@ final routineDaysProvider = StreamProvider.family<List<RoutineDay>, int>((ref, r
 final dayExercisesProvider = StreamProvider.family<List<RoutineExercise>, int>((ref, routineDayId) {
   return ref.watch(routinesDaoProvider).watchExercisesForDay(routineDayId);
 });
+
+final routineDayByIdProvider = StreamProvider.family<RoutineDay?, int>((ref, routineDayId) {
+  return ref.watch(routinesDaoProvider).watchDayById(routineDayId);
+});
+
+final routineExerciseCountProvider = FutureProvider.family<int, int>((ref, routineId) {
+  return ref.watch(routinesDaoProvider).countExercisesInRoutine(routineId);
+});

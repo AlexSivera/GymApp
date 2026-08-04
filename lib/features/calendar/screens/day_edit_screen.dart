@@ -5,19 +5,20 @@ import 'package:intl/intl.dart';
 
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
-import '../../workout_session/screens/workout_session_screen.dart';
 
-class DayDetailScreen extends ConsumerStatefulWidget {
-  const DayDetailScreen({super.key, required this.date, this.existingSession});
+// Full editor for a day's session metadata (status/feeling/body weight/
+// notes) — reached via "Editar" from the compact day-detail bottom sheet.
+class DayEditScreen extends ConsumerStatefulWidget {
+  const DayEditScreen({super.key, required this.date, this.existingSession});
 
   final DateTime date;
   final WorkoutSession? existingSession;
 
   @override
-  ConsumerState<DayDetailScreen> createState() => _DayDetailScreenState();
+  ConsumerState<DayEditScreen> createState() => _DayEditScreenState();
 }
 
-class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
+class _DayEditScreenState extends ConsumerState<DayEditScreen> {
   late SessionStatus _status;
   late final TextEditingController _notesController;
   late final TextEditingController _bodyWeightController;
@@ -32,8 +33,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
             ? SessionStatus.completed
             : SessionStatus.planned);
     _notesController = TextEditingController(text: session?.notes ?? '');
-    _bodyWeightController =
-        TextEditingController(text: session?.bodyWeightKg?.toString() ?? '');
+    _bodyWeightController = TextEditingController(text: session?.bodyWeightKg?.toString() ?? '');
     _feeling = session?.feeling;
   }
 
@@ -72,38 +72,12 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
     if (mounted) Navigator.of(context).pop();
   }
 
-  Future<void> _delete() async {
-    final existing = widget.existingSession;
-    if (existing == null) return;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Eliminar entrenamiento'),
-        content: const Text('¿Seguro que quieres eliminar el entrenamiento de este día?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancelar')),
-          TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Eliminar')),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-
-    await ref.read(appDatabaseProvider).workoutSessionsDao.deleteSession(existing.id);
-    if (mounted) Navigator.of(context).pop();
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(DateFormat('EEEE d MMMM', 'es').format(widget.date)),
-        actions: [
-          if (widget.existingSession != null)
-            IconButton(onPressed: _delete, icon: const Icon(Icons.delete_outline)),
-        ],
-      ),
+      appBar: AppBar(title: Text(DateFormat('EEEE d MMMM', 'es').format(widget.date))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -142,7 +116,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
           TextField(
             controller: _bodyWeightController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Ej. 78.5', border: OutlineInputBorder()),
+            decoration: const InputDecoration(hintText: 'Ej. 78.5'),
           ),
           const SizedBox(height: 24),
           Text('Notas', style: theme.textTheme.titleMedium),
@@ -150,23 +124,13 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
           TextField(
             controller: _notesController,
             maxLines: 4,
-            decoration: const InputDecoration(hintText: 'Cómo te sentiste, ajustes, etc.', border: OutlineInputBorder()),
+            decoration: const InputDecoration(hintText: 'Cómo te sentiste, ajustes, etc.'),
           ),
           const SizedBox(height: 32),
-          FilledButton(
+          ElevatedButton(
             onPressed: _save,
             child: Text(widget.existingSession == null ? 'Crear entrenamiento' : 'Guardar cambios'),
           ),
-          if (widget.existingSession != null) ...[
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => WorkoutSessionScreen(sessionId: widget.existingSession!.id),
-              )),
-              icon: const Icon(Icons.fitness_center),
-              label: const Text('Registrar series'),
-            ),
-          ],
         ],
       ),
     );

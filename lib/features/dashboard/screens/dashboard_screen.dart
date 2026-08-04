@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/theme/app_spacing.dart';
 import '../providers/dashboard_providers.dart';
+import '../widgets/hero_today_card.dart';
+import '../widgets/insight_of_day_card.dart';
 import '../widgets/last_session_card.dart';
+import '../widgets/next_session_card.dart';
 import '../widgets/stat_tile.dart';
-import '../widgets/today_session_card.dart';
+import '../widgets/weekly_goal_card.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -14,22 +18,26 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final todaysSession = ref.watch(todaysSessionProvider);
     final lastSession = ref.watch(lastCompletedSessionProvider);
+    final nextSession = ref.watch(nextPlannedSessionProvider);
     final bodyWeight = ref.watch(latestBodyWeightProvider);
     final streak = ref.watch(workoutStreakProvider);
+    final totalWorkouts = ref.watch(totalWorkoutsCompletedProvider);
+    final weeklyGoal = ref.watch(weeklyGoalProvider);
+    final insight = ref.watch(insightOfDayProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(DateFormat('EEEE d MMMM', 'es').format(DateTime.now())),
+        title: Text(_capitalize(DateFormat('EEEE d MMMM', 'es').format(DateTime.now()))),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
           todaysSession.when(
-            data: (session) => TodaySessionCard(session: session),
+            data: (session) => HeroTodayCard(session: session),
             loading: () => const _CardPlaceholder(),
             error: (e, _) => _CardError(message: '$e'),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Row(
             children: [
               Expanded(
@@ -43,7 +51,7 @@ class DashboardScreen extends ConsumerWidget {
                   error: (e, _) => _CardError(message: '$e'),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: bodyWeight.when(
                   data: (log) => StatTile(
@@ -55,11 +63,39 @@ class DashboardScreen extends ConsumerWidget {
                   error: (e, _) => _CardError(message: '$e'),
                 ),
               ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: totalWorkouts.when(
+                  data: (value) => StatTile(
+                    icon: Icons.fitness_center_outlined,
+                    label: 'Entrenamientos',
+                    value: '$value',
+                  ),
+                  loading: () => const _CardPlaceholder(),
+                  error: (e, _) => _CardError(message: '$e'),
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
+          WeeklyGoalCard(goal: weeklyGoal),
+          const SizedBox(height: AppSpacing.md),
           lastSession.when(
             data: (session) => LastSessionCard(session: session),
+            loading: () => const _CardPlaceholder(),
+            error: (e, _) => _CardError(message: '$e'),
+          ),
+          nextSession.whenOrNull(data: (session) {
+                if (session == null) return null;
+                return Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.md),
+                  child: NextSessionCard(session: session),
+                );
+              }) ??
+              const SizedBox.shrink(),
+          const SizedBox(height: AppSpacing.md),
+          insight.when(
+            data: (value) => InsightOfDayCard(message: value.message),
             loading: () => const _CardPlaceholder(),
             error: (e, _) => _CardError(message: '$e'),
           ),
@@ -67,6 +103,8 @@ class DashboardScreen extends ConsumerWidget {
       ),
     );
   }
+
+  String _capitalize(String s) => s.isEmpty ? s : '${s[0].toUpperCase()}${s.substring(1)}';
 }
 
 class _CardPlaceholder extends StatelessWidget {
