@@ -181,7 +181,6 @@ class _RoutineExerciseRow extends ConsumerWidget {
       '${entry.targetSets} series',
       '${entry.targetRepsMin}-${entry.targetRepsMax} reps',
       if (entry.targetWeight != null) '${_fmt(entry.targetWeight!)} kg',
-      if (entry.targetRir != null) 'RIR ${entry.targetRir}',
       if (entry.restSeconds != null) 'descanso ${entry.restSeconds}s',
     ];
     return parts.join(' · ');
@@ -205,7 +204,6 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
   late final TextEditingController _repsMin;
   late final TextEditingController _repsMax;
   late final TextEditingController _weight;
-  late final TextEditingController _rir;
   late final TextEditingController _rest;
 
   @override
@@ -215,7 +213,6 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
     _repsMin = TextEditingController(text: '${widget.entry.targetRepsMin}');
     _repsMax = TextEditingController(text: '${widget.entry.targetRepsMax}');
     _weight = TextEditingController(text: widget.entry.targetWeight?.toString() ?? '');
-    _rir = TextEditingController(text: widget.entry.targetRir?.toString() ?? '');
     _rest = TextEditingController(text: widget.entry.restSeconds?.toString() ?? '');
   }
 
@@ -225,7 +222,6 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
     _repsMin.dispose();
     _repsMax.dispose();
     _weight.dispose();
-    _rir.dispose();
     _rest.dispose();
     super.dispose();
   }
@@ -236,7 +232,6 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
           targetRepsMin: int.tryParse(_repsMin.text) ?? widget.entry.targetRepsMin,
           targetRepsMax: int.tryParse(_repsMax.text) ?? widget.entry.targetRepsMax,
           targetWeight: Value(double.tryParse(_weight.text.replaceAll(',', '.'))),
-          targetRir: Value(int.tryParse(_rir.text)),
           restSeconds: Value(int.tryParse(_rest.text)),
         ));
   }
@@ -262,8 +257,6 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
           Row(
             children: [
               Expanded(child: _field(_weight, 'Peso objetivo (kg)', decimal: true)),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(child: _field(_rir, 'RIR (opcional)')),
               const SizedBox(width: AppSpacing.sm),
               Expanded(child: _field(_rest, 'Descanso (s)')),
             ],

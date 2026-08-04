@@ -15,6 +15,7 @@ import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../services/insights_engine/session_summary.dart';
 import '../../../services/progression_engine/check_and_record_prs.dart';
+import '../../../services/progression_engine/previous_performance.dart';
 import '../../../services/progression_engine/suggest_next_load.dart';
 import '../../exercise_library/providers/exercise_library_providers.dart';
 import '../../exercise_library/screens/exercise_library_screen.dart';
@@ -259,7 +260,7 @@ class _ElapsedTimeState extends State<_ElapsedTime> {
 }
 
 typedef _ExerciseTargets = ({int restSeconds, int repsMin, int repsMax, int sets});
-enum _ExerciseMenuAction { changeExercise, history, notes, skip, delete }
+enum _ExerciseMenuAction { history, notes, skip }
 
 class _ExerciseRow extends ConsumerWidget {
   const _ExerciseRow({
@@ -302,7 +303,7 @@ class _ExerciseRow extends ConsumerWidget {
                 ),
               ],
             ),
-            onTap: () => _toggleExpanded(ref),
+            onTap: () => _toggleExpanded(ref, sets),
           ),
           AnimatedSize(
             duration: AppMotion.normal,
@@ -323,9 +324,40 @@ class _ExerciseRow extends ConsumerWidget {
     );
   }
 
-  void _toggleExpanded(WidgetRef ref) {
+  // Opening a routine-backed exercise for the first time pre-creates all of
+  // its target sets (prefilled from last time / the suggested weight) so
+  // the checklist matches the plan immediately, instead of starting empty.
+  Future<void> _toggleExpanded(WidgetRef ref, List<WorkoutSet> currentSets) async {
     final notifier = ref.read(expandedSessionExerciseIdProvider.notifier);
-    notifier.state = notifier.state == sessionExercise.id ? null : sessionExercise.id;
+    final opening = notifier.state != sessionExercise.id;
+    notifier.state = opening ? sessionExercise.id : null;
+    if (!opening || currentSets.isNotEmpty || targets == null) return;
+
+    final db = ref.read(appDatabaseProvider);
+    final previousSets = await getPreviousSetsForExercise(
+      db,
+      exerciseId: sessionExercise.exerciseId,
+      excludeSessionId: sessionId,
+    );
+    final suggestion = previousSets.isEmpty
+        ? null
+        : suggestNextLoad(
+            previousSets: previousSets,
+            targetRepsMin: targets!.repsMin,
+            targetRepsMax: targets!.repsMax,
+          );
+
+    final dao = ref.read(sessionLoggingDaoProvider);
+    for (var i = 0; i < targets!.sets; i++) {
+      final matchingPrevious = i < previousSets.length ? previousSets[i] : null;
+      await dao.addSet(WorkoutSetsCompanion.insert(
+        sessionExerciseId: sessionExercise.id,
+        setNumber: i + 1,
+        weightKg: Value(matchingPrevious?.weightKg ?? suggestion?.suggestedWeight),
+        reps: Value(matchingPrevious?.reps ?? targets!.repsMax),
+        isCompleted: const Value(false),
+      ));
+    }
   }
 
   Future<void> _toggleDone(WidgetRef ref, bool checked) async {
@@ -412,89 +444,95 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
         ? null
         : suggestNextLoad(previousSets: previousSets, targetRepsMin: repsMin, targetRepsMax: repsMax);
 
+    final incompleteSets = sets.where((s) => !s.isCompleted);
+    final activeSet = incompleteSets.isEmpty ? null : incompleteSets.first;
+    final otherSets = [for (final s in sets) if (s.id != activeSet?.id) s];
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Divider(height: AppSpacing.lg),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              PopupMenuButton<_ExerciseMenuAction>(
-                onSelected: (action) => _handleMenuAction(context, ref, action),
-                itemBuilder: (context) => const [
-                  PopupMenuItem(value: _ExerciseMenuAction.changeExercise, child: Text('Cambiar ejercicio')),
-                  PopupMenuItem(value: _ExerciseMenuAction.history, child: Text('Historial')),
-                  PopupMenuItem(value: _ExerciseMenuAction.notes, child: Text('Notas')),
-                  PopupMenuItem(value: _ExerciseMenuAction.skip, child: Text('Omitir ejercicio')),
-                  PopupMenuItem(value: _ExerciseMenuAction.delete, child: Text('Eliminar ejercicio')),
-                ],
-              ),
-            ],
-          ),
-          if (previousSets.isNotEmpty) ...[
-            Text('Última vez', style: theme.textTheme.labelMedium),
-            const SizedBox(height: AppSpacing.sm),
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.xs,
-              children: [
-                for (final s in previousSets) Chip(label: Text('${_fmt(s.weightKg)} × ${s.reps ?? '—'}')),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-          ],
-          if (suggestion != null) ...[
-            AppCard(
-              padding: const EdgeInsets.all(AppSpacing.md),
+          if (previousSets.isNotEmpty || suggestion != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.trending_up, color: theme.colorScheme.primary),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(child: Text(suggestion.message, style: theme.textTheme.bodyMedium)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (previousSets.isNotEmpty)
+                          Text(
+                            'Última vez: ${previousSets.map((s) => '${_fmt(s.weightKg)}×${s.reps ?? '—'}').join(', ')}',
+                            style: theme.textTheme.bodySmall
+                                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                          ),
+                        if (suggestion != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              suggestion.message,
+                              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.primary),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  _OverflowMenu(onSelected: (action) => _handleMenuAction(context, ref, action)),
                 ],
               ),
+            )
+          else
+            Align(
+              alignment: Alignment.centerRight,
+              child: _OverflowMenu(onSelected: (action) => _handleMenuAction(context, ref, action)),
             ),
-            const SizedBox(height: AppSpacing.md),
-          ],
-          if (sets.isNotEmpty) ...[
-            Row(
-              children: [
-                SizedBox(width: 32, child: Text('Serie', style: theme.textTheme.labelMedium)),
-                Expanded(child: Text('Peso', style: theme.textTheme.labelMedium)),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(child: Text('Reps', style: theme.textTheme.labelMedium)),
-                const SizedBox(width: 48),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            for (final set in sets)
-              Dismissible(
-                key: ValueKey(set.id),
-                direction: DismissDirection.endToStart,
-                background: Container(
-                  alignment: Alignment.centerRight,
-                  padding: const EdgeInsets.only(right: AppSpacing.md),
-                  child: Icon(Icons.delete_outline, color: theme.colorScheme.error),
-                ),
-                onDismissed: (_) => ref.read(sessionLoggingDaoProvider).deleteSet(set.id),
-                child: _SetRow(
-                  key: ValueKey('row-${set.id}'),
-                  set: set,
-                  onComplete: (set, {required weight, required reps}) =>
-                      _completeSet(context, ref, set, weight: weight, reps: reps),
-                ),
+          if (activeSet != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              child: _ActiveSetCard(
+                key: ValueKey('active-${activeSet.id}'),
+                set: activeSet,
+                onComplete: (weight, reps) => _completeSet(context, ref, activeSet, weight: weight, reps: reps),
               ),
-            const SizedBox(height: AppSpacing.sm),
-          ],
+            ),
+          for (final set in otherSets)
+            _CompactSetRow(
+              key: ValueKey('row-${set.id}'),
+              set: set,
+              onDelete: () => ref.read(sessionLoggingDaoProvider).deleteSet(set.id),
+            ),
+          if (otherSets.isNotEmpty) const SizedBox(height: AppSpacing.sm),
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
               onPressed: () => _addSet(ref, sets, suggestion),
               icon: const Icon(Icons.add),
-              label: const Text('Añadir serie'),
+              label: const Text('Añadir otra serie'),
             ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _changeExercise(context, ref),
+                  icon: const Icon(Icons.swap_horiz, size: 18),
+                  label: const Text('Cambiar por otro'),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _delete(context, ref),
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  label: const Text('Quitar'),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -564,8 +602,6 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
 
   Future<void> _handleMenuAction(BuildContext context, WidgetRef ref, _ExerciseMenuAction action) async {
     switch (action) {
-      case _ExerciseMenuAction.changeExercise:
-        await _changeExercise(context, ref);
       case _ExerciseMenuAction.history:
         await _showHistory(context, ref);
       case _ExerciseMenuAction.notes:
@@ -575,8 +611,6 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
             .read(sessionLoggingDaoProvider)
             .updateSessionExerciseStatus(sessionExercise.id, SessionExerciseStatus.skipped);
         ref.read(expandedSessionExerciseIdProvider.notifier).state = null;
-      case _ExerciseMenuAction.delete:
-        await _delete(context, ref);
     }
   }
 
@@ -667,94 +701,203 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
   }
 }
 
-class _SetRow extends ConsumerStatefulWidget {
-  const _SetRow({super.key, required this.set, required this.onComplete});
+class _OverflowMenu extends StatelessWidget {
+  const _OverflowMenu({required this.onSelected});
 
-  final WorkoutSet set;
-  final Future<void> Function(WorkoutSet set, {required double? weight, required int? reps}) onComplete;
+  final ValueChanged<_ExerciseMenuAction> onSelected;
 
   @override
-  ConsumerState<_SetRow> createState() => _SetRowState();
+  Widget build(BuildContext context) {
+    return PopupMenuButton<_ExerciseMenuAction>(
+      padding: EdgeInsets.zero,
+      icon: Icon(Icons.more_vert, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
+      onSelected: onSelected,
+      itemBuilder: (context) => const [
+        PopupMenuItem(value: _ExerciseMenuAction.history, child: Text('Historial')),
+        PopupMenuItem(value: _ExerciseMenuAction.notes, child: Text('Notas')),
+        PopupMenuItem(value: _ExerciseMenuAction.skip, child: Text('Omitir ejercicio')),
+      ],
+    );
+  }
 }
 
-class _SetRowState extends ConsumerState<_SetRow> {
-  late final TextEditingController _weightController;
-  late final TextEditingController _repsController;
+// The one set the user is currently meant to log, front and center with
+// +/- steppers instead of raw text fields — matches "no abrir una ventana
+// con teclado para poner los kilos".
+class _ActiveSetCard extends ConsumerStatefulWidget {
+  const _ActiveSetCard({super.key, required this.set, required this.onComplete});
+
+  final WorkoutSet set;
+  final Future<void> Function(double? weight, int? reps) onComplete;
+
+  @override
+  ConsumerState<_ActiveSetCard> createState() => _ActiveSetCardState();
+}
+
+class _ActiveSetCardState extends ConsumerState<_ActiveSetCard> {
+  late double _weight;
+  late int _reps;
+  bool _submitting = false;
 
   @override
   void initState() {
     super.initState();
-    _weightController = TextEditingController(text: widget.set.weightKg?.toString() ?? '');
-    _repsController = TextEditingController(text: widget.set.reps?.toString() ?? '');
+    _weight = widget.set.weightKg ?? 0;
+    _reps = widget.set.reps ?? 0;
   }
 
-  @override
-  void dispose() {
-    _weightController.dispose();
-    _repsController.dispose();
-    super.dispose();
-  }
+  void _adjustWeight(double delta) => setState(() => _weight = (_weight + delta).clamp(0, 999));
+  void _adjustReps(int delta) => setState(() => _reps = (_reps + delta).clamp(0, 99));
 
-  double? get _weight => double.tryParse(_weightController.text.replaceAll(',', '.'));
-  int? get _reps => int.tryParse(_repsController.text);
-
-  Future<void> _persistFieldEdit() async {
-    if (!widget.set.isCompleted) return; // Uncompleted rows persist on complete instead.
-    await ref
-        .read(sessionLoggingDaoProvider)
-        .updateSet(widget.set.copyWith(weightKg: Value(_weight), reps: Value(_reps)));
+  Future<void> _markSet() async {
+    setState(() => _submitting = true);
+    await widget.onComplete(_weight, _reps);
+    if (mounted) setState(() => _submitting = false);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDone = widget.set.isCompleted;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Row(
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text('SERIE ${widget.set.setNumber}', style: theme.textTheme.labelMedium),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Expanded(child: _Stepper(label: 'kg', value: _fmt(_weight), onDecrement: () => _adjustWeight(-2.5), onIncrement: () => _adjustWeight(2.5))),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(child: _Stepper(label: 'reps', value: '$_reps', onDecrement: () => _adjustReps(-1), onIncrement: () => _adjustReps(1))),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
           SizedBox(
-            width: 32,
-            child: Text('${widget.set.setNumber}', style: theme.textTheme.bodyMedium),
-          ),
-          Expanded(
-            child: TextField(
-              controller: _weightController,
-              enabled: true,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(isDense: true, hintText: 'kg'),
-              onEditingComplete: _persistFieldEdit,
-              onTapOutside: (_) => _persistFieldEdit(),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: TextField(
-              controller: _repsController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(isDense: true, hintText: 'reps'),
-              onEditingComplete: _persistFieldEdit,
-              onTapOutside: (_) => _persistFieldEdit(),
-            ),
-          ),
-          SizedBox(
-            width: 48,
-            child: IconButton(
-              icon: AnimatedSwitcher(
-                duration: AppMotion.fast,
-                transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
-                child: Icon(
-                  isDone ? Icons.check_circle : Icons.check_circle_outline,
-                  key: ValueKey(isDone),
-                  color: isDone ? AppTheme.statusCompleted : theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              onPressed: isDone ? null : () => widget.onComplete(widget.set, weight: _weight, reps: _reps),
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _submitting ? null : _markSet,
+              icon: const Icon(Icons.check),
+              label: const Text('Marcar serie'),
             ),
           ),
         ],
       ),
     );
+  }
+
+  String _fmt(double value) =>
+      value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
+}
+
+class _Stepper extends StatelessWidget {
+  const _Stepper({
+    required this.label,
+    required this.value,
+    required this.onDecrement,
+    required this.onIncrement,
+  });
+
+  final String label;
+  final String value;
+  final VoidCallback onDecrement;
+  final VoidCallback onIncrement;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _StepperButton(icon: Icons.remove, onTap: onDecrement),
+        Expanded(
+          child: Column(
+            children: [
+              Text(value, style: theme.textTheme.headlineMedium, textAlign: TextAlign.center),
+              Text(label,
+                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            ],
+          ),
+        ),
+        _StepperButton(icon: Icons.add, onTap: onIncrement),
+      ],
+    );
+  }
+}
+
+class _StepperButton extends StatelessWidget {
+  const _StepperButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: theme.colorScheme.surface,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Icon(icon, size: 20),
+        ),
+      ),
+    );
+  }
+}
+
+// A set that isn't the active one — either already completed, or queued
+// further down the plan. Shown as a plain summary row with a way to remove it.
+class _CompactSetRow extends StatelessWidget {
+  const _CompactSetRow({super.key, required this.set, required this.onDelete});
+
+  final WorkoutSet set;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final mutedColor = theme.colorScheme.onSurfaceVariant;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Icon(
+            set.isCompleted ? Icons.check_circle : Icons.circle_outlined,
+            size: 16,
+            color: set.isCompleted ? AppTheme.statusCompleted : mutedColor,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              'Serie ${set.setNumber}',
+              style: theme.textTheme.bodyMedium?.copyWith(color: set.isCompleted ? null : mutedColor),
+            ),
+          ),
+          Text(
+            '${_fmt(set.weightKg)} kg × ${set.reps ?? '—'}',
+            style: theme.textTheme.bodyMedium?.copyWith(color: set.isCompleted ? null : mutedColor),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, size: 18),
+            visualDensity: VisualDensity.compact,
+            onPressed: onDelete,
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _fmt(double? value) {
+    if (value == null) return '—';
+    return value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
   }
 }
