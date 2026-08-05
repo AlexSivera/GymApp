@@ -57,14 +57,18 @@ class _AppShell extends ConsumerWidget {
     final hasActiveSession = ref.watch(activeSessionProvider).valueOrNull != null;
     // Deliberately no auto-redirect when the session ends: the user may
     // still be looking at the just-finished session's summary screen,
-    // pushed on top of this branch's own navigator. The tab simply drops
-    // out of the bottom nav so they can't tap back into it later.
+    // pushed on top of this branch's own navigator. Keep the tab visible
+    // (and correctly highlighted) while they're still on that branch, even
+    // though the session itself is no longer active — it only drops out of
+    // the bottom nav once they navigate elsewhere, so they can't tap back
+    // into it later.
+    final onWorkoutBranch = navigationShell.currentIndex == _workoutBranch;
 
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: _BottomNav(
         currentIndex: navigationShell.currentIndex,
-        showWorkoutTab: hasActiveSession,
+        showWorkoutTab: hasActiveSession || onWorkoutBranch,
         onSelect: (index) =>
             navigationShell.goBranch(index, initialLocation: index == navigationShell.currentIndex),
       ),

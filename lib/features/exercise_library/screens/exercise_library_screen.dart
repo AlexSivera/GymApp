@@ -6,7 +6,6 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/exercise_thumbnail.dart';
 import '../../../data/database/app_database.dart';
 import '../providers/exercise_library_providers.dart';
-import 'create_exercise_screen.dart';
 import 'exercise_detail_screen.dart';
 
 // Selection state for multiSelect mode — a plain provider (not tied to this
@@ -46,11 +45,6 @@ class ExerciseLibraryScreen extends ConsumerWidget {
                 viewMode == ExerciseViewMode.list ? ExerciseViewMode.grid : ExerciseViewMode.list,
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.of(context)
-            .push(MaterialPageRoute(builder: (_) => const CreateExerciseScreen())),
-        child: const Icon(Icons.add),
       ),
       body: Column(
         children: [

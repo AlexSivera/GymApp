@@ -8,19 +8,33 @@ class ExerciseImprovement {
   final String message;
 }
 
+class ExerciseLog {
+  const ExerciseLog({required this.exerciseName, required this.setsSummary});
+
+  final String exerciseName;
+  final String setsSummary;
+}
+
 class SessionSummary {
   const SessionSummary({
+    required this.routineDayName,
+    required this.exerciseLogs,
     required this.improvements,
     required this.newPRs,
     required this.volumeThisSession,
     required this.volumeChangePercent,
   });
 
+  final String? routineDayName;
+  final List<ExerciseLog> exerciseLogs;
   final List<ExerciseImprovement> improvements;
   final List<String> newPRs;
   final double volumeThisSession;
   final double? volumeChangePercent;
 }
+
+String _fmtWeight(double value) =>
+    value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
 
 // Compares a just-completed session against prior history to surface
 // what improved — meant to be shown right after finishing a workout.
@@ -32,6 +46,7 @@ Future<SessionSummary> computeSessionSummary(AppDatabase db, {required int sessi
 
   final improvements = <ExerciseImprovement>[];
   final newPRs = <String>{};
+  final exerciseLogs = <ExerciseLog>[];
   var sessionVolume = 0.0;
 
   for (final sessionExercise in sessionExercises) {
@@ -41,6 +56,10 @@ Future<SessionSummary> computeSessionSummary(AppDatabase db, {required int sessi
 
     sessionVolume += validSets.fold(0.0, (sum, s) => sum + s.weightKg! * s.reps!);
     final exerciseName = exercisesById[sessionExercise.exerciseId]?.name ?? 'Ejercicio';
+    exerciseLogs.add(ExerciseLog(
+      exerciseName: exerciseName,
+      setsSummary: validSets.map((s) => '${_fmtWeight(s.weightKg!)}kg×${s.reps}').join(', '),
+    ));
 
     final previousSets = await getPreviousSetsForExercise(
       db,
@@ -66,6 +85,7 @@ Future<SessionSummary> computeSessionSummary(AppDatabase db, {required int sessi
   }
 
   double? volumeChangePercent;
+  String? routineDayName;
   if (session != null && session.routineDayId != null) {
     final previousSessions = await db.workoutSessionsDao.getLastCompletedSessionForRoutineDay(
       session.routineDayId!,
@@ -79,9 +99,12 @@ Future<SessionSummary> computeSessionSummary(AppDatabase db, {required int sessi
         volumeChangePercent = (sessionVolume - prevVolume) / prevVolume * 100;
       }
     }
+    routineDayName = (await db.routinesDao.watchDayById(session.routineDayId!).first)?.name;
   }
 
   return SessionSummary(
+    routineDayName: routineDayName,
+    exerciseLogs: exerciseLogs,
     improvements: improvements,
     newPRs: newPRs.toList(),
     volumeThisSession: sessionVolume,

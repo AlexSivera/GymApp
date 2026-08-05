@@ -16,10 +16,42 @@ class SessionSummaryScreen extends StatelessWidget {
     final hasPRs = summary.newPRs.isNotEmpty;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Entrenamiento completado')),
+      appBar: AppBar(title: Text(summary.routineDayName ?? 'Entrenamiento completado')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (summary.exerciseLogs.isNotEmpty) ...[
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  for (var i = 0; i < summary.exerciseLogs.length; i++) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(summary.exerciseLogs[i].exerciseName,
+                                style: theme.textTheme.bodyLarge),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            summary.exerciseLogs[i].setsSummary,
+                            textAlign: TextAlign.end,
+                            style: theme.textTheme.bodyMedium
+                                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (i != summary.exerciseLogs.length - 1) const Divider(height: 1, indent: 16),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

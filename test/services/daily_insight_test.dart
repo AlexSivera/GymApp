@@ -16,7 +16,7 @@ void main() {
   });
 
   test('picking the same day twice returns the same insight (deterministic)', () async {
-    final exerciseId = await db.exercisesDao.createCustomExercise(ExercisesCompanion.insert(
+    final exerciseId = await db.exercisesDao.insert(ExercisesCompanion.insert(
       name: 'Press banca',
       primaryMuscles: const Value(['pecho']),
       isCustom: const Value(true),

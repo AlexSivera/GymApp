@@ -201,18 +201,26 @@ class WorkoutSessionScreen extends ConsumerWidget {
     final durationSeconds = session.startedAt != null
         ? DateTime.now().difference(session.startedAt!).inSeconds
         : null;
+
+    // Compute the summary and push it *before* marking the session
+    // completed: doing it the other way around flips activeSessionProvider
+    // to null first, which makes WorkoutBranchScreen swap this whole screen
+    // out for a blank placeholder mid-navigation and leaves the push
+    // targeting an unmounted context (silently dropped by the
+    // context.mounted guard) — the user would see a blank branch instead of
+    // the summary.
+    final summary = await computeSessionSummary(db, sessionId: sessionId);
+    if (!context.mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => SessionSummaryScreen(summary: summary)),
+    );
+
     await db.workoutSessionsDao.updateSession(
       session.copyWith(
         status: SessionStatus.completed,
         completedAt: Value(DateTime.now()),
         durationSeconds: Value(durationSeconds),
       ),
-    );
-
-    final summary = await computeSessionSummary(db, sessionId: sessionId);
-    if (!context.mounted) return;
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => SessionSummaryScreen(summary: summary)),
     );
   }
 

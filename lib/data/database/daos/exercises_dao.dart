@@ -22,7 +22,7 @@ class ExercisesDao extends DatabaseAccessor<AppDatabase> with _$ExercisesDaoMixi
     return batch((b) => b.insertAll(exercises, entries));
   }
 
-  Future<int> createCustomExercise(ExercisesCompanion entry) {
+  Future<int> insert(ExercisesCompanion entry) {
     return into(exercises).insert(entry);
   }
 }
