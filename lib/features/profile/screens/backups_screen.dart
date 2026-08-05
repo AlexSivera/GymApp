@@ -98,6 +98,16 @@ class _BackupsScreenState extends State<BackupsScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
                   child: Row(
                     children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(AppSpacing.sm),
+                        ),
+                        child: Icon(Icons.backup_outlined, size: 18, color: theme.colorScheme.primary),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: Text(
                           DateFormat('EEEE d MMMM, HH:mm', 'es').format(modified),

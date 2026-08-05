@@ -151,10 +151,7 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
             children: [
               TextField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Descripción (opcional)',
-                  border: OutlineInputBorder(),
-                ),
+                decoration: const InputDecoration(labelText: 'Descripción (opcional)'),
                 onSubmitted: (_) => _saveDescription(routine),
                 onTapOutside: (_) => _saveDescription(routine),
               ),
@@ -185,8 +182,19 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
                         child: AppCard(
                           padding: EdgeInsets.zero,
                           child: ListTile(
+                            leading: Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary.withValues(alpha: 0.14),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(Icons.calendar_today_outlined,
+                                  size: 18, color: theme.colorScheme.primary),
+                            ),
                             title: Text(day.name),
-                            trailing: const Icon(Icons.chevron_right),
+                            trailing: Icon(Icons.chevron_right,
+                                size: 20, color: theme.colorScheme.onSurfaceVariant),
                             onTap: () => Navigator.of(context).push(MaterialPageRoute(
                               builder: (_) => RoutineDayEditorScreen(
                                 routineDayId: day.id,

@@ -90,13 +90,17 @@ class _QuickAssignSheetState extends ConsumerState<QuickAssignSheet> {
                   );
                 }
                 _routineId ??= routines.first.id;
-                return DropdownButton<int>(
-                  isExpanded: true,
-                  value: _routineId,
-                  items: [
-                    for (final r in routines) DropdownMenuItem(value: r.id, child: Text(r.name)),
+                return Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.sm,
+                  children: [
+                    for (final r in routines)
+                      ChoiceChip(
+                        label: Text(r.name),
+                        selected: _routineId == r.id,
+                        onSelected: (_) => setState(() => _routineId = r.id),
+                      ),
                   ],
-                  onChanged: (value) => setState(() => _routineId = value),
                 );
               },
             ),

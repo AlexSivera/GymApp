@@ -18,18 +18,23 @@ Future<bool> showReorganizeDialog(
     builder: (context) => AlertDialog(
       title: const Text('¿Qué quieres hacer?'),
       content: const Text('Este entrenamiento estaba planificado y la fecha ya pasó.'),
+      actionsAlignment: MainAxisAlignment.start,
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(ReorganizeAction.markMissed),
-          child: const Text('Marcar como perdido'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(ReorganizeAction.moveToNextDay),
-          child: const Text('Mover al día siguiente'),
-        ),
-        TextButton(
+        TextButton.icon(
           onPressed: () => Navigator.of(context).pop(ReorganizeAction.shiftFollowingChain),
-          child: const Text('Reorganizar automáticamente'),
+          icon: const Icon(Icons.auto_fix_high),
+          label: const Text('Reorganizar automáticamente'),
+        ),
+        TextButton.icon(
+          onPressed: () => Navigator.of(context).pop(ReorganizeAction.moveToNextDay),
+          icon: const Icon(Icons.arrow_forward),
+          label: const Text('Mover al día siguiente'),
+        ),
+        TextButton.icon(
+          onPressed: () => Navigator.of(context).pop(ReorganizeAction.markMissed),
+          icon: Icon(Icons.close, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          label: Text('Marcar como perdido',
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
         ),
       ],
     ),

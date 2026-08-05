@@ -93,7 +93,7 @@ class CalendarScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: SizedBox(
                 width: double.infinity,
-                child: OutlinedButton.icon(
+                child: ElevatedButton.icon(
                   onPressed: () => showQuickAssignSheet(context),
                   icon: const Icon(Icons.bolt_outlined),
                   label: const Text('Asignación rápida'),

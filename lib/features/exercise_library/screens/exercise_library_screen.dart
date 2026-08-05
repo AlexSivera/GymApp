@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/exercise_thumbnail.dart';
 import '../../../data/database/app_database.dart';
 import '../providers/exercise_library_providers.dart';
@@ -175,6 +176,7 @@ class _CategoriesTab extends ConsumerWidget {
       itemCount: muscles.length,
       itemBuilder: (context, index) {
         final muscle = muscles[index];
+        final theme = Theme.of(context);
         return Card(
           child: InkWell(
             borderRadius: BorderRadius.circular(18),
@@ -182,8 +184,17 @@ class _CategoriesTab extends ConsumerWidget {
               ref.read(exerciseMuscleFilterProvider.notifier).state = muscle;
               ref.read(exerciseLibraryTabProvider.notifier).state = ExerciseLibraryTab.all;
             },
-            child: Center(
-              child: Text(muscle, style: Theme.of(context).textTheme.titleMedium),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: Row(
+                children: [
+                  Icon(Icons.fitness_center, size: 18, color: theme.colorScheme.primary),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(muscle, style: theme.textTheme.titleMedium, overflow: TextOverflow.ellipsis),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -272,38 +283,42 @@ class _ExerciseListView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 80),
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 80),
       itemCount: exercises.length,
+      separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.sm),
       itemBuilder: (context, index) {
         final exercise = exercises[index];
         final isSelected = selectedIds.contains(exercise.id);
-        return ListTile(
-          leading: ExerciseThumbnail(imagePaths: exercise.imagePaths),
-          title: Text(exercise.name),
-          subtitle: Text(exercise.primaryMuscles.join(', ')),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (exercise.isCustom)
-                Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: Icon(Icons.person_outline, color: theme.colorScheme.primary, size: 18),
-                ),
-              if (pickerMode && !multiSelect)
-                IconButton(
-                  tooltip: 'Ver ficha',
-                  icon: const Icon(Icons.info_outline),
-                  onPressed: () => _openDetail(context, exercise),
-                ),
-              if (multiSelect)
-                Checkbox(
-                  value: isSelected,
-                  onChanged: (_) => _openExercise(context, ref, pickerMode, multiSelect, exercise),
-                ),
-            ],
+        return AppCard(
+          padding: EdgeInsets.zero,
+          child: ListTile(
+            leading: ExerciseThumbnail(imagePaths: exercise.imagePaths),
+            title: Text(exercise.name),
+            subtitle: Text(exercise.primaryMuscles.join(', ')),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (exercise.isCustom)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Icon(Icons.person_outline, color: theme.colorScheme.primary, size: 18),
+                  ),
+                if (pickerMode && !multiSelect)
+                  IconButton(
+                    tooltip: 'Ver ficha',
+                    icon: const Icon(Icons.info_outline),
+                    onPressed: () => _openDetail(context, exercise),
+                  ),
+                if (multiSelect)
+                  Checkbox(
+                    value: isSelected,
+                    onChanged: (_) => _openExercise(context, ref, pickerMode, multiSelect, exercise),
+                  ),
+              ],
+            ),
+            onTap: () => _openExercise(context, ref, pickerMode, multiSelect, exercise),
           ),
-          onTap: () => _openExercise(context, ref, pickerMode, multiSelect, exercise),
         );
       },
     );

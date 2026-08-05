@@ -1,8 +1,10 @@
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/theme/app_spacing.dart';
+import '../../../core/widgets/app_card.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
 
@@ -79,57 +81,81 @@ class _DayEditScreenState extends ConsumerState<DayEditScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(DateFormat('EEEE d MMMM', 'es').format(widget.date))),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
-          Text('Estado', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          SegmentedButton<SessionStatus>(
-            segments: const [
-              ButtonSegment(value: SessionStatus.planned, label: Text('Planificado')),
-              ButtonSegment(value: SessionStatus.completed, label: Text('Completado')),
-              ButtonSegment(value: SessionStatus.skipped, label: Text('Saltado')),
-            ],
-            selected: {_status == SessionStatus.inProgress ? SessionStatus.completed : _status},
-            onSelectionChanged: (selection) => setState(() => _status = selection.first),
-          ),
-          const SizedBox(height: 24),
-          Text('Sensación', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(5, (i) {
-              final value = i + 1;
-              final selected = _feeling == value;
-              return IconButton(
-                iconSize: 32,
-                onPressed: () => setState(() => _feeling = selected ? null : value),
-                icon: Icon(
-                  selected ? Icons.star : Icons.star_border,
-                  color: selected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Estado', style: theme.textTheme.titleMedium),
+                const SizedBox(height: AppSpacing.sm),
+                SegmentedButton<SessionStatus>(
+                  segments: const [
+                    ButtonSegment(value: SessionStatus.planned, label: Text('Planificado')),
+                    ButtonSegment(value: SessionStatus.completed, label: Text('Completado')),
+                    ButtonSegment(value: SessionStatus.skipped, label: Text('Saltado')),
+                  ],
+                  selected: {_status == SessionStatus.inProgress ? SessionStatus.completed : _status},
+                  onSelectionChanged: (selection) => setState(() => _status = selection.first),
                 ),
-              );
-            }),
+              ],
+            ),
           ),
-          const SizedBox(height: 24),
-          Text('Peso corporal (kg)', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _bodyWeightController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Ej. 78.5'),
+          const SizedBox(height: AppSpacing.lg),
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Sensación', style: theme.textTheme.titleMedium),
+                const SizedBox(height: AppSpacing.sm),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: List.generate(5, (i) {
+                    final value = i + 1;
+                    final selected = _feeling == value;
+                    return IconButton(
+                      iconSize: 32,
+                      onPressed: () => setState(() => _feeling = selected ? null : value),
+                      icon: Icon(
+                        selected ? Icons.star : Icons.star_border,
+                        color: selected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+                      ),
+                    );
+                  }),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 24),
-          Text('Notas', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _notesController,
-            maxLines: 4,
-            decoration: const InputDecoration(hintText: 'Cómo te sentiste, ajustes, etc.'),
+          const SizedBox(height: AppSpacing.lg),
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Peso corporal (kg)', style: theme.textTheme.titleMedium),
+                const SizedBox(height: AppSpacing.sm),
+                TextField(
+                  controller: _bodyWeightController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(hintText: 'Ej. 78.5'),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Text('Notas', style: theme.textTheme.titleMedium),
+                const SizedBox(height: AppSpacing.sm),
+                TextField(
+                  controller: _notesController,
+                  maxLines: 4,
+                  decoration: const InputDecoration(hintText: 'Cómo te sentiste, ajustes, etc.'),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: _save,
-            child: Text(widget.existingSession == null ? 'Crear entrenamiento' : 'Guardar cambios'),
+          const SizedBox(height: AppSpacing.xl),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _save,
+              child: Text(widget.existingSession == null ? 'Crear entrenamiento' : 'Guardar cambios'),
+            ),
           ),
         ],
       ),

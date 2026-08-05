@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_spacing.dart';
+import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/exercise_thumbnail.dart';
 import '../../exercise_library/providers/exercise_library_providers.dart';
 import 'exercise_progress_screen.dart';
 
@@ -27,20 +30,26 @@ class ProgressScreen extends ConsumerWidget {
               ),
             );
           }
-          return ListView.builder(
+          return ListView.separated(
+            padding: const EdgeInsets.all(AppSpacing.lg),
             itemCount: exercises.length,
+            separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.sm),
             itemBuilder: (context, index) {
               final exercise = exercises[index];
-              return ListTile(
-                title: Text(exercise.name),
-                subtitle: Text(exercise.primaryMuscles.join(', ')),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => ExerciseProgressScreen(
-                    exerciseId: exercise.id,
-                    exerciseName: exercise.name,
-                  ),
-                )),
+              return AppCard(
+                padding: EdgeInsets.zero,
+                child: ListTile(
+                  leading: ExerciseThumbnail(imagePaths: exercise.imagePaths),
+                  title: Text(exercise.name, style: theme.textTheme.bodyLarge),
+                  subtitle: Text(exercise.primaryMuscles.join(', ')),
+                  trailing: Icon(Icons.chevron_right, size: 20, color: theme.colorScheme.onSurfaceVariant),
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => ExerciseProgressScreen(
+                      exerciseId: exercise.id,
+                      exerciseName: exercise.name,
+                    ),
+                  )),
+                ),
               );
             },
           );

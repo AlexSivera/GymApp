@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/widgets/app_card.dart';
 import '../../../data/database/app_database.dart';
 import '../providers/routines_providers.dart';
 
@@ -66,9 +67,10 @@ class RoutineDayPickerSheet extends ConsumerWidget {
                       ],
                     );
                   }
-                  return ListView.builder(
+                  return ListView.separated(
                     shrinkWrap: true,
                     itemCount: routines.length,
+                    separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.sm),
                     itemBuilder: (context, index) => _RoutineExpansion(routine: routines[index]),
                   );
                 },
@@ -89,36 +91,48 @@ class _RoutineExpansion extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final daysAsync = ref.watch(routineDaysProvider(routine.id));
+    final theme = Theme.of(context);
 
-    return ExpansionTile(
-      title: Text(routine.name, style: Theme.of(context).textTheme.titleMedium),
-      tilePadding: EdgeInsets.zero,
-      childrenPadding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      children: [
-        daysAsync.when(
-          loading: () => const SizedBox.shrink(),
-          error: (e, _) => Text('$e'),
-          data: (days) {
-            if (days.isEmpty) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                child: Text('Esta rutina no tiene días todavía.'),
-              );
-            }
-            return Column(
-              children: [
-                for (final day in days)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(day.name),
-                    trailing: const Icon(Icons.chevron_right, size: 20),
-                    onTap: () => Navigator.of(context).pop(day),
-                  ),
-              ],
-            );
-          },
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: Theme(
+        data: theme.copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          title: Text(routine.name, style: theme.textTheme.titleMedium),
+          iconColor: theme.colorScheme.primary,
+          collapsedIconColor: theme.colorScheme.onSurfaceVariant,
+          tilePadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          childrenPadding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
+          children: [
+            daysAsync.when(
+              loading: () => const SizedBox.shrink(),
+              error: (e, _) => Text('$e'),
+              data: (days) {
+                if (days.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                    child: Text('Esta rutina no tiene días todavía.',
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                  );
+                }
+                return Column(
+                  children: [
+                    for (final day in days)
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(day.name),
+                        trailing: Icon(Icons.chevron_right,
+                            size: 20, color: theme.colorScheme.onSurfaceVariant),
+                        onTap: () => Navigator.of(context).pop(day),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/widgets/app_card.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
 import '../../dashboard/providers/dashboard_providers.dart';
@@ -57,22 +58,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
-          Text('Nombre', style: theme.textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          TextField(controller: _nameController, decoration: const InputDecoration(hintText: 'Tu nombre')),
-          const SizedBox(height: AppSpacing.lg),
-          Text('Unidades', style: theme.textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: 'kg', label: Text('kg')),
-              ButtonSegment(value: 'lb', label: Text('lb')),
-            ],
-            selected: {_units},
-            onSelectionChanged: (selection) => setState(() => _units = selection.first),
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Nombre', style: theme.textTheme.titleMedium),
+                const SizedBox(height: AppSpacing.sm),
+                TextField(
+                    controller: _nameController, decoration: const InputDecoration(hintText: 'Tu nombre')),
+                const SizedBox(height: AppSpacing.lg),
+                Text('Unidades', style: theme.textTheme.titleMedium),
+                const SizedBox(height: AppSpacing.sm),
+                SegmentedButton<String>(
+                  segments: const [
+                    ButtonSegment(value: 'kg', label: Text('kg')),
+                    ButtonSegment(value: 'lb', label: Text('lb')),
+                  ],
+                  selected: {_units},
+                  onSelectionChanged: (selection) => setState(() => _units = selection.first),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          ElevatedButton(onPressed: _save, child: const Text('Guardar')),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(onPressed: _save, child: const Text('Guardar')),
+          ),
         ],
       ),
     );

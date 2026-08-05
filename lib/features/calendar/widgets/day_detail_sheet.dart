@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
 import '../../routines/providers/routines_providers.dart';
@@ -78,7 +79,18 @@ class DayDetailSheet extends ConsumerWidget {
         Text(dayName ?? (session.status == SessionStatus.rest ? 'Descanso' : 'Entrenamiento libre'),
             style: theme.textTheme.headlineMedium),
         const SizedBox(height: AppSpacing.sm),
-        Text(_statusLabel(session.status), style: theme.textTheme.bodyMedium),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(color: _statusColor(session.status), shape: BoxShape.circle),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Text(_statusLabel(session.status), style: theme.textTheme.bodyMedium),
+          ],
+        ),
         if (hasTimeOfDay)
           Text(DateFormat('HH:mm').format(session.date),
               style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
@@ -253,6 +265,21 @@ class DayDetailSheet extends ConsumerWidget {
 
     await ref.read(appDatabaseProvider).workoutSessionsDao.deleteSession(session.id);
     if (context.mounted) Navigator.of(context).pop();
+  }
+
+  Color _statusColor(SessionStatus status) {
+    switch (status) {
+      case SessionStatus.planned:
+        return AppTheme.statusPlanned;
+      case SessionStatus.inProgress:
+        return AppTheme.statusToday;
+      case SessionStatus.completed:
+        return AppTheme.statusCompleted;
+      case SessionStatus.skipped:
+        return AppTheme.statusSkipped;
+      case SessionStatus.rest:
+        return AppTheme.statusRest;
+    }
   }
 
   String _statusLabel(SessionStatus status) {

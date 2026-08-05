@@ -56,7 +56,8 @@ class SessionSummaryScreen extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Row(
                         children: [
-                          const Text('🏆 '),
+                          const Icon(Icons.emoji_events, size: 16, color: Color(0xFFFBBF24)),
+                          const SizedBox(width: 6),
                           Expanded(child: Text(name)),
                         ],
                       ),

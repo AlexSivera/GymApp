@@ -1,7 +1,9 @@
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_spacing.dart';
+import '../../../core/widgets/app_card.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
 
@@ -60,45 +62,52 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           children: [
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Nombre', border: OutlineInputBorder()),
-              validator: (value) =>
-                  (value == null || value.trim().isEmpty) ? 'El nombre es obligatorio' : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _primaryMusclesController,
-              decoration: const InputDecoration(
-                labelText: 'Músculos principales',
-                hintText: 'Ej. Pecho, Tríceps',
-                border: OutlineInputBorder(),
+            AppCard(
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(labelText: 'Nombre'),
+                    validator: (value) =>
+                        (value == null || value.trim().isEmpty) ? 'El nombre es obligatorio' : null,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  TextFormField(
+                    controller: _primaryMusclesController,
+                    decoration: const InputDecoration(
+                      labelText: 'Músculos principales',
+                      hintText: 'Ej. Pecho, Tríceps',
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  TextFormField(
+                    controller: _secondaryMusclesController,
+                    decoration: const InputDecoration(
+                      labelText: 'Músculos secundarios',
+                      hintText: 'Opcional',
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  TextFormField(
+                    controller: _equipmentController,
+                    decoration: const InputDecoration(labelText: 'Equipamiento'),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  TextFormField(
+                    controller: _instructionsController,
+                    maxLines: 4,
+                    decoration: const InputDecoration(labelText: 'Instrucciones'),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _secondaryMusclesController,
-              decoration: const InputDecoration(
-                labelText: 'Músculos secundarios',
-                hintText: 'Opcional',
-                border: OutlineInputBorder(),
-              ),
+            const SizedBox(height: AppSpacing.xl),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(onPressed: _save, child: const Text('Guardar ejercicio')),
             ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _equipmentController,
-              decoration: const InputDecoration(labelText: 'Equipamiento', border: OutlineInputBorder()),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _instructionsController,
-              maxLines: 4,
-              decoration: const InputDecoration(labelText: 'Instrucciones', border: OutlineInputBorder()),
-            ),
-            const SizedBox(height: 32),
-            FilledButton(onPressed: _save, child: const Text('Guardar ejercicio')),
           ],
         ),
       ),
