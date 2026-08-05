@@ -579,6 +579,13 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
     if (next != current.status) {
       await ref.read(sessionLoggingDaoProvider).updateSessionExerciseStatus(sessionExercise.id, next);
     }
+
+    if (next == SessionExerciseStatus.completed) {
+      final expandedNotifier = ref.read(expandedSessionExerciseIdProvider.notifier);
+      if (expandedNotifier.state == sessionExercise.id) {
+        expandedNotifier.state = null;
+      }
+    }
   }
 
   Future<void> _handleMenuAction(BuildContext context, WidgetRef ref, _ExerciseMenuAction action) async {
