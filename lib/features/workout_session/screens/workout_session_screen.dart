@@ -566,7 +566,7 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
   }
 
   Future<void> _syncExerciseStatus(WidgetRef ref) async {
-    final currentSets = ref.read(setsForExerciseProvider(sessionExercise.id)).valueOrNull ?? const [];
+    final currentSets = await ref.read(sessionLoggingDaoProvider).getSets(sessionExercise.id);
     final completedCount = currentSets.where((s) => s.isCompleted).length;
     final current = ref.read(sessionExerciseByIdProvider(sessionExercise.id)).valueOrNull;
     if (current == null || current.status == SessionExerciseStatus.skipped) return;

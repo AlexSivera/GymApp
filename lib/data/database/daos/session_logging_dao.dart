@@ -58,6 +58,13 @@ class SessionLoggingDao extends DatabaseAccessor<AppDatabase>
         .watch();
   }
 
+  Future<List<WorkoutSet>> getSets(int sessionExerciseId) {
+    return (select(workoutSets)
+          ..where((s) => s.sessionExerciseId.equals(sessionExerciseId))
+          ..orderBy([(s) => OrderingTerm.asc(s.setNumber)]))
+        .get();
+  }
+
   Future<int> addSet(WorkoutSetsCompanion entry) {
     return into(workoutSets).insert(entry);
   }
