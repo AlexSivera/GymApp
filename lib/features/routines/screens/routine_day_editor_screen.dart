@@ -205,12 +205,14 @@ class _RoutineExerciseFields extends ConsumerStatefulWidget {
   ConsumerState<_RoutineExerciseFields> createState() => _RoutineExerciseFieldsState();
 }
 
+const _restPresets = [60, 90, 120, 180];
+
 class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> {
   late final TextEditingController _sets;
   late final TextEditingController _repsMin;
   late final TextEditingController _repsMax;
   late final TextEditingController _weight;
-  late final TextEditingController _rest;
+  late int? _restSeconds;
 
   @override
   void initState() {
@@ -219,7 +221,7 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
     _repsMin = TextEditingController(text: '${widget.entry.targetRepsMin}');
     _repsMax = TextEditingController(text: '${widget.entry.targetRepsMax}');
     _weight = TextEditingController(text: widget.entry.targetWeight?.toString() ?? '');
-    _rest = TextEditingController(text: widget.entry.restSeconds?.toString() ?? '');
+    _restSeconds = widget.entry.restSeconds;
   }
 
   @override
@@ -228,7 +230,6 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
     _repsMin.dispose();
     _repsMax.dispose();
     _weight.dispose();
-    _rest.dispose();
     super.dispose();
   }
 
@@ -238,12 +239,23 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
           targetRepsMin: int.tryParse(_repsMin.text) ?? widget.entry.targetRepsMin,
           targetRepsMax: int.tryParse(_repsMax.text) ?? widget.entry.targetRepsMax,
           targetWeight: Value(double.tryParse(_weight.text.replaceAll(',', '.'))),
-          restSeconds: Value(int.tryParse(_rest.text)),
+          restSeconds: Value(_restSeconds),
         ));
+  }
+
+  Future<void> _selectRest(int seconds) async {
+    setState(() => _restSeconds = seconds);
+    await _persist();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final restOptions = [
+      ..._restPresets,
+      if (_restSeconds != null && !_restPresets.contains(_restSeconds)) _restSeconds!,
+    ]..sort();
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
       child: Column(
@@ -252,19 +264,29 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
           const Divider(height: AppSpacing.lg),
           Row(
             children: [
-              Expanded(child: _field(_sets, 'Series')),
+              Expanded(child: _statField(_sets, 'Series')),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(child: _field(_repsMin, 'Reps mín.')),
+              Expanded(child: _statField(_repsMin, 'Reps mín.')),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(child: _field(_repsMax, 'Reps máx.')),
+              Expanded(child: _statField(_repsMax, 'Reps máx.')),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(child: _statField(_weight, 'Peso (kg)', decimal: true)),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
+          const SizedBox(height: AppSpacing.md),
+          Text('Descanso',
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          const SizedBox(height: AppSpacing.xs),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
             children: [
-              Expanded(child: _field(_weight, 'Peso objetivo (kg)', decimal: true)),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(child: _field(_rest, 'Descanso (s)')),
+              for (final seconds in restOptions)
+                _RestChip(
+                  label: '${seconds}s',
+                  selected: seconds == _restSeconds,
+                  onTap: () => _selectRest(seconds),
+                ),
             ],
           ),
         ],
@@ -272,13 +294,68 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
     );
   }
 
-  Widget _field(TextEditingController controller, String label, {bool decimal = false}) {
-    return TextField(
-      controller: controller,
-      keyboardType: TextInputType.numberWithOptions(decimal: decimal),
-      decoration: InputDecoration(labelText: label, isDense: true),
-      onEditingComplete: _persist,
-      onTapOutside: (_) => _persist(),
+  Widget _statField(TextEditingController controller, String label, {bool decimal = false}) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+          child: TextField(
+            controller: controller,
+            textAlign: TextAlign.center,
+            keyboardType: TextInputType.numberWithOptions(decimal: decimal),
+            style: theme.textTheme.titleLarge,
+            decoration: InputDecoration(
+              hintText: '—',
+              hintStyle: theme.textTheme.titleLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
+            ),
+            onEditingComplete: _persist,
+            onTapOutside: (_) => _persist(),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(label,
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            textAlign: TextAlign.center),
+      ],
+    );
+  }
+}
+
+class _RestChip extends StatelessWidget {
+  const _RestChip({required this.label, required this.selected, required this.onTap});
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: selected ? theme.colorScheme.primary : theme.colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(AppRadius.pill),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+          child: Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: selected ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
