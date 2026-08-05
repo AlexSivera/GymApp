@@ -31,6 +31,7 @@ final routineExerciseCountProvider = FutureProvider.family<int, int>((ref, routi
   return ref.watch(routinesDaoProvider).countExercisesInRoutine(routineId);
 });
 
-// Which RoutineExercise row (if any) is expanded inline in a routine day's
-// list — accordion-style, only one at a time.
-final expandedRoutineExerciseIdProvider = StateProvider<int?>((ref) => null);
+// Which RoutineExercise rows are expanded inline in a routine day's list —
+// several can be open at once (e.g. all newly-added exercises after a
+// multi-select add).
+final expandedRoutineExerciseIdsProvider = StateProvider<Set<int>>((ref) => {});

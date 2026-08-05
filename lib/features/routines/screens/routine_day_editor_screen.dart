@@ -106,8 +106,8 @@ class RoutineDayEditorScreen extends ConsumerWidget {
   }
 
   // Multi-select the exercises, then drop straight back onto this screen —
-  // each gets sane defaults (3×8-12, descanso 90s) and can be tweaked
-  // inline by expanding its row, instead of a separate config step.
+  // each gets sane defaults (3×8-12, descanso 90s) and its row opens
+  // expanded so the sets/reps/weight can be tweaked right away.
   Future<void> _addExercise(BuildContext context, WidgetRef ref) async {
     final exercises = await Navigator.of(context).push<List<Exercise>>(
       MaterialPageRoute(
@@ -117,8 +117,9 @@ class RoutineDayEditorScreen extends ConsumerWidget {
     if (exercises == null || exercises.isEmpty) return;
 
     var orderIndex = ref.read(dayExercisesProvider(routineDayId)).valueOrNull?.length ?? 0;
+    final addedIds = <int>{};
     for (final exercise in exercises) {
-      await ref.read(routinesDaoProvider).addExerciseToDay(RoutineExercisesCompanion.insert(
+      final id = await ref.read(routinesDaoProvider).addExerciseToDay(RoutineExercisesCompanion.insert(
             routineDayId: routineDayId,
             exerciseId: exercise.id,
             orderIndex: orderIndex++,
@@ -127,7 +128,9 @@ class RoutineDayEditorScreen extends ConsumerWidget {
             targetRepsMax: 12,
             restSeconds: const Value(90),
           ));
+      addedIds.add(id);
     }
+    ref.read(expandedRoutineExerciseIdsProvider.notifier).state = addedIds;
   }
 }
 
@@ -144,7 +147,7 @@ class _RoutineExerciseRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isExpanded = ref.watch(expandedRoutineExerciseIdProvider) == entry.id;
+    final isExpanded = ref.watch(expandedRoutineExerciseIdsProvider).contains(entry.id);
 
     return AppCard(
       padding: EdgeInsets.zero,
@@ -159,8 +162,11 @@ class _RoutineExerciseRow extends ConsumerWidget {
               onPressed: () => ref.read(routinesDaoProvider).removeExerciseFromDay(entry.id),
             ),
             onTap: () {
-              final notifier = ref.read(expandedRoutineExerciseIdProvider.notifier);
-              notifier.state = notifier.state == entry.id ? null : entry.id;
+              final notifier = ref.read(expandedRoutineExerciseIdsProvider.notifier);
+              final current = notifier.state;
+              notifier.state = current.contains(entry.id)
+                  ? ({...current}..remove(entry.id))
+                  : ({...current, entry.id});
             },
           ),
           AnimatedSize(
