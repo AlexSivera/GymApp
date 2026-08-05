@@ -86,16 +86,31 @@ class WorkoutSessionScreen extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
                         AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.sm),
-                    child: Row(
+                    child: Column(
                       children: [
-                        Expanded(child: _ElapsedTime(startedAt: session.startedAt)),
-                        Text(
-                          '$completedCount de ${sessionExercises.length} ejercicios',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        Row(
+                          children: [
+                            Expanded(child: _ElapsedTime(startedAt: session.startedAt)),
+                            Text(
+                              '$completedCount de ${sessionExercises.length} ejercicios',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            ),
+                          ],
                         ),
+                        if (sessionExercises.isNotEmpty) ...[
+                          const SizedBox(height: AppSpacing.sm),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(AppSpacing.xs),
+                            child: LinearProgressIndicator(
+                              value: completedCount / sessionExercises.length,
+                              minHeight: 6,
+                              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -371,7 +386,7 @@ class _StatusIcon extends StatelessWidget {
     final Widget icon;
     switch (status) {
       case SessionExerciseStatus.pending:
-        icon = const Icon(Icons.crop_square, size: 20, color: AppTheme.statusEmpty);
+        icon = const Icon(Icons.circle_outlined, size: 20, color: AppTheme.statusEmpty);
       case SessionExerciseStatus.inProgress:
         icon = const Icon(Icons.circle, size: 12, color: AppTheme.statusPlanned);
       case SessionExerciseStatus.completed:
