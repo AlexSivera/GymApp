@@ -53,7 +53,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -70,6 +70,11 @@ class AppDatabase extends _$AppDatabase {
             // Drops the table from schema v2 installs; a no-op for anyone
             // jumping straight from v1.
             await m.database.customStatement('DROP TABLE IF EXISTS favorite_exercises');
+          }
+          if (from < 4) {
+            await m.addColumn(userSettings, userSettings.gender);
+            await m.addColumn(userSettings, userSettings.birthDate);
+            await m.addColumn(userSettings, userSettings.onboardingCompleted);
           }
         },
         beforeOpen: (details) async {

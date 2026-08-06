@@ -6,6 +6,7 @@ import 'app.dart';
 import 'data/database/app_database.dart';
 import 'data/database/database_provider.dart';
 import 'data/seed/exercise_seeder.dart';
+import 'router/app_router.dart';
 import 'services/notifications/notification_service.dart';
 
 void main() async {
@@ -16,9 +17,12 @@ void main() async {
   final db = AppDatabase();
   await seedExercisesIfEmpty(db);
   await db.userSettingsDao.ensureDefaultRow();
+  final onboardingDone = await db.userSettingsDao.isOnboardingCompleted();
+
+  final router = buildAppRouter(initialLocation: onboardingDone ? '/dashboard' : '/onboarding');
 
   runApp(ProviderScope(
     overrides: [appDatabaseProvider.overrideWithValue(db)],
-    child: const GymApp(),
+    child: GymApp(router: router),
   ));
 }

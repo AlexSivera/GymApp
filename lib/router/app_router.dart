@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../core/theme/app_motion.dart';
 import '../features/calendar/screens/calendar_screen.dart';
 import '../features/dashboard/screens/dashboard_screen.dart';
+import '../features/onboarding/screens/onboarding_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
 import '../features/routines/screens/routines_screen.dart';
 import '../features/workout_session/providers/workout_session_providers.dart';
@@ -18,9 +19,13 @@ const _routinesBranch = 2;
 const _profileBranch = 3;
 const _workoutBranch = 4;
 
-final appRouter = GoRouter(
-  initialLocation: '/dashboard',
+// Built once in main() with the initial location resolved from whether
+// onboarding has been completed, so a first-time install lands on
+// /onboarding instead of racing a redirect against the DB read.
+GoRouter buildAppRouter({required String initialLocation}) => GoRouter(
+  initialLocation: initialLocation,
   routes: [
+    GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) => _AppShell(navigationShell: navigationShell),
       branches: [

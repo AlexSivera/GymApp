@@ -22,6 +22,11 @@ class UserSettingsDao extends DatabaseAccessor<AppDatabase>
     return (select(userSettings)..limit(1)).watchSingleOrNull();
   }
 
+  Future<bool> isOnboardingCompleted() async {
+    final existing = await select(userSettings).getSingleOrNull();
+    return existing?.onboardingCompleted ?? false;
+  }
+
   Future<void> updateSettings(UserSettingsCompanion entry) async {
     final existing = await select(userSettings).getSingleOrNull();
     if (existing == null) {

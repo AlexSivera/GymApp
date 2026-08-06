@@ -7,4 +7,7 @@ class UserSettings extends Table {
   TextColumn get name => text().nullable()();
   TextColumn get goals => text().nullable()();
   IntColumn get weeklyTargetSessions => integer().withDefault(const Constant(4))();
+  TextColumn get gender => text().nullable()();
+  DateTimeColumn get birthDate => dateTime().nullable()();
+  BoolColumn get onboardingCompleted => boolean().withDefault(const Constant(false))();
 }

@@ -7,6 +7,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:gymapp/app.dart';
 import 'package:gymapp/data/database/app_database.dart';
 import 'package:gymapp/data/database/database_provider.dart';
+import 'package:gymapp/router/app_router.dart';
 
 void main() {
   testWidgets('App starts and shows the dashboard', (WidgetTester tester) async {
@@ -18,7 +19,7 @@ void main() {
             AppDatabase.forTesting(NativeDatabase.memory()),
           ),
         ],
-        child: const GymApp(),
+        child: GymApp(router: buildAppRouter(initialLocation: '/dashboard')),
       ),
     );
     await tester.pump();

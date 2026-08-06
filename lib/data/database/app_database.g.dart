@@ -4467,6 +4467,40 @@ class $UserSettingsTable extends UserSettings
     requiredDuringInsert: false,
     defaultValue: const Constant(4),
   );
+  static const VerificationMeta _genderMeta = const VerificationMeta('gender');
+  @override
+  late final GeneratedColumn<String> gender = GeneratedColumn<String>(
+    'gender',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _birthDateMeta = const VerificationMeta(
+    'birthDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> birthDate = GeneratedColumn<DateTime>(
+    'birth_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _onboardingCompletedMeta =
+      const VerificationMeta('onboardingCompleted');
+  @override
+  late final GeneratedColumn<bool> onboardingCompleted = GeneratedColumn<bool>(
+    'onboarding_completed',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("onboarding_completed" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -4474,6 +4508,9 @@ class $UserSettingsTable extends UserSettings
     name,
     goals,
     weeklyTargetSessions,
+    gender,
+    birthDate,
+    onboardingCompleted,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4517,6 +4554,27 @@ class $UserSettingsTable extends UserSettings
         ),
       );
     }
+    if (data.containsKey('gender')) {
+      context.handle(
+        _genderMeta,
+        gender.isAcceptableOrUnknown(data['gender']!, _genderMeta),
+      );
+    }
+    if (data.containsKey('birth_date')) {
+      context.handle(
+        _birthDateMeta,
+        birthDate.isAcceptableOrUnknown(data['birth_date']!, _birthDateMeta),
+      );
+    }
+    if (data.containsKey('onboarding_completed')) {
+      context.handle(
+        _onboardingCompletedMeta,
+        onboardingCompleted.isAcceptableOrUnknown(
+          data['onboarding_completed']!,
+          _onboardingCompletedMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -4546,6 +4604,18 @@ class $UserSettingsTable extends UserSettings
         DriftSqlType.int,
         data['${effectivePrefix}weekly_target_sessions'],
       )!,
+      gender: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}gender'],
+      ),
+      birthDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}birth_date'],
+      ),
+      onboardingCompleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}onboarding_completed'],
+      )!,
     );
   }
 
@@ -4561,12 +4631,18 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
   final String? name;
   final String? goals;
   final int weeklyTargetSessions;
+  final String? gender;
+  final DateTime? birthDate;
+  final bool onboardingCompleted;
   const UserSetting({
     required this.id,
     required this.units,
     this.name,
     this.goals,
     required this.weeklyTargetSessions,
+    this.gender,
+    this.birthDate,
+    required this.onboardingCompleted,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -4580,6 +4656,13 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
       map['goals'] = Variable<String>(goals);
     }
     map['weekly_target_sessions'] = Variable<int>(weeklyTargetSessions);
+    if (!nullToAbsent || gender != null) {
+      map['gender'] = Variable<String>(gender);
+    }
+    if (!nullToAbsent || birthDate != null) {
+      map['birth_date'] = Variable<DateTime>(birthDate);
+    }
+    map['onboarding_completed'] = Variable<bool>(onboardingCompleted);
     return map;
   }
 
@@ -4592,6 +4675,13 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
           ? const Value.absent()
           : Value(goals),
       weeklyTargetSessions: Value(weeklyTargetSessions),
+      gender: gender == null && nullToAbsent
+          ? const Value.absent()
+          : Value(gender),
+      birthDate: birthDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(birthDate),
+      onboardingCompleted: Value(onboardingCompleted),
     );
   }
 
@@ -4608,6 +4698,11 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
       weeklyTargetSessions: serializer.fromJson<int>(
         json['weeklyTargetSessions'],
       ),
+      gender: serializer.fromJson<String?>(json['gender']),
+      birthDate: serializer.fromJson<DateTime?>(json['birthDate']),
+      onboardingCompleted: serializer.fromJson<bool>(
+        json['onboardingCompleted'],
+      ),
     );
   }
   @override
@@ -4619,6 +4714,9 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
       'name': serializer.toJson<String?>(name),
       'goals': serializer.toJson<String?>(goals),
       'weeklyTargetSessions': serializer.toJson<int>(weeklyTargetSessions),
+      'gender': serializer.toJson<String?>(gender),
+      'birthDate': serializer.toJson<DateTime?>(birthDate),
+      'onboardingCompleted': serializer.toJson<bool>(onboardingCompleted),
     };
   }
 
@@ -4628,12 +4726,18 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
     Value<String?> name = const Value.absent(),
     Value<String?> goals = const Value.absent(),
     int? weeklyTargetSessions,
+    Value<String?> gender = const Value.absent(),
+    Value<DateTime?> birthDate = const Value.absent(),
+    bool? onboardingCompleted,
   }) => UserSetting(
     id: id ?? this.id,
     units: units ?? this.units,
     name: name.present ? name.value : this.name,
     goals: goals.present ? goals.value : this.goals,
     weeklyTargetSessions: weeklyTargetSessions ?? this.weeklyTargetSessions,
+    gender: gender.present ? gender.value : this.gender,
+    birthDate: birthDate.present ? birthDate.value : this.birthDate,
+    onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
   );
   UserSetting copyWithCompanion(UserSettingsCompanion data) {
     return UserSetting(
@@ -4644,6 +4748,11 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
       weeklyTargetSessions: data.weeklyTargetSessions.present
           ? data.weeklyTargetSessions.value
           : this.weeklyTargetSessions,
+      gender: data.gender.present ? data.gender.value : this.gender,
+      birthDate: data.birthDate.present ? data.birthDate.value : this.birthDate,
+      onboardingCompleted: data.onboardingCompleted.present
+          ? data.onboardingCompleted.value
+          : this.onboardingCompleted,
     );
   }
 
@@ -4654,13 +4763,25 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
           ..write('units: $units, ')
           ..write('name: $name, ')
           ..write('goals: $goals, ')
-          ..write('weeklyTargetSessions: $weeklyTargetSessions')
+          ..write('weeklyTargetSessions: $weeklyTargetSessions, ')
+          ..write('gender: $gender, ')
+          ..write('birthDate: $birthDate, ')
+          ..write('onboardingCompleted: $onboardingCompleted')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, units, name, goals, weeklyTargetSessions);
+  int get hashCode => Object.hash(
+    id,
+    units,
+    name,
+    goals,
+    weeklyTargetSessions,
+    gender,
+    birthDate,
+    onboardingCompleted,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4669,7 +4790,10 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
           other.units == this.units &&
           other.name == this.name &&
           other.goals == this.goals &&
-          other.weeklyTargetSessions == this.weeklyTargetSessions);
+          other.weeklyTargetSessions == this.weeklyTargetSessions &&
+          other.gender == this.gender &&
+          other.birthDate == this.birthDate &&
+          other.onboardingCompleted == this.onboardingCompleted);
 }
 
 class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
@@ -4678,12 +4802,18 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
   final Value<String?> name;
   final Value<String?> goals;
   final Value<int> weeklyTargetSessions;
+  final Value<String?> gender;
+  final Value<DateTime?> birthDate;
+  final Value<bool> onboardingCompleted;
   const UserSettingsCompanion({
     this.id = const Value.absent(),
     this.units = const Value.absent(),
     this.name = const Value.absent(),
     this.goals = const Value.absent(),
     this.weeklyTargetSessions = const Value.absent(),
+    this.gender = const Value.absent(),
+    this.birthDate = const Value.absent(),
+    this.onboardingCompleted = const Value.absent(),
   });
   UserSettingsCompanion.insert({
     this.id = const Value.absent(),
@@ -4691,6 +4821,9 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
     this.name = const Value.absent(),
     this.goals = const Value.absent(),
     this.weeklyTargetSessions = const Value.absent(),
+    this.gender = const Value.absent(),
+    this.birthDate = const Value.absent(),
+    this.onboardingCompleted = const Value.absent(),
   });
   static Insertable<UserSetting> custom({
     Expression<int>? id,
@@ -4698,6 +4831,9 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
     Expression<String>? name,
     Expression<String>? goals,
     Expression<int>? weeklyTargetSessions,
+    Expression<String>? gender,
+    Expression<DateTime>? birthDate,
+    Expression<bool>? onboardingCompleted,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -4706,6 +4842,10 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
       if (goals != null) 'goals': goals,
       if (weeklyTargetSessions != null)
         'weekly_target_sessions': weeklyTargetSessions,
+      if (gender != null) 'gender': gender,
+      if (birthDate != null) 'birth_date': birthDate,
+      if (onboardingCompleted != null)
+        'onboarding_completed': onboardingCompleted,
     });
   }
 
@@ -4715,6 +4855,9 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
     Value<String?>? name,
     Value<String?>? goals,
     Value<int>? weeklyTargetSessions,
+    Value<String?>? gender,
+    Value<DateTime?>? birthDate,
+    Value<bool>? onboardingCompleted,
   }) {
     return UserSettingsCompanion(
       id: id ?? this.id,
@@ -4722,6 +4865,9 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
       name: name ?? this.name,
       goals: goals ?? this.goals,
       weeklyTargetSessions: weeklyTargetSessions ?? this.weeklyTargetSessions,
+      gender: gender ?? this.gender,
+      birthDate: birthDate ?? this.birthDate,
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
     );
   }
 
@@ -4743,6 +4889,15 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
     if (weeklyTargetSessions.present) {
       map['weekly_target_sessions'] = Variable<int>(weeklyTargetSessions.value);
     }
+    if (gender.present) {
+      map['gender'] = Variable<String>(gender.value);
+    }
+    if (birthDate.present) {
+      map['birth_date'] = Variable<DateTime>(birthDate.value);
+    }
+    if (onboardingCompleted.present) {
+      map['onboarding_completed'] = Variable<bool>(onboardingCompleted.value);
+    }
     return map;
   }
 
@@ -4753,7 +4908,10 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
           ..write('units: $units, ')
           ..write('name: $name, ')
           ..write('goals: $goals, ')
-          ..write('weeklyTargetSessions: $weeklyTargetSessions')
+          ..write('weeklyTargetSessions: $weeklyTargetSessions, ')
+          ..write('gender: $gender, ')
+          ..write('birthDate: $birthDate, ')
+          ..write('onboardingCompleted: $onboardingCompleted')
           ..write(')'))
         .toString();
   }
@@ -7085,6 +7243,9 @@ typedef $$UserSettingsTableCreateCompanionBuilder =
       Value<String?> name,
       Value<String?> goals,
       Value<int> weeklyTargetSessions,
+      Value<String?> gender,
+      Value<DateTime?> birthDate,
+      Value<bool> onboardingCompleted,
     });
 typedef $$UserSettingsTableUpdateCompanionBuilder =
     UserSettingsCompanion Function({
@@ -7093,6 +7254,9 @@ typedef $$UserSettingsTableUpdateCompanionBuilder =
       Value<String?> name,
       Value<String?> goals,
       Value<int> weeklyTargetSessions,
+      Value<String?> gender,
+      Value<DateTime?> birthDate,
+      Value<bool> onboardingCompleted,
     });
 
 class $$UserSettingsTableFilterComposer
@@ -7126,6 +7290,21 @@ class $$UserSettingsTableFilterComposer
 
   ColumnFilters<int> get weeklyTargetSessions => $composableBuilder(
     column: $table.weeklyTargetSessions,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get gender => $composableBuilder(
+    column: $table.gender,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get birthDate => $composableBuilder(
+    column: $table.birthDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get onboardingCompleted => $composableBuilder(
+    column: $table.onboardingCompleted,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -7163,6 +7342,21 @@ class $$UserSettingsTableOrderingComposer
     column: $table.weeklyTargetSessions,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get gender => $composableBuilder(
+    column: $table.gender,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get birthDate => $composableBuilder(
+    column: $table.birthDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get onboardingCompleted => $composableBuilder(
+    column: $table.onboardingCompleted,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UserSettingsTableAnnotationComposer
@@ -7188,6 +7382,17 @@ class $$UserSettingsTableAnnotationComposer
 
   GeneratedColumn<int> get weeklyTargetSessions => $composableBuilder(
     column: $table.weeklyTargetSessions,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get gender =>
+      $composableBuilder(column: $table.gender, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get birthDate =>
+      $composableBuilder(column: $table.birthDate, builder: (column) => column);
+
+  GeneratedColumn<bool> get onboardingCompleted => $composableBuilder(
+    column: $table.onboardingCompleted,
     builder: (column) => column,
   );
 }
@@ -7228,12 +7433,18 @@ class $$UserSettingsTableTableManager
                 Value<String?> name = const Value.absent(),
                 Value<String?> goals = const Value.absent(),
                 Value<int> weeklyTargetSessions = const Value.absent(),
+                Value<String?> gender = const Value.absent(),
+                Value<DateTime?> birthDate = const Value.absent(),
+                Value<bool> onboardingCompleted = const Value.absent(),
               }) => UserSettingsCompanion(
                 id: id,
                 units: units,
                 name: name,
                 goals: goals,
                 weeklyTargetSessions: weeklyTargetSessions,
+                gender: gender,
+                birthDate: birthDate,
+                onboardingCompleted: onboardingCompleted,
               ),
           createCompanionCallback:
               ({
@@ -7242,12 +7453,18 @@ class $$UserSettingsTableTableManager
                 Value<String?> name = const Value.absent(),
                 Value<String?> goals = const Value.absent(),
                 Value<int> weeklyTargetSessions = const Value.absent(),
+                Value<String?> gender = const Value.absent(),
+                Value<DateTime?> birthDate = const Value.absent(),
+                Value<bool> onboardingCompleted = const Value.absent(),
               }) => UserSettingsCompanion.insert(
                 id: id,
                 units: units,
                 name: name,
                 goals: goals,
                 weeklyTargetSessions: weeklyTargetSessions,
+                gender: gender,
+                birthDate: birthDate,
+                onboardingCompleted: onboardingCompleted,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

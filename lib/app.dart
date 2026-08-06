@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'core/theme/app_theme.dart';
-import 'router/app_router.dart';
 
 class GymApp extends StatelessWidget {
-  const GymApp({super.key});
+  const GymApp({super.key, required this.router});
+
+  final GoRouter router;
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +14,7 @@ class GymApp extends StatelessWidget {
       title: 'GymApp',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark,
-      routerConfig: appRouter,
+      routerConfig: router,
     );
   }
 }
