@@ -7,6 +7,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../data/database/app_database.dart';
 import '../../exercise_library/screens/exercise_library_screen.dart';
 import '../providers/routines_providers.dart';
+import 'create_routine_screen.dart';
 import 'routine_editor_screen.dart';
 
 class RoutinesScreen extends ConsumerWidget {
@@ -31,7 +32,7 @@ class RoutinesScreen extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _createRoutine(context, ref),
+        onPressed: () => _createRoutine(context),
         child: const Icon(Icons.add),
       ),
       body: routinesAsync.when(
@@ -57,7 +58,7 @@ class RoutinesScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: AppSpacing.xl),
                     ElevatedButton(
-                      onPressed: () => _createRoutine(context, ref),
+                      onPressed: () => _createRoutine(context),
                       child: const Text('Crear tu primera rutina'),
                     ),
                   ],
@@ -78,38 +79,10 @@ class RoutinesScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _createRoutine(BuildContext context, WidgetRef ref) async {
-    final controller = TextEditingController();
-    final name = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Nueva rutina'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(hintText: 'Ej. Push / Pull / Legs'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('Crear'),
-          ),
-        ],
-      ),
+  void _createRoutine(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const CreateRoutineScreen()),
     );
-
-    if (name == null || name.isEmpty) return;
-
-    final id = await ref.read(routinesDaoProvider).createRoutine(
-          RoutinesCompanion.insert(name: name),
-        );
-
-    if (context.mounted) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => RoutineEditorScreen(routineId: id)),
-      );
-    }
   }
 }
 
@@ -131,6 +104,16 @@ class _RoutineCard extends ConsumerWidget {
         ),
         child: Row(
           children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(AppSpacing.sm),
+              ),
+              child: Icon(Icons.fitness_center, color: theme.colorScheme.primary),
+            ),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,7 +127,7 @@ class _RoutineCard extends ConsumerWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right),
+            Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
           ],
         ),
       ),

@@ -13,6 +13,7 @@ import '../../../services/workout_session/start_session.dart';
 import '../../exercise_library/providers/exercise_library_providers.dart';
 import '../../exercise_library/screens/exercise_library_screen.dart';
 import '../providers/routines_providers.dart';
+import '../widgets/exercise_config_fields.dart';
 
 class RoutineDayEditorScreen extends ConsumerWidget {
   const RoutineDayEditorScreen({super.key, required this.routineDayId, required this.dayName});
@@ -205,8 +206,6 @@ class _RoutineExerciseFields extends ConsumerStatefulWidget {
   ConsumerState<_RoutineExerciseFields> createState() => _RoutineExerciseFieldsState();
 }
 
-const _restPresets = [60, 90, 120, 180];
-
 class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> {
   late final TextEditingController _sets;
   late final TextEditingController _repsMin;
@@ -251,10 +250,6 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final restOptions = [
-      ..._restPresets,
-      if (_restSeconds != null && !_restPresets.contains(_restSeconds)) _restSeconds!,
-    ]..sort();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
@@ -264,97 +259,25 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
           const Divider(height: AppSpacing.lg),
           Row(
             children: [
-              Expanded(child: _statField(_sets, 'Series')),
+              Expanded(child: StatNumberField(controller: _sets, label: 'Series', onCommit: _persist)),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(child: _statField(_repsMin, 'Reps mín.')),
+              Expanded(
+                  child: StatNumberField(controller: _repsMin, label: 'Reps mín.', onCommit: _persist)),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(child: _statField(_repsMax, 'Reps máx.')),
+              Expanded(
+                  child: StatNumberField(controller: _repsMax, label: 'Reps máx.', onCommit: _persist)),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(child: _statField(_weight, 'Peso (kg)', decimal: true)),
+              Expanded(
+                  child: StatNumberField(
+                      controller: _weight, label: 'Peso (kg)', decimal: true, onCommit: _persist)),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
           Text('Descanso',
               style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
           const SizedBox(height: AppSpacing.xs),
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: [
-              for (final seconds in restOptions)
-                _RestChip(
-                  label: '${seconds}s',
-                  selected: seconds == _restSeconds,
-                  onTap: () => _selectRest(seconds),
-                ),
-            ],
-          ),
+          RestSecondsChipsRow(selected: _restSeconds, onSelected: _selectRest),
         ],
-      ),
-    );
-  }
-
-  Widget _statField(TextEditingController controller, String label, {bool decimal = false}) {
-    final theme = Theme.of(context);
-    return Column(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-          child: TextField(
-            controller: controller,
-            textAlign: TextAlign.center,
-            keyboardType: TextInputType.numberWithOptions(decimal: decimal),
-            style: theme.textTheme.titleLarge,
-            decoration: InputDecoration(
-              hintText: '—',
-              hintStyle: theme.textTheme.titleLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-              border: InputBorder.none,
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
-            ),
-            onEditingComplete: _persist,
-            onTapOutside: (_) => _persist(),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(label,
-            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-            textAlign: TextAlign.center),
-      ],
-    );
-  }
-}
-
-class _RestChip extends StatelessWidget {
-  const _RestChip({required this.label, required this.selected, required this.onTap});
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Material(
-      color: selected ? theme.colorScheme.primary : theme.colorScheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(AppRadius.pill),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-          child: Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: selected ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-            ),
-          ),
-        ),
       ),
     );
   }
