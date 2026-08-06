@@ -35,14 +35,16 @@ class RoutinesDao extends DatabaseAccessor<AppDatabase> with _$RoutinesDaoMixin 
   }
 
   // Total exercises across every day of the routine — used by the routine
-  // list cards ("N ejercicios").
-  Future<int> countExercisesInRoutine(int routineId) async {
+  // list cards ("N ejercicios"). A live stream (not a one-off Future) so it
+  // stays correct if it's first watched mid-way through building a routine
+  // (e.g. right after the Routine row is created but before its exercises
+  // are added) instead of caching whatever count happened to be true then.
+  Stream<int> watchExerciseCountInRoutine(int routineId) {
     final query = selectOnly(routineExercises)
       ..addColumns([routineExercises.id])
       ..join([innerJoin(routineDays, routineDays.id.equalsExp(routineExercises.routineDayId))])
       ..where(routineDays.routineId.equals(routineId));
-    final rows = await query.get();
-    return rows.length;
+    return query.watch().map((rows) => rows.length);
   }
 
   Stream<RoutineDay?> watchDayById(int id) {

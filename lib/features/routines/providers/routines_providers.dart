@@ -27,8 +27,8 @@ final routineDayByIdProvider = StreamProvider.family<RoutineDay?, int>((ref, rou
   return ref.watch(routinesDaoProvider).watchDayById(routineDayId);
 });
 
-final routineExerciseCountProvider = FutureProvider.family<int, int>((ref, routineId) {
-  return ref.watch(routinesDaoProvider).countExercisesInRoutine(routineId);
+final routineExerciseCountProvider = StreamProvider.family<int, int>((ref, routineId) {
+  return ref.watch(routinesDaoProvider).watchExerciseCountInRoutine(routineId);
 });
 
 // Which RoutineExercise rows are expanded inline in a routine day's list —

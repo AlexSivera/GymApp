@@ -41,7 +41,7 @@ class CreateRoutineScreen extends ConsumerStatefulWidget {
 class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
   final _titleController = TextEditingController();
   final _exercises = <_StagedExercise>[];
-  int? _expandedLocalId;
+  Set<int> _expandedLocalIds = {};
   int _nextLocalId = 0;
   bool _titleHasText = false;
   bool _saving = false;
@@ -67,6 +67,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
     );
     if (picked == null || picked.isEmpty) return;
     setState(() {
+      final newIds = <int>{};
       for (final exercise in picked) {
         final id = _nextLocalId++;
         _exercises.add(_StagedExercise(
@@ -75,8 +76,9 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
           name: exercise.name,
           imagePaths: exercise.imagePaths,
         ));
-        _expandedLocalId = id;
+        newIds.add(id);
       }
+      _expandedLocalIds = newIds;
     });
   }
 
@@ -196,9 +198,12 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
               _StagedExerciseCard(
                 key: ValueKey(exercise.localId),
                 exercise: exercise,
-                isExpanded: _expandedLocalId == exercise.localId,
-                onToggleExpand: () => setState(() =>
-                    _expandedLocalId = _expandedLocalId == exercise.localId ? null : exercise.localId),
+                isExpanded: _expandedLocalIds.contains(exercise.localId),
+                onToggleExpand: () => setState(() {
+                  _expandedLocalIds = _expandedLocalIds.contains(exercise.localId)
+                      ? ({..._expandedLocalIds}..remove(exercise.localId))
+                      : ({..._expandedLocalIds, exercise.localId});
+                }),
                 onChanged: () => setState(() {}),
                 onRemove: () => _removeExercise(exercise),
               ),

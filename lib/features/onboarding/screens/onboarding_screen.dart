@@ -216,11 +216,14 @@ class _NameStep extends StatelessWidget {
   Widget build(BuildContext context) {
     return _StepScaffold(
       title: '¿Cómo te llamas?',
-      child: TextField(
-        controller: controller,
-        autofocus: true,
-        textCapitalization: TextCapitalization.words,
-        decoration: const InputDecoration(hintText: 'Tu nombre'),
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: TextField(
+          controller: controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(hintText: 'Tu nombre'),
+        ),
       ),
     );
   }
