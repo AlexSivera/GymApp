@@ -176,7 +176,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         );
       default:
         return _WeightStep(
-          value: _weightKg,
+          initialValue: _weightKg,
           onChanged: (value) => setState(() {
             _weightKg = value;
             _weightSkipped = false;
@@ -337,64 +337,170 @@ class _BirthDateStep extends StatelessWidget {
   }
 }
 
-class _WeightStep extends StatelessWidget {
-  const _WeightStep({required this.value, required this.onChanged});
+// A horizontally-scrolling ruler, snapped under a fixed center indicator —
+// drag left/right to dial in a weight, like a real dial scale.
+class _WeightStep extends StatefulWidget {
+  const _WeightStep({required this.initialValue, required this.onChanged});
 
-  final double value;
+  final double initialValue;
   final ValueChanged<double> onChanged;
+
+  @override
+  State<_WeightStep> createState() => _WeightStepState();
+}
+
+class _WeightStepState extends State<_WeightStep> {
+  static const double _minKg = 30;
+  static const double _maxKg = 200;
+  static const double _pxPerKg = 100;
+
+  late final ScrollController _controller;
+  late double _currentKg;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentKg = widget.initialValue.clamp(_minKg, _maxKg);
+    _controller = ScrollController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_controller.hasClients) _controller.jumpTo((_currentKg - _minKg) * _pxPerKg);
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleScroll() {
+    final kg = (_minKg + _controller.offset / _pxPerKg).clamp(_minKg, _maxKg);
+    final rounded = (kg * 10).round() / 10;
+    if (rounded != _currentKg) {
+      setState(() => _currentKg = rounded);
+      widget.onChanged(rounded);
+    }
+  }
+
+  void _snapToNearestTenth() {
+    final target = (_currentKg - _minKg) * _pxPerKg;
+    if ((target - _controller.offset).abs() > 0.5) {
+      _controller.animateTo(target, duration: AppMotion.fast, curve: AppMotion.curve);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return _StepScaffold(
       title: '¿Cuánto pesas?',
-      child: Align(
-        alignment: Alignment.center,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _RoundIconButton(icon: Icons.remove, onTap: () => onChanged((value - 0.5).clamp(30, 250))),
-            SizedBox(
-              width: 140,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(value.toStringAsFixed(1), style: theme.textTheme.displaySmall, textAlign: TextAlign.center),
-                  Text('kg',
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                ],
-              ),
+      child: Column(
+        children: [
+          const Spacer(),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(_currentKg.toStringAsFixed(1),
+                  style: theme.textTheme.displaySmall?.copyWith(fontSize: 56)),
+              const SizedBox(width: AppSpacing.sm),
+              Text('kg',
+                  style:
+                      theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          SizedBox(
+            height: 90,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final viewportWidth = constraints.maxWidth;
+                final totalWidth = (_maxKg - _minKg) * _pxPerKg;
+                return NotificationListener<ScrollNotification>(
+                  onNotification: (notification) {
+                    _handleScroll();
+                    if (notification is ScrollEndNotification) _snapToNearestTenth();
+                    return false;
+                  },
+                  child: Stack(
+                    alignment: Alignment.topCenter,
+                    children: [
+                      SingleChildScrollView(
+                        controller: _controller,
+                        scrollDirection: Axis.horizontal,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: viewportWidth / 2),
+                          child: CustomPaint(
+                            size: Size(totalWidth, 90),
+                            painter: _RulerPainter(
+                              minKg: _minKg,
+                              maxKg: _maxKg,
+                              pxPerKg: _pxPerKg,
+                              tickColor: theme.colorScheme.onSurfaceVariant,
+                              labelStyle: theme.textTheme.bodySmall!,
+                            ),
+                          ),
+                        ),
+                      ),
+                      IgnorePointer(
+                        child: Container(
+                          width: 2,
+                          height: 40,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-            _RoundIconButton(icon: Icons.add, onTap: () => onChanged((value + 0.5).clamp(30, 250))),
-          ],
-        ),
+          ),
+          const Spacer(),
+        ],
       ),
     );
   }
 }
 
-class _RoundIconButton extends StatelessWidget {
-  const _RoundIconButton({required this.icon, required this.onTap});
+class _RulerPainter extends CustomPainter {
+  _RulerPainter({
+    required this.minKg,
+    required this.maxKg,
+    required this.pxPerKg,
+    required this.tickColor,
+    required this.labelStyle,
+  });
 
-  final IconData icon;
-  final VoidCallback onTap;
+  final double minKg;
+  final double maxKg;
+  final double pxPerKg;
+  final Color tickColor;
+  final TextStyle labelStyle;
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Material(
-      color: theme.colorScheme.surfaceContainerHighest,
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Icon(icon, size: 24),
-        ),
-      ),
-    );
+  void paint(Canvas canvas, Size size) {
+    final steps = ((maxKg - minKg) * 10).round();
+    for (var i = 0; i <= steps; i++) {
+      final x = i * (pxPerKg / 10);
+      final isMajor = i % 10 == 0;
+      final isMedium = i % 5 == 0;
+      final height = isMajor ? 36.0 : (isMedium ? 24.0 : 14.0);
+      final paint = Paint()
+        ..color = tickColor.withValues(alpha: isMajor ? 0.9 : (isMedium ? 0.6 : 0.35))
+        ..strokeWidth = isMajor ? 2 : 1;
+      canvas.drawLine(Offset(x, 0), Offset(x, height), paint);
+      if (isMajor) {
+        final kg = (minKg + i / 10).round();
+        final painter = TextPainter(
+          text: TextSpan(text: '$kg', style: labelStyle),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        painter.paint(canvas, Offset(x - painter.width / 2, height + 4));
+      }
+    }
   }
+
+  @override
+  bool shouldRepaint(covariant _RulerPainter oldDelegate) => false;
 }
