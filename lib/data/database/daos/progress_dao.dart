@@ -8,9 +8,9 @@ import '../tables/workout_sessions_table.dart';
 part 'progress_dao.g.dart';
 
 typedef OneRepMaxPoint = ({DateTime date, double value});
-typedef ExerciseSessionLog = ({int sessionId, DateTime date, String? dayName, List<WorkoutSet> sets});
+typedef ExerciseSessionLog = ({int sessionId, DateTime date, String? routineName, List<WorkoutSet> sets});
 
-@DriftAccessor(tables: [WorkoutSessions, SessionExercises, WorkoutSets, RoutineDays])
+@DriftAccessor(tables: [WorkoutSessions, SessionExercises, WorkoutSets, RoutineDays, Routines])
 class ProgressDao extends DatabaseAccessor<AppDatabase> with _$ProgressDaoMixin {
   ProgressDao(super.db);
 
@@ -119,12 +119,17 @@ class ProgressDao extends DatabaseAccessor<AppDatabase> with _$ProgressDaoMixin 
   }
 
   // Logged sets for one exercise, grouped by session and newest first — the
-  // Historial tab on the exercise rank detail screen.
+  // Historial tab on the exercise rank detail screen. Labelled with the
+  // routine's name rather than the day's: routines created as a single day
+  // always name that day "Día 1" internally even though the UI never shows
+  // it (RoutineEditorScreen merges a single day into the routine itself), so
+  // surfacing the day name here would leak that implementation detail back.
   Stream<List<ExerciseSessionLog>> watchHistoryForExercise(int exerciseId) {
     final query = select(workoutSets).join([
       innerJoin(sessionExercises, sessionExercises.id.equalsExp(workoutSets.sessionExerciseId)),
       innerJoin(workoutSessions, workoutSessions.id.equalsExp(sessionExercises.workoutSessionId)),
       leftOuterJoin(routineDays, routineDays.id.equalsExp(workoutSessions.routineDayId)),
+      leftOuterJoin(routines, routines.id.equalsExp(routineDays.routineId)),
     ])
       ..where(sessionExercises.exerciseId.equals(exerciseId) &
           workoutSessions.status.equalsValue(SessionStatus.completed) &
@@ -134,12 +139,12 @@ class ProgressDao extends DatabaseAccessor<AppDatabase> with _$ProgressDaoMixin 
 
     return query.watch().map((rows) {
       final setsBySession = <int, List<WorkoutSet>>{};
-      final metaBySession = <int, ({DateTime date, String? dayName})>{};
+      final metaBySession = <int, ({DateTime date, String? routineName})>{};
       for (final row in rows) {
         final session = row.readTable(workoutSessions);
-        final day = row.readTableOrNull(routineDays);
+        final routine = row.readTableOrNull(routines);
         setsBySession.putIfAbsent(session.id, () => []).add(row.readTable(workoutSets));
-        metaBySession[session.id] = (date: session.date, dayName: day?.name);
+        metaBySession[session.id] = (date: session.date, routineName: routine?.name);
       }
       final sessionIds = metaBySession.keys.toList()
         ..sort((a, b) => metaBySession[b]!.date.compareTo(metaBySession[a]!.date));
@@ -148,7 +153,7 @@ class ProgressDao extends DatabaseAccessor<AppDatabase> with _$ProgressDaoMixin 
           (
             sessionId: id,
             date: metaBySession[id]!.date,
-            dayName: metaBySession[id]!.dayName,
+            routineName: metaBySession[id]!.routineName,
             sets: setsBySession[id]!,
           ),
       ];

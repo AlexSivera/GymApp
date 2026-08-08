@@ -76,7 +76,7 @@ class ExerciseProgressSummary extends ConsumerWidget {
                 child: Text(
                   points.isEmpty
                       ? 'Todavía no tienes datos de este ejercicio.'
-                      : 'Necesitas al menos dos entrenamientos con este ejercicio para ver la evolución.',
+                      : 'Necesitas entrenar este ejercicio en al menos dos días distintos para ver la evolución.',
                   style:
                       theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),

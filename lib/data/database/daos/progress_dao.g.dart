@@ -9,6 +9,7 @@ mixin _$ProgressDaoMixin on DatabaseAccessor<AppDatabase> {
       attachedDatabase.sessionExercises;
   $WorkoutSetsTable get workoutSets => attachedDatabase.workoutSets;
   $RoutineDaysTable get routineDays => attachedDatabase.routineDays;
+  $RoutinesTable get routines => attachedDatabase.routines;
   ProgressDaoManager get managers => ProgressDaoManager(this);
 }
 
@@ -29,4 +30,6 @@ class ProgressDaoManager {
       $$WorkoutSetsTableTableManager(_db.attachedDatabase, _db.workoutSets);
   $$RoutineDaysTableTableManager get routineDays =>
       $$RoutineDaysTableTableManager(_db.attachedDatabase, _db.routineDays);
+  $$RoutinesTableTableManager get routines =>
+      $$RoutinesTableTableManager(_db.attachedDatabase, _db.routines);
 }

@@ -165,7 +165,7 @@ class _HistoryTab extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(session.dayName ?? 'Entrenamiento libre', style: theme.textTheme.titleMedium),
+                  Text(session.routineName ?? 'Entrenamiento libre', style: theme.textTheme.titleMedium),
                   Text(
                     DateFormat("d 'de' MMMM 'de' y, HH:mm", 'es').format(session.date),
                     style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
