@@ -109,6 +109,46 @@ final exercisesForMuscleProvider = Provider.family<List<ExerciseRankInfo>, Strin
   return revealed.where((info) => info.exercise.primaryMuscles.contains(muscle)).toList();
 });
 
+typedef NextRankTarget = ({Rank rank, double weightKg});
+
+class ExerciseRankDetail {
+  const ExerciseRankDetail({required this.info, required this.next});
+
+  final ExerciseRankInfo info;
+  final NextRankTarget? next;
+}
+
+// Everything the exercise rank detail screen's "Rango" tab needs: the live
+// rank plus, if there's a step above it, the estimated weight (at the same
+// reps as the current best set) that would earn it.
+final exerciseRankDetailProvider = Provider.family<ExerciseRankDetail?, int>((ref, exerciseId) {
+  final rankable = ref.watch(rankableExercisesProvider);
+  ExerciseRankInfo? info;
+  for (final item in rankable) {
+    if (item.exercise.id == exerciseId) {
+      info = item;
+      break;
+    }
+  }
+  if (info == null) return null;
+
+  final standard = exerciseStandards[info.exercise.name];
+  if (standard == null) return ExerciseRankDetail(info: info, next: null);
+
+  final bodyweight = ref.watch(currentBodyweightProvider).valueOrNull ?? referenceBodyweightKg;
+  final baseline = standard.ratio * bodyweight;
+  final nextRatio = nextStepRatio(info.rank);
+  if (nextRatio == null) return ExerciseRankDetail(info: info, next: null);
+
+  final targetOneRm = nextRatio * baseline;
+  final targetRawOneRm = standard.bodyweightBased ? targetOneRm - bodyweight : targetOneRm;
+  final reps = info.bestSet.reps!;
+  final targetWeight = reps <= 1 ? targetRawOneRm : targetRawOneRm / (1 + reps / 30.0);
+  final nextRank = computeRank(estimated1RM: targetOneRm * 1.0001, baseline1RM: baseline);
+
+  return ExerciseRankDetail(info: info, next: (rank: nextRank, weightKg: targetWeight));
+});
+
 Rank averageRank(List<Rank> ranks) {
   final avgScore = ranks.map((r) => r.score).reduce((a, b) => a + b) / ranks.length;
   final tierIndex = ((avgScore - 1) / 3).floor().clamp(0, RankTier.values.length - 1);

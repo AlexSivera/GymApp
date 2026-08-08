@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../insights/screens/insights_screen.dart';
-import '../../progress/screens/progress_screen.dart';
 import '../../ranking/screens/ranking_screen.dart';
 import 'about_screen.dart';
 import 'backups_screen.dart';
@@ -30,12 +29,6 @@ class ProfileScreen extends StatelessWidget {
               label: 'Peso corporal',
               onTap: () => Navigator.of(context)
                   .push(MaterialPageRoute(builder: (_) => const BodyWeightScreen())),
-            ),
-            _ProfileTile(
-              icon: Icons.show_chart,
-              label: 'Progreso',
-              onTap: () =>
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ProgressScreen())),
             ),
             _ProfileTile(
               icon: Icons.insights_outlined,

@@ -21,3 +21,8 @@ final personalRecordsForExerciseProvider =
     StreamProvider.family<List<PersonalRecord>, int>((ref, exerciseId) {
   return ref.watch(personalRecordsDaoProvider).watchForExercise(exerciseId);
 });
+
+final exerciseHistoryProvider =
+    StreamProvider.family<List<ExerciseSessionLog>, int>((ref, exerciseId) {
+  return ref.watch(progressDaoProvider).watchHistoryForExercise(exerciseId);
+});

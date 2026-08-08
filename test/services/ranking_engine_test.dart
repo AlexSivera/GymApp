@@ -33,4 +33,22 @@ void main() {
     expect(rank.tier, RankTier.hierro);
     expect(rank.subTier, 1);
   });
+
+  test('nextStepRatio climbing a subtier stays within the same tier', () {
+    final ratio = nextStepRatio(const Rank(RankTier.plata, 1))!;
+    final next = computeRank(estimated1RM: ratio * 40 * 1.0001, baseline1RM: 40);
+    expect(next.tier, RankTier.plata);
+    expect(next.subTier, 2);
+  });
+
+  test('nextStepRatio at subtier III crosses into the next tier', () {
+    final ratio = nextStepRatio(const Rank(RankTier.plata, 3))!;
+    final next = computeRank(estimated1RM: ratio * 40 * 1.0001, baseline1RM: 40);
+    expect(next.tier, RankTier.oro);
+    expect(next.subTier, 1);
+  });
+
+  test('nextStepRatio is null once Maestro III is reached — nowhere higher to climb', () {
+    expect(nextStepRatio(const Rank(RankTier.maestro, 3)), isNull);
+  });
 }

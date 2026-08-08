@@ -10,6 +10,7 @@ import '../../exercise_library/providers/exercise_library_providers.dart';
 import '../providers/ranking_providers.dart';
 import '../widgets/body_diagram.dart';
 import '../widgets/rank_badge.dart';
+import 'exercise_rank_detail_screen.dart';
 
 class RankingScreen extends ConsumerWidget {
   const RankingScreen({super.key});
@@ -189,6 +190,12 @@ class _MuscleDetailSheet extends ConsumerWidget {
                       subtitle: Text(info.rank.label,
                           style: TextStyle(color: rankTierColors[info.rank.tier])),
                       trailing: RankBadge(rank: info.rank, size: 32),
+                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => ExerciseRankDetailScreen(
+                          exerciseId: info.exercise.id,
+                          exerciseName: info.exercise.name,
+                        ),
+                      )),
                     ),
                   ),
                 ),

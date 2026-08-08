@@ -2,13 +2,15 @@ import 'package:drift/drift.dart';
 
 import '../../../services/progression_engine/estimated_one_rep_max.dart';
 import '../app_database.dart';
+import '../tables/routines_table.dart';
 import '../tables/workout_sessions_table.dart';
 
 part 'progress_dao.g.dart';
 
 typedef OneRepMaxPoint = ({DateTime date, double value});
+typedef ExerciseSessionLog = ({int sessionId, DateTime date, String? dayName, List<WorkoutSet> sets});
 
-@DriftAccessor(tables: [WorkoutSessions, SessionExercises, WorkoutSets])
+@DriftAccessor(tables: [WorkoutSessions, SessionExercises, WorkoutSets, RoutineDays])
 class ProgressDao extends DatabaseAccessor<AppDatabase> with _$ProgressDaoMixin {
   ProgressDao(super.db);
 
@@ -114,6 +116,43 @@ class ProgressDao extends DatabaseAccessor<AppDatabase> with _$ProgressDaoMixin 
       if (seen.length >= limit) break;
     }
     return seen;
+  }
+
+  // Logged sets for one exercise, grouped by session and newest first — the
+  // Historial tab on the exercise rank detail screen.
+  Stream<List<ExerciseSessionLog>> watchHistoryForExercise(int exerciseId) {
+    final query = select(workoutSets).join([
+      innerJoin(sessionExercises, sessionExercises.id.equalsExp(workoutSets.sessionExerciseId)),
+      innerJoin(workoutSessions, workoutSessions.id.equalsExp(sessionExercises.workoutSessionId)),
+      leftOuterJoin(routineDays, routineDays.id.equalsExp(workoutSessions.routineDayId)),
+    ])
+      ..where(sessionExercises.exerciseId.equals(exerciseId) &
+          workoutSessions.status.equalsValue(SessionStatus.completed) &
+          workoutSets.weightKg.isNotNull() &
+          workoutSets.reps.isNotNull())
+      ..orderBy([OrderingTerm.desc(workoutSessions.date), OrderingTerm.asc(workoutSets.setNumber)]);
+
+    return query.watch().map((rows) {
+      final setsBySession = <int, List<WorkoutSet>>{};
+      final metaBySession = <int, ({DateTime date, String? dayName})>{};
+      for (final row in rows) {
+        final session = row.readTable(workoutSessions);
+        final day = row.readTableOrNull(routineDays);
+        setsBySession.putIfAbsent(session.id, () => []).add(row.readTable(workoutSets));
+        metaBySession[session.id] = (date: session.date, dayName: day?.name);
+      }
+      final sessionIds = metaBySession.keys.toList()
+        ..sort((a, b) => metaBySession[b]!.date.compareTo(metaBySession[a]!.date));
+      return [
+        for (final id in sessionIds)
+          (
+            sessionId: id,
+            date: metaBySession[id]!.date,
+            dayName: metaBySession[id]!.dayName,
+            sets: setsBySession[id]!,
+          ),
+      ];
+    });
   }
 
   // Distinct exercise ids that have at least one logged set in a completed session.

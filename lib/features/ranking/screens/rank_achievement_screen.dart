@@ -6,6 +6,7 @@ import '../../../core/widgets/exercise_thumbnail.dart';
 import '../../../services/progression_engine/estimated_one_rep_max.dart';
 import '../../../services/ranking_engine/compute_new_rank_achievements.dart';
 import '../widgets/rank_badge.dart';
+import '../widgets/rank_stat_block.dart';
 
 // Celebratory reveal shown right after finishing a workout when it produced
 // a new rank (first-time classification or a tier climb). Unlike the old
@@ -88,7 +89,7 @@ class _RankAchievementScreenState extends State<RankAchievementScreen> {
                         Row(
                           children: [
                             Expanded(
-                              child: _StatBlock(
+                              child: RankStatBlock(
                                 icon: Icons.fitness_center,
                                 label: 'Mejor serie',
                                 value:
@@ -96,7 +97,7 @@ class _RankAchievementScreenState extends State<RankAchievementScreen> {
                               ),
                             ),
                             Expanded(
-                              child: _StatBlock(
+                              child: RankStatBlock(
                                 icon: Icons.show_chart,
                                 label: '1RM estimado',
                                 value:
@@ -126,25 +127,4 @@ class _RankAchievementScreenState extends State<RankAchievementScreen> {
 
   String _fmt(double value) =>
       value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
-}
-
-class _StatBlock extends StatelessWidget {
-  const _StatBlock({required this.icon, required this.label, required this.value});
-
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      children: [
-        Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
-        const SizedBox(height: AppSpacing.xs),
-        Text(value, style: theme.textTheme.titleMedium),
-        Text(label, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-      ],
-    );
-  }
 }
