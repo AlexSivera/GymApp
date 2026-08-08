@@ -96,21 +96,36 @@ class HeroTodayCard extends ConsumerWidget {
     if (session.status == SessionStatus.completed || session.status == SessionStatus.skipped) {
       return AppCard(
         padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              session.status == SessionStatus.completed ? Icons.check_circle : Icons.remove_circle_outline,
-              color: session.status == SessionStatus.completed
-                  ? AppTheme.statusCompleted
-                  : AppTheme.statusSkipped,
+            Row(
+              children: [
+                Icon(
+                  session.status == SessionStatus.completed
+                      ? Icons.check_circle
+                      : Icons.remove_circle_outline,
+                  color: session.status == SessionStatus.completed
+                      ? AppTheme.statusCompleted
+                      : AppTheme.statusSkipped,
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Text(
+                    session.status == SessionStatus.completed
+                        ? 'Ya has entrenado hoy. ¡Buen trabajo!'
+                        : 'Hoy se marcó como entrenamiento saltado.',
+                    style: theme.textTheme.titleMedium,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Text(
-                session.status == SessionStatus.completed
-                    ? 'Ya has entrenado hoy. ¡Buen trabajo!'
-                    : 'Hoy se marcó como entrenamiento saltado.',
-                style: theme.textTheme.titleMedium,
+            const SizedBox(height: AppSpacing.md),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => _startAnotherSession(context, ref),
+                child: const Text('+ Añadir otro entrenamiento'),
               ),
             ),
           ],
@@ -167,6 +182,18 @@ class HeroTodayCard extends ConsumerWidget {
   Future<void> _startSession(BuildContext context, WidgetRef ref, WorkoutSession session) async {
     final db = ref.read(appDatabaseProvider);
     await startPlannedSession(db, session: session);
+    if (context.mounted) context.go('/workout');
+  }
+
+  // For people who train more than once a day: today already has a
+  // completed/skipped session, so this starts a second one right now rather
+  // than going through the "planned for later" state.
+  Future<void> _startAnotherSession(BuildContext context, WidgetRef ref) async {
+    final day = await showRoutineDayPicker(context);
+    if (day == null) return;
+
+    final db = ref.read(appDatabaseProvider);
+    await startSessionFromRoutineDay(db, routineDayId: day.id, date: DateTime.now());
     if (context.mounted) context.go('/workout');
   }
 

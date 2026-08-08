@@ -142,7 +142,6 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
             onRenameRoutine: () => _renameRoutine(routine),
             onSaveDescription: () => _saveDescription(routine),
             onDeleteRoutine: _deleteRoutine,
-            onAddDay: () => _addDay(days.length),
           );
         }
 
@@ -234,11 +233,14 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
   }
 }
 
-enum _RoutineMenuAction { rename, addDay, delete }
+enum _RoutineMenuAction { rename, delete }
 
 // Merged view for the single-day case: the routine IS the day, so its
 // exercises show up directly instead of behind a "Días" list with one entry.
-// Renombrar/Eliminar/Añadir otro día move into an overflow menu to keep the
+// There's deliberately no "Añadir otro día" here — a routine created this way
+// (the only way to create one) stays flat forever; splitting a workout into
+// parts means creating separate routines (Push, Pull, Legs...), not nesting
+// days inside one. Renombrar/Eliminar move into an overflow menu to keep the
 // app bar focused on "Empezar".
 class _SingleDayRoutineView extends ConsumerWidget {
   const _SingleDayRoutineView({
@@ -248,7 +250,6 @@ class _SingleDayRoutineView extends ConsumerWidget {
     required this.onRenameRoutine,
     required this.onSaveDescription,
     required this.onDeleteRoutine,
-    required this.onAddDay,
   });
 
   final Routine routine;
@@ -257,7 +258,6 @@ class _SingleDayRoutineView extends ConsumerWidget {
   final VoidCallback onRenameRoutine;
   final VoidCallback onSaveDescription;
   final VoidCallback onDeleteRoutine;
-  final VoidCallback onAddDay;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -278,15 +278,12 @@ class _SingleDayRoutineView extends ConsumerWidget {
               switch (action) {
                 case _RoutineMenuAction.rename:
                   onRenameRoutine();
-                case _RoutineMenuAction.addDay:
-                  onAddDay();
                 case _RoutineMenuAction.delete:
                   onDeleteRoutine();
               }
             },
             itemBuilder: (context) => const [
               PopupMenuItem(value: _RoutineMenuAction.rename, child: Text('Renombrar rutina')),
-              PopupMenuItem(value: _RoutineMenuAction.addDay, child: Text('Añadir otro día')),
               PopupMenuItem(value: _RoutineMenuAction.delete, child: Text('Eliminar rutina')),
             ],
           ),
