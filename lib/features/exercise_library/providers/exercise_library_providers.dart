@@ -25,16 +25,16 @@ final exerciseLibraryTabProvider = StateProvider<ExerciseLibraryTab>((ref) => Ex
 
 final exerciseSearchQueryProvider = StateProvider<String>((ref) => '');
 
-final exerciseMuscleFilterProvider = StateProvider<String?>((ref) => null);
+final exerciseMuscleFilterProvider = StateProvider<Set<String>>((ref) => {});
 
 final filteredExercisesProvider = Provider<List<Exercise>>((ref) {
   final exercises = ref.watch(allExercisesProvider).valueOrNull ?? const [];
   final query = ref.watch(exerciseSearchQueryProvider).trim().toLowerCase();
-  final muscle = ref.watch(exerciseMuscleFilterProvider);
+  final muscles = ref.watch(exerciseMuscleFilterProvider);
 
   return exercises.where((e) {
     final matchesQuery = query.isEmpty || e.name.toLowerCase().contains(query);
-    final matchesMuscle = muscle == null || e.primaryMuscles.contains(muscle);
+    final matchesMuscle = muscles.isEmpty || e.primaryMuscles.any(muscles.contains);
     return matchesQuery && matchesMuscle;
   }).toList();
 });

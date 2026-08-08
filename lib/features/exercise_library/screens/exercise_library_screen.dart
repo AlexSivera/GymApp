@@ -75,7 +75,10 @@ class ExerciseLibraryScreen extends ConsumerWidget {
                 onChanged: (value) => ref.read(exerciseSearchQueryProvider.notifier).state = value,
               ),
             ),
-            _MuscleChipRow(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 0),
+              child: Align(alignment: Alignment.centerLeft, child: _MuscleFilterChip()),
+            ),
           ],
           Expanded(
             child: switch (tab) {
@@ -116,37 +119,198 @@ class ExerciseLibraryScreen extends ConsumerWidget {
   }
 }
 
-class _MuscleChipRow extends ConsumerWidget {
+// Muscles grouped by body region, in display order — used both by the
+// "Categorías" tab and the muscle-filter sheet. Any muscle present in the
+// data but not listed here (e.g. a custom exercise with a made-up muscle
+// name) still shows up, tacked onto "Otros", so nothing gets silently hidden.
+const _muscleGroups = {
+  'Tren superior': ['Pecho', 'Espalda', 'Hombros', 'Bíceps', 'Tríceps'],
+  'Tren inferior': ['Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Gemelos'],
+  'Core': ['Abdomen'],
+};
+
+const _muscleIcons = {
+  'Pecho': Icons.fitness_center,
+  'Espalda': Icons.rowing,
+  'Hombros': Icons.sports_gymnastics,
+  'Bíceps': Icons.front_hand,
+  'Tríceps': Icons.back_hand,
+  'Abdomen': Icons.self_improvement,
+  'Cuádriceps': Icons.directions_run,
+  'Isquiotibiales': Icons.directions_walk,
+  'Glúteos': Icons.accessibility_new,
+  'Gemelos': Icons.bolt,
+};
+
+IconData _iconForMuscle(String muscle) => _muscleIcons[muscle] ?? Icons.fitness_center;
+
+// Same grouping as above, but only the muscles that actually have exercises
+// right now, with any unrecognized ones appended under "Otros".
+Map<String, List<String>> _groupedAvailableMuscles(List<String> available) {
+  final remaining = available.toSet();
+  final grouped = <String, List<String>>{};
+  for (final entry in _muscleGroups.entries) {
+    final present = entry.value.where(remaining.remove).toList();
+    if (present.isNotEmpty) grouped[entry.key] = present;
+  }
+  if (remaining.isNotEmpty) grouped['Otros'] = remaining.toList()..sort();
+  return grouped;
+}
+
+class _MuscleFilterChip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final muscles = ref.watch(availableMusclesProvider);
-    final selectedMuscle = ref.watch(exerciseMuscleFilterProvider);
-    if (muscles.isEmpty) return const SizedBox.shrink();
+    final selected = ref.watch(exerciseMuscleFilterProvider);
+    final theme = Theme.of(context);
+    final label = selected.isEmpty ? 'Músculos' : 'Músculos (${selected.length})';
 
-    return SizedBox(
-      height: 56,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.sm),
-            child: ChoiceChip(
-              label: const Text('Todos'),
-              selected: selectedMuscle == null,
-              onSelected: (_) => ref.read(exerciseMuscleFilterProvider.notifier).state = null,
-            ),
-          ),
-          for (final muscle in muscles)
-            Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.sm),
-              child: ChoiceChip(
-                label: Text(muscle),
-                selected: selectedMuscle == muscle,
-                onSelected: (_) => ref.read(exerciseMuscleFilterProvider.notifier).state = muscle,
+    return ActionChip(
+      avatar: Icon(Icons.tune, size: 18, color: selected.isEmpty ? null : theme.colorScheme.onPrimary),
+      label: Text(label),
+      backgroundColor: selected.isEmpty ? null : theme.colorScheme.primary,
+      labelStyle: selected.isEmpty ? null : TextStyle(color: theme.colorScheme.onPrimary),
+      onPressed: () => showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => const _MuscleFilterSheet(),
+      ),
+    );
+  }
+}
+
+class _MuscleFilterSheet extends ConsumerWidget {
+  const _MuscleFilterSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final available = ref.watch(availableMusclesProvider);
+    final selected = ref.watch(exerciseMuscleFilterProvider);
+    final grouped = _groupedAvailableMuscles(available);
+    final resultCount = ref.watch(filteredExercisesProvider).length;
+
+    void toggle(String muscle) {
+      final current = {...ref.read(exerciseMuscleFilterProvider)};
+      if (!current.remove(muscle)) current.add(muscle);
+      ref.read(exerciseMuscleFilterProvider.notifier).state = current;
+    }
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Grupo muscular', style: theme.textTheme.titleLarge),
+            const SizedBox(height: AppSpacing.lg),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (final entry in grouped.entries) ...[
+                      Text(entry.key,
+                          style: theme.textTheme.bodySmall
+                              ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                      const SizedBox(height: AppSpacing.sm),
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: AppSpacing.sm,
+                          crossAxisSpacing: AppSpacing.sm,
+                          childAspectRatio: 2.6,
+                        ),
+                        itemCount: entry.value.length,
+                        itemBuilder: (context, index) {
+                          final muscle = entry.value[index];
+                          final isSelected = selected.contains(muscle);
+                          return _MuscleTile(
+                            label: muscle,
+                            icon: _iconForMuscle(muscle),
+                            selected: isSelected,
+                            onTap: () => toggle(muscle),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                    ],
+                  ],
+                ),
               ),
             ),
-        ],
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: selected.isEmpty
+                        ? null
+                        : () => ref.read(exerciseMuscleFilterProvider.notifier).state = {},
+                    child: const Text('Eliminar filtros'),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('Mostrar $resultCount resultados'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MuscleTile extends StatelessWidget {
+  const _MuscleTile({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: selected
+          ? theme.colorScheme.primary.withValues(alpha: 0.16)
+          : theme.colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(AppRadius.sm),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            border: Border.all(color: selected ? theme.colorScheme.primary : Colors.transparent),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 18, color: selected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(label,
+                    style: theme.textTheme.bodyMedium,
+                    overflow: TextOverflow.ellipsis),
+              ),
+              if (selected) Icon(Icons.check_circle, size: 18, color: theme.colorScheme.primary),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -175,14 +339,14 @@ class _CategoriesTab extends ConsumerWidget {
           child: InkWell(
             borderRadius: BorderRadius.circular(18),
             onTap: () {
-              ref.read(exerciseMuscleFilterProvider.notifier).state = muscle;
+              ref.read(exerciseMuscleFilterProvider.notifier).state = {muscle};
               ref.read(exerciseLibraryTabProvider.notifier).state = ExerciseLibraryTab.all;
             },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: Row(
                 children: [
-                  Icon(Icons.fitness_center, size: 18, color: theme.colorScheme.primary),
+                  Icon(_iconForMuscle(muscle), size: 18, color: theme.colorScheme.primary),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(muscle, style: theme.textTheme.titleMedium, overflow: TextOverflow.ellipsis),
@@ -283,11 +447,27 @@ class _ExerciseListView extends ConsumerWidget {
       separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.sm),
       itemBuilder: (context, index) {
         final exercise = exercises[index];
-        final isSelected = selectedIds.contains(exercise.id);
+        final isSelected = multiSelect && selectedIds.contains(exercise.id);
         return AppCard(
           padding: EdgeInsets.zero,
+          color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.14) : null,
           child: ListTile(
-            leading: ExerciseThumbnail(imagePaths: exercise.imagePaths),
+            leading: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                ExerciseThumbnail(imagePaths: exercise.imagePaths),
+                if (isSelected)
+                  Positioned(
+                    left: -4,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(1),
+                      decoration: BoxDecoration(color: theme.colorScheme.surface, shape: BoxShape.circle),
+                      child: Icon(Icons.check_circle, size: 18, color: theme.colorScheme.primary),
+                    ),
+                  ),
+              ],
+            ),
             title: Text(exercise.name),
             subtitle: Text(exercise.primaryMuscles.join(', ')),
             trailing: Row(
@@ -303,11 +483,6 @@ class _ExerciseListView extends ConsumerWidget {
                     tooltip: 'Ver ficha',
                     icon: const Icon(Icons.info_outline),
                     onPressed: () => _openDetail(context, exercise),
-                  ),
-                if (multiSelect)
-                  Checkbox(
-                    value: isSelected,
-                    onChanged: (_) => _openExercise(context, ref, pickerMode, multiSelect, exercise),
                   ),
               ],
             ),
