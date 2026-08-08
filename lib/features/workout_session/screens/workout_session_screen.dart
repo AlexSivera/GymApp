@@ -17,8 +17,10 @@ import '../../../services/insights_engine/session_summary.dart';
 import '../../../services/progression_engine/check_and_record_prs.dart';
 import '../../../services/progression_engine/previous_performance.dart';
 import '../../../services/progression_engine/suggest_next_load.dart';
+import '../../../services/ranking_engine/compute_new_rank_achievements.dart';
 import '../../exercise_library/providers/exercise_library_providers.dart';
 import '../../exercise_library/screens/exercise_library_screen.dart';
+import '../../ranking/screens/rank_achievement_screen.dart';
 import '../../routines/providers/routines_providers.dart';
 import '../providers/rest_timer_controller.dart';
 import '../providers/workout_session_providers.dart';
@@ -202,18 +204,15 @@ class WorkoutSessionScreen extends ConsumerWidget {
         ? DateTime.now().difference(session.startedAt!).inSeconds
         : null;
 
-    // Compute the summary and push it *before* marking the session
-    // completed: doing it the other way around flips activeSessionProvider
-    // to null first, which makes WorkoutBranchScreen swap this whole screen
-    // out for a blank placeholder mid-navigation and leaves the push
-    // targeting an unmounted context (silently dropped by the
-    // context.mounted guard) — the user would see a blank branch instead of
-    // the summary.
-    final summary = await computeSessionSummary(db, sessionId: sessionId);
-    if (!context.mounted) return;
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => SessionSummaryScreen(summary: summary)),
-    );
+    // Capture the Navigator before marking the session completed. Doing the
+    // opposite order flips activeSessionProvider to null first, which makes
+    // WorkoutBranchScreen swap this whole screen out for a blank placeholder
+    // mid-flight — a captured NavigatorState stays usable even after that
+    // happens, unlike calling Navigator.of(context) afterward (which would
+    // hit an unmounted context and silently no-op). Marking the session
+    // completed first is required here too: rank achievements are detected
+    // from the best-set query, which only looks at completed sessions.
+    final navigator = Navigator.of(context);
 
     await db.workoutSessionsDao.updateSession(
       session.copyWith(
@@ -222,6 +221,18 @@ class WorkoutSessionScreen extends ConsumerWidget {
         durationSeconds: Value(durationSeconds),
       ),
     );
+
+    final summary = await computeSessionSummary(db, sessionId: sessionId);
+    final achievements = await computeNewRankAchievements(db, sessionId: sessionId);
+
+    navigator.push(
+      MaterialPageRoute(builder: (_) => SessionSummaryScreen(summary: summary)),
+    );
+    if (achievements.isNotEmpty) {
+      navigator.push(
+        MaterialPageRoute(builder: (_) => RankAchievementScreen(achievements: achievements)),
+      );
+    }
   }
 
   Future<void> _addExercise(BuildContext context, WidgetRef ref, int currentCount) async {

@@ -128,6 +128,24 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
           _descriptionInitialized = true;
         }
 
+        final days = daysAsync.valueOrNull;
+
+        // A routine with exactly one day is the common case (every routine
+        // created via "Crear Rutina" starts this way): show its exercises
+        // directly under the routine instead of forcing an extra tap into a
+        // "Días" list with a single, invisible-purpose entry.
+        if (days != null && days.length == 1) {
+          return _SingleDayRoutineView(
+            routine: routine,
+            day: days.first,
+            descriptionController: _descriptionController,
+            onRenameRoutine: () => _renameRoutine(routine),
+            onSaveDescription: () => _saveDescription(routine),
+            onDeleteRoutine: _deleteRoutine,
+            onAddDay: () => _addDay(days.length),
+          );
+        }
+
         return Scaffold(
           appBar: AppBar(
             title: Text(routine.name),
@@ -143,7 +161,7 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
             ],
           ),
           floatingActionButton: FloatingActionButton(
-            onPressed: () => _addDay(daysAsync.valueOrNull?.length ?? 0),
+            onPressed: () => _addDay(days?.length ?? 0),
             child: const Icon(Icons.add),
           ),
           body: ListView(
@@ -212,6 +230,86 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+enum _RoutineMenuAction { rename, addDay, delete }
+
+// Merged view for the single-day case: the routine IS the day, so its
+// exercises show up directly instead of behind a "Días" list with one entry.
+// Renombrar/Eliminar/Añadir otro día move into an overflow menu to keep the
+// app bar focused on "Empezar".
+class _SingleDayRoutineView extends ConsumerWidget {
+  const _SingleDayRoutineView({
+    required this.routine,
+    required this.day,
+    required this.descriptionController,
+    required this.onRenameRoutine,
+    required this.onSaveDescription,
+    required this.onDeleteRoutine,
+    required this.onAddDay,
+  });
+
+  final Routine routine;
+  final RoutineDay day;
+  final TextEditingController descriptionController;
+  final VoidCallback onRenameRoutine;
+  final VoidCallback onSaveDescription;
+  final VoidCallback onDeleteRoutine;
+  final VoidCallback onAddDay;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final exercisesAsync = ref.watch(dayExercisesProvider(day.id));
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(routine.name),
+        actions: [
+          if ((exercisesAsync.valueOrNull ?? const []).isNotEmpty)
+            TextButton.icon(
+              onPressed: () => startWorkoutFromDay(context, ref, day.id),
+              icon: const Icon(Icons.play_arrow),
+              label: const Text('Empezar'),
+            ),
+          PopupMenuButton<_RoutineMenuAction>(
+            onSelected: (action) {
+              switch (action) {
+                case _RoutineMenuAction.rename:
+                  onRenameRoutine();
+                case _RoutineMenuAction.addDay:
+                  onAddDay();
+                case _RoutineMenuAction.delete:
+                  onDeleteRoutine();
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: _RoutineMenuAction.rename, child: Text('Renombrar rutina')),
+              PopupMenuItem(value: _RoutineMenuAction.addDay, child: Text('Añadir otro día')),
+              PopupMenuItem(value: _RoutineMenuAction.delete, child: Text('Eliminar rutina')),
+            ],
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => addExercisesToDay(context, ref, day.id),
+        child: const Icon(Icons.add),
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: TextField(
+              controller: descriptionController,
+              decoration: const InputDecoration(labelText: 'Descripción (opcional)'),
+              onSubmitted: (_) => onSaveDescription(),
+              onTapOutside: (_) => onSaveDescription(),
+            ),
+          ),
+          Expanded(child: DayExercisesList(routineDayId: day.id)),
+        ],
+      ),
     );
   }
 }

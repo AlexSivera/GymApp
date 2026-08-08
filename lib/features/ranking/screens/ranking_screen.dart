@@ -10,7 +10,6 @@ import '../../exercise_library/providers/exercise_library_providers.dart';
 import '../providers/ranking_providers.dart';
 import '../widgets/body_diagram.dart';
 import '../widgets/rank_badge.dart';
-import 'classify_exercises_screen.dart';
 
 class RankingScreen extends ConsumerWidget {
   const RankingScreen({super.key});
@@ -19,7 +18,6 @@ class RankingScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final predicted = ref.watch(overallPredictedRankProvider);
-    final unclassified = ref.watch(unclassifiedExercisesProvider);
     final muscleRanks = ref.watch(muscleRanksProvider);
     final available = ref.watch(availableMusclesProvider);
     final grouped = groupedAvailableMuscles(available);
@@ -52,7 +50,7 @@ class RankingScreen extends ConsumerWidget {
                           const SizedBox(height: AppSpacing.xs),
                           Text(
                             predicted == null
-                                ? 'Completa y clasifica al menos un ejercicio.'
+                                ? 'Termina un entrenamiento para empezar a ver tu rango.'
                                 : 'Estimación a partir de tu propio progreso — no te compara con otras personas.',
                             style: theme.textTheme.bodySmall
                                 ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
@@ -64,18 +62,6 @@ class RankingScreen extends ConsumerWidget {
                     RankBadge(rank: predicted ?? const Rank(RankTier.hierro, 1), size: 56),
                   ],
                 ),
-                if (unclassified.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.lg),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const ClassifyExercisesScreen()),
-                      ),
-                      child: Text('Clasificar ejercicios · ${unclassified.length} restantes'),
-                    ),
-                  ),
-                ],
               ],
             ),
           ),

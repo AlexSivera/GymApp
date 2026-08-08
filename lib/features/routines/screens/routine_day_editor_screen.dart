@@ -15,6 +15,8 @@ import '../../exercise_library/screens/exercise_library_screen.dart';
 import '../providers/routines_providers.dart';
 import '../widgets/exercise_config_fields.dart';
 
+// Standalone screen for a single day, used when a routine has 2+ days and
+// you drill into one of them from the "Días" list.
 class RoutineDayEditorScreen extends ConsumerWidget {
   const RoutineDayEditorScreen({super.key, required this.routineDayId, required this.dayName});
 
@@ -23,10 +25,7 @@ class RoutineDayEditorScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final exercisesAsync = ref.watch(dayExercisesProvider(routineDayId));
-    final allExercises = ref.watch(allExercisesProvider).valueOrNull ?? const [];
-    final exercisesById = {for (final e in allExercises) e.id: e};
 
     return Scaffold(
       appBar: AppBar(
@@ -34,50 +33,111 @@ class RoutineDayEditorScreen extends ConsumerWidget {
         actions: [
           if ((exercisesAsync.valueOrNull ?? const []).isNotEmpty)
             TextButton.icon(
-              onPressed: () => _startWorkout(context, ref),
+              onPressed: () => startWorkoutFromDay(context, ref, routineDayId),
               icon: const Icon(Icons.play_arrow),
               label: const Text('Empezar'),
             ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _addExercise(context, ref),
+        onPressed: () => addExercisesToDay(context, ref, routineDayId),
         child: const Icon(Icons.add),
       ),
-      body: exercisesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
-        data: (routineExercises) {
-          if (routineExercises.isEmpty) {
-            return Center(
-              child: Text(
-                'Añade ejercicios a este día con el botón +.',
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+      body: DayExercisesList(routineDayId: routineDayId),
+    );
+  }
+}
+
+// Starts today's session from this day — reused by both the standalone day
+// screen and a routine's merged single-day view.
+Future<void> startWorkoutFromDay(BuildContext context, WidgetRef ref, int routineDayId) async {
+  final db = ref.read(appDatabaseProvider);
+  final today = DateTime.now();
+  final existing = await db.workoutSessionsDao.getSessionForDate(today);
+
+  if (existing != null && existing.status == SessionStatus.planned) {
+    await startPlannedSession(db, session: existing.copyWith(routineDayId: Value(routineDayId)));
+  } else {
+    await startSessionFromRoutineDay(db, routineDayId: routineDayId, date: today);
+  }
+  if (context.mounted) context.go('/workout');
+}
+
+// Multi-select the exercises, then drop straight back onto this screen —
+// each gets sane defaults (3×8-12, descanso 90s) and its row opens expanded
+// so the sets/reps/weight can be tweaked right away. Reused by both the
+// standalone day screen and a routine's merged single-day view.
+Future<void> addExercisesToDay(BuildContext context, WidgetRef ref, int routineDayId) async {
+  final exercises = await Navigator.of(context).push<List<Exercise>>(
+    MaterialPageRoute(
+      builder: (_) => const ExerciseLibraryScreen(pickerMode: true, multiSelect: true),
+    ),
+  );
+  if (exercises == null || exercises.isEmpty) return;
+
+  var orderIndex = ref.read(dayExercisesProvider(routineDayId)).valueOrNull?.length ?? 0;
+  final addedIds = <int>{};
+  for (final exercise in exercises) {
+    final id = await ref.read(routinesDaoProvider).addExerciseToDay(RoutineExercisesCompanion.insert(
+          routineDayId: routineDayId,
+          exerciseId: exercise.id,
+          orderIndex: orderIndex++,
+          targetSets: 3,
+          targetRepsMin: 8,
+          targetRepsMax: 12,
+          restSeconds: const Value(90),
+        ));
+    addedIds.add(id);
+  }
+  ref.read(expandedRoutineExerciseIdsProvider.notifier).state = addedIds;
+}
+
+// The exercise list itself (empty state + reorderable rows) — no Scaffold,
+// so it can be dropped into either the standalone day screen or embedded
+// directly in RoutineEditorScreen when a routine only has one day.
+class DayExercisesList extends ConsumerWidget {
+  const DayExercisesList({super.key, required this.routineDayId});
+
+  final int routineDayId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final exercisesAsync = ref.watch(dayExercisesProvider(routineDayId));
+    final allExercises = ref.watch(allExercisesProvider).valueOrNull ?? const [];
+    final exercisesById = {for (final e in allExercises) e.id: e};
+
+    return exercisesAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('$e')),
+      data: (routineExercises) {
+        if (routineExercises.isEmpty) {
+          return Center(
+            child: Text(
+              'Añade ejercicios con el botón +.',
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          );
+        }
+        return ReorderableListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: routineExercises.length,
+          onReorderItem: (oldIndex, newIndex) => _reorder(ref, routineExercises, oldIndex, newIndex),
+          itemBuilder: (context, index) {
+            final entry = routineExercises[index];
+            final exercise = exercisesById[entry.exerciseId];
+            return Padding(
+              key: ValueKey(entry.id),
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _RoutineExerciseRow(
+                entry: entry,
+                exerciseName: exercise?.name ?? 'Ejercicio eliminado',
+                imagePaths: exercise?.imagePaths ?? const [],
               ),
             );
-          }
-          return ReorderableListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: routineExercises.length,
-            onReorderItem: (oldIndex, newIndex) =>
-                _reorder(ref, routineExercises, oldIndex, newIndex),
-            itemBuilder: (context, index) {
-              final entry = routineExercises[index];
-              final exercise = exercisesById[entry.exerciseId];
-              return Padding(
-                key: ValueKey(entry.id),
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _RoutineExerciseRow(
-                  entry: entry,
-                  exerciseName: exercise?.name ?? 'Ejercicio eliminado',
-                  imagePaths: exercise?.imagePaths ?? const [],
-                ),
-              );
-            },
-          );
-        },
-      ),
+          },
+        );
+      },
     );
   }
 
@@ -91,47 +151,6 @@ class RoutineDayEditorScreen extends ConsumerWidget {
     final item = list.removeAt(oldIndex);
     list.insert(newIndex, item);
     await ref.read(routinesDaoProvider).reorderExercises(list.map((e) => e.id).toList());
-  }
-
-  Future<void> _startWorkout(BuildContext context, WidgetRef ref) async {
-    final db = ref.read(appDatabaseProvider);
-    final today = DateTime.now();
-    final existing = await db.workoutSessionsDao.getSessionForDate(today);
-
-    if (existing != null && existing.status == SessionStatus.planned) {
-      await startPlannedSession(db, session: existing.copyWith(routineDayId: Value(routineDayId)));
-    } else {
-      await startSessionFromRoutineDay(db, routineDayId: routineDayId, date: today);
-    }
-    if (context.mounted) context.go('/workout');
-  }
-
-  // Multi-select the exercises, then drop straight back onto this screen —
-  // each gets sane defaults (3×8-12, descanso 90s) and its row opens
-  // expanded so the sets/reps/weight can be tweaked right away.
-  Future<void> _addExercise(BuildContext context, WidgetRef ref) async {
-    final exercises = await Navigator.of(context).push<List<Exercise>>(
-      MaterialPageRoute(
-        builder: (_) => const ExerciseLibraryScreen(pickerMode: true, multiSelect: true),
-      ),
-    );
-    if (exercises == null || exercises.isEmpty) return;
-
-    var orderIndex = ref.read(dayExercisesProvider(routineDayId)).valueOrNull?.length ?? 0;
-    final addedIds = <int>{};
-    for (final exercise in exercises) {
-      final id = await ref.read(routinesDaoProvider).addExerciseToDay(RoutineExercisesCompanion.insert(
-            routineDayId: routineDayId,
-            exerciseId: exercise.id,
-            orderIndex: orderIndex++,
-            targetSets: 3,
-            targetRepsMin: 8,
-            targetRepsMax: 12,
-            restSeconds: const Value(90),
-          ));
-      addedIds.add(id);
-    }
-    ref.read(expandedRoutineExerciseIdsProvider.notifier).state = addedIds;
   }
 }
 
