@@ -1,0 +1,117 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../data/database/app_database.dart';
+import '../../../data/database/database_provider.dart';
+import '../../../services/progression_engine/estimated_one_rep_max.dart';
+import '../../../services/ranking_engine/compute_rank.dart';
+import '../../../services/ranking_engine/rank_tier.dart';
+import '../../../services/ranking_engine/strength_standards.dart';
+import '../../exercise_library/providers/exercise_library_providers.dart';
+
+final rankingDaoProvider = Provider((ref) => ref.watch(appDatabaseProvider).rankingDao);
+
+final _bodyWeightDaoProvider = Provider((ref) => ref.watch(appDatabaseProvider).bodyWeightDao);
+final _progressDaoProvider = Provider((ref) => ref.watch(appDatabaseProvider).progressDao);
+
+final currentBodyweightProvider = StreamProvider<double>((ref) {
+  return ref
+      .watch(_bodyWeightDaoProvider)
+      .watchLatest()
+      .map((log) => log?.weightKg ?? referenceBodyweightKg);
+});
+
+final bestSetByExerciseProvider = StreamProvider<Map<int, WorkoutSet>>((ref) {
+  return ref.watch(_progressDaoProvider).watchBestSetByExercise();
+});
+
+final acknowledgedRanksProvider = StreamProvider<Map<int, Rank>>((ref) {
+  return ref.watch(rankingDaoProvider).watchAcknowledged().map((rows) => {
+        for (final row in rows) row.exerciseId: Rank(RankTier.values[row.tierIndex], row.subTier),
+      });
+});
+
+class ExerciseRankInfo {
+  const ExerciseRankInfo({required this.exercise, required this.rank, required this.bestSet});
+
+  final Exercise exercise;
+  final Rank rank;
+  final WorkoutSet bestSet;
+}
+
+// Every exercise that CAN be ranked right now (has a strength-standard
+// estimate and at least one logged set), with its live rank — regardless
+// of whether the user has stepped through the reveal flow for it yet.
+final rankableExercisesProvider = Provider<List<ExerciseRankInfo>>((ref) {
+  final exercises = ref.watch(allExercisesProvider).valueOrNull ?? const [];
+  final bestSets = ref.watch(bestSetByExerciseProvider).valueOrNull ?? const {};
+  final bodyweight = ref.watch(currentBodyweightProvider).valueOrNull ?? referenceBodyweightKg;
+
+  final result = <ExerciseRankInfo>[];
+  for (final exercise in exercises) {
+    final standard = exerciseStandards[exercise.name];
+    final bestSet = bestSets[exercise.id];
+    if (standard == null || bestSet == null) continue;
+
+    final rawOneRm = estimatedOneRepMax(bestSet.weightKg!, bestSet.reps!);
+    // Approximation, not a re-derivation of Epley with bodyweight folded in
+    // — good enough for an estimate, and keeps the DAO query simple.
+    final effectiveOneRm = standard.bodyweightBased ? rawOneRm + bodyweight : rawOneRm;
+    final baseline = standard.ratio * bodyweight;
+
+    result.add(ExerciseRankInfo(
+      exercise: exercise,
+      rank: computeRank(estimated1RM: effectiveOneRm, baseline1RM: baseline),
+      bestSet: bestSet,
+    ));
+  }
+  return result;
+});
+
+// Rankable but not yet stepped through the reveal flow — this is what
+// "Clasificar ejercicios · N restantes" counts.
+final unclassifiedExercisesProvider = Provider<List<ExerciseRankInfo>>((ref) {
+  final rankable = ref.watch(rankableExercisesProvider);
+  final acknowledged = ref.watch(acknowledgedRanksProvider).valueOrNull ?? const {};
+  return [for (final info in rankable) if (!acknowledged.containsKey(info.exercise.id)) info];
+});
+
+// Only the ones already revealed — what actually shows in the muscle list
+// and paints the body diagram. An exercise's rank here stays live (keeps
+// climbing) once it's been revealed once; it just doesn't appear at all
+// beforehand.
+final revealedRankedExercisesProvider = Provider<List<ExerciseRankInfo>>((ref) {
+  final rankable = ref.watch(rankableExercisesProvider);
+  final acknowledged = ref.watch(acknowledgedRanksProvider).valueOrNull ?? const {};
+  return [for (final info in rankable) if (acknowledged.containsKey(info.exercise.id)) info];
+});
+
+// Per-muscle rank, averaged over that muscle's revealed exercises.
+final muscleRanksProvider = Provider<Map<String, Rank>>((ref) {
+  final revealed = ref.watch(revealedRankedExercisesProvider);
+  final byMuscle = <String, List<Rank>>{};
+  for (final info in revealed) {
+    for (final muscle in info.exercise.primaryMuscles) {
+      byMuscle.putIfAbsent(muscle, () => []).add(info.rank);
+    }
+  }
+  return {for (final entry in byMuscle.entries) entry.key: averageRank(entry.value)};
+});
+
+final overallPredictedRankProvider = Provider<Rank?>((ref) {
+  final muscleRanks = ref.watch(muscleRanksProvider);
+  if (muscleRanks.isEmpty) return null;
+  return averageRank(muscleRanks.values.toList());
+});
+
+// Exercises for a given muscle, revealed only, for the muscle-detail sheet.
+final exercisesForMuscleProvider = Provider.family<List<ExerciseRankInfo>, String>((ref, muscle) {
+  final revealed = ref.watch(revealedRankedExercisesProvider);
+  return revealed.where((info) => info.exercise.primaryMuscles.contains(muscle)).toList();
+});
+
+Rank averageRank(List<Rank> ranks) {
+  final avgScore = ranks.map((r) => r.score).reduce((a, b) => a + b) / ranks.length;
+  final tierIndex = ((avgScore - 1) / 3).floor().clamp(0, RankTier.values.length - 1);
+  final subTier = (avgScore - tierIndex * 3).round().clamp(1, 3);
+  return Rank(RankTier.values[tierIndex], subTier);
+}

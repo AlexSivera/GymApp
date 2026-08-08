@@ -4917,6 +4917,330 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
   }
 }
 
+class $ExerciseRankAcknowledgementsTable extends ExerciseRankAcknowledgements
+    with
+        TableInfo<
+          $ExerciseRankAcknowledgementsTable,
+          ExerciseRankAcknowledgement
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ExerciseRankAcknowledgementsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _exerciseIdMeta = const VerificationMeta(
+    'exerciseId',
+  );
+  @override
+  late final GeneratedColumn<int> exerciseId = GeneratedColumn<int>(
+    'exercise_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _tierIndexMeta = const VerificationMeta(
+    'tierIndex',
+  );
+  @override
+  late final GeneratedColumn<int> tierIndex = GeneratedColumn<int>(
+    'tier_index',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _subTierMeta = const VerificationMeta(
+    'subTier',
+  );
+  @override
+  late final GeneratedColumn<int> subTier = GeneratedColumn<int>(
+    'sub_tier',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _acknowledgedAtMeta = const VerificationMeta(
+    'acknowledgedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> acknowledgedAt =
+      GeneratedColumn<DateTime>(
+        'acknowledged_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+        defaultValue: currentDateAndTime,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    exerciseId,
+    tierIndex,
+    subTier,
+    acknowledgedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'exercise_rank_acknowledgements';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ExerciseRankAcknowledgement> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('exercise_id')) {
+      context.handle(
+        _exerciseIdMeta,
+        exerciseId.isAcceptableOrUnknown(data['exercise_id']!, _exerciseIdMeta),
+      );
+    }
+    if (data.containsKey('tier_index')) {
+      context.handle(
+        _tierIndexMeta,
+        tierIndex.isAcceptableOrUnknown(data['tier_index']!, _tierIndexMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tierIndexMeta);
+    }
+    if (data.containsKey('sub_tier')) {
+      context.handle(
+        _subTierMeta,
+        subTier.isAcceptableOrUnknown(data['sub_tier']!, _subTierMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_subTierMeta);
+    }
+    if (data.containsKey('acknowledged_at')) {
+      context.handle(
+        _acknowledgedAtMeta,
+        acknowledgedAt.isAcceptableOrUnknown(
+          data['acknowledged_at']!,
+          _acknowledgedAtMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {exerciseId};
+  @override
+  ExerciseRankAcknowledgement map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExerciseRankAcknowledgement(
+      exerciseId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}exercise_id'],
+      )!,
+      tierIndex: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}tier_index'],
+      )!,
+      subTier: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sub_tier'],
+      )!,
+      acknowledgedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}acknowledged_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ExerciseRankAcknowledgementsTable createAlias(String alias) {
+    return $ExerciseRankAcknowledgementsTable(attachedDatabase, alias);
+  }
+}
+
+class ExerciseRankAcknowledgement extends DataClass
+    implements Insertable<ExerciseRankAcknowledgement> {
+  final int exerciseId;
+  final int tierIndex;
+  final int subTier;
+  final DateTime acknowledgedAt;
+  const ExerciseRankAcknowledgement({
+    required this.exerciseId,
+    required this.tierIndex,
+    required this.subTier,
+    required this.acknowledgedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['exercise_id'] = Variable<int>(exerciseId);
+    map['tier_index'] = Variable<int>(tierIndex);
+    map['sub_tier'] = Variable<int>(subTier);
+    map['acknowledged_at'] = Variable<DateTime>(acknowledgedAt);
+    return map;
+  }
+
+  ExerciseRankAcknowledgementsCompanion toCompanion(bool nullToAbsent) {
+    return ExerciseRankAcknowledgementsCompanion(
+      exerciseId: Value(exerciseId),
+      tierIndex: Value(tierIndex),
+      subTier: Value(subTier),
+      acknowledgedAt: Value(acknowledgedAt),
+    );
+  }
+
+  factory ExerciseRankAcknowledgement.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExerciseRankAcknowledgement(
+      exerciseId: serializer.fromJson<int>(json['exerciseId']),
+      tierIndex: serializer.fromJson<int>(json['tierIndex']),
+      subTier: serializer.fromJson<int>(json['subTier']),
+      acknowledgedAt: serializer.fromJson<DateTime>(json['acknowledgedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'exerciseId': serializer.toJson<int>(exerciseId),
+      'tierIndex': serializer.toJson<int>(tierIndex),
+      'subTier': serializer.toJson<int>(subTier),
+      'acknowledgedAt': serializer.toJson<DateTime>(acknowledgedAt),
+    };
+  }
+
+  ExerciseRankAcknowledgement copyWith({
+    int? exerciseId,
+    int? tierIndex,
+    int? subTier,
+    DateTime? acknowledgedAt,
+  }) => ExerciseRankAcknowledgement(
+    exerciseId: exerciseId ?? this.exerciseId,
+    tierIndex: tierIndex ?? this.tierIndex,
+    subTier: subTier ?? this.subTier,
+    acknowledgedAt: acknowledgedAt ?? this.acknowledgedAt,
+  );
+  ExerciseRankAcknowledgement copyWithCompanion(
+    ExerciseRankAcknowledgementsCompanion data,
+  ) {
+    return ExerciseRankAcknowledgement(
+      exerciseId: data.exerciseId.present
+          ? data.exerciseId.value
+          : this.exerciseId,
+      tierIndex: data.tierIndex.present ? data.tierIndex.value : this.tierIndex,
+      subTier: data.subTier.present ? data.subTier.value : this.subTier,
+      acknowledgedAt: data.acknowledgedAt.present
+          ? data.acknowledgedAt.value
+          : this.acknowledgedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExerciseRankAcknowledgement(')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('tierIndex: $tierIndex, ')
+          ..write('subTier: $subTier, ')
+          ..write('acknowledgedAt: $acknowledgedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(exerciseId, tierIndex, subTier, acknowledgedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExerciseRankAcknowledgement &&
+          other.exerciseId == this.exerciseId &&
+          other.tierIndex == this.tierIndex &&
+          other.subTier == this.subTier &&
+          other.acknowledgedAt == this.acknowledgedAt);
+}
+
+class ExerciseRankAcknowledgementsCompanion
+    extends UpdateCompanion<ExerciseRankAcknowledgement> {
+  final Value<int> exerciseId;
+  final Value<int> tierIndex;
+  final Value<int> subTier;
+  final Value<DateTime> acknowledgedAt;
+  const ExerciseRankAcknowledgementsCompanion({
+    this.exerciseId = const Value.absent(),
+    this.tierIndex = const Value.absent(),
+    this.subTier = const Value.absent(),
+    this.acknowledgedAt = const Value.absent(),
+  });
+  ExerciseRankAcknowledgementsCompanion.insert({
+    this.exerciseId = const Value.absent(),
+    required int tierIndex,
+    required int subTier,
+    this.acknowledgedAt = const Value.absent(),
+  }) : tierIndex = Value(tierIndex),
+       subTier = Value(subTier);
+  static Insertable<ExerciseRankAcknowledgement> custom({
+    Expression<int>? exerciseId,
+    Expression<int>? tierIndex,
+    Expression<int>? subTier,
+    Expression<DateTime>? acknowledgedAt,
+  }) {
+    return RawValuesInsertable({
+      if (exerciseId != null) 'exercise_id': exerciseId,
+      if (tierIndex != null) 'tier_index': tierIndex,
+      if (subTier != null) 'sub_tier': subTier,
+      if (acknowledgedAt != null) 'acknowledged_at': acknowledgedAt,
+    });
+  }
+
+  ExerciseRankAcknowledgementsCompanion copyWith({
+    Value<int>? exerciseId,
+    Value<int>? tierIndex,
+    Value<int>? subTier,
+    Value<DateTime>? acknowledgedAt,
+  }) {
+    return ExerciseRankAcknowledgementsCompanion(
+      exerciseId: exerciseId ?? this.exerciseId,
+      tierIndex: tierIndex ?? this.tierIndex,
+      subTier: subTier ?? this.subTier,
+      acknowledgedAt: acknowledgedAt ?? this.acknowledgedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (exerciseId.present) {
+      map['exercise_id'] = Variable<int>(exerciseId.value);
+    }
+    if (tierIndex.present) {
+      map['tier_index'] = Variable<int>(tierIndex.value);
+    }
+    if (subTier.present) {
+      map['sub_tier'] = Variable<int>(subTier.value);
+    }
+    if (acknowledgedAt.present) {
+      map['acknowledged_at'] = Variable<DateTime>(acknowledgedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExerciseRankAcknowledgementsCompanion(')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('tierIndex: $tierIndex, ')
+          ..write('subTier: $subTier, ')
+          ..write('acknowledgedAt: $acknowledgedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4938,6 +5262,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $BodyWeightLogsTable bodyWeightLogs = $BodyWeightLogsTable(this);
   late final $UserSettingsTable userSettings = $UserSettingsTable(this);
+  late final $ExerciseRankAcknowledgementsTable exerciseRankAcknowledgements =
+      $ExerciseRankAcknowledgementsTable(this);
   late final WorkoutSessionsDao workoutSessionsDao = WorkoutSessionsDao(
     this as AppDatabase,
   );
@@ -4954,6 +5280,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final UserSettingsDao userSettingsDao = UserSettingsDao(
     this as AppDatabase,
   );
+  late final RankingDao rankingDao = RankingDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4969,6 +5296,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     personalRecords,
     bodyWeightLogs,
     userSettings,
+    exerciseRankAcknowledgements,
   ];
 }
 
@@ -7491,6 +7819,204 @@ typedef $$UserSettingsTableProcessedTableManager =
       UserSetting,
       PrefetchHooks Function()
     >;
+typedef $$ExerciseRankAcknowledgementsTableCreateCompanionBuilder =
+    ExerciseRankAcknowledgementsCompanion Function({
+      Value<int> exerciseId,
+      required int tierIndex,
+      required int subTier,
+      Value<DateTime> acknowledgedAt,
+    });
+typedef $$ExerciseRankAcknowledgementsTableUpdateCompanionBuilder =
+    ExerciseRankAcknowledgementsCompanion Function({
+      Value<int> exerciseId,
+      Value<int> tierIndex,
+      Value<int> subTier,
+      Value<DateTime> acknowledgedAt,
+    });
+
+class $$ExerciseRankAcknowledgementsTableFilterComposer
+    extends Composer<_$AppDatabase, $ExerciseRankAcknowledgementsTable> {
+  $$ExerciseRankAcknowledgementsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get exerciseId => $composableBuilder(
+    column: $table.exerciseId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get tierIndex => $composableBuilder(
+    column: $table.tierIndex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get subTier => $composableBuilder(
+    column: $table.subTier,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get acknowledgedAt => $composableBuilder(
+    column: $table.acknowledgedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ExerciseRankAcknowledgementsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ExerciseRankAcknowledgementsTable> {
+  $$ExerciseRankAcknowledgementsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get exerciseId => $composableBuilder(
+    column: $table.exerciseId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get tierIndex => $composableBuilder(
+    column: $table.tierIndex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get subTier => $composableBuilder(
+    column: $table.subTier,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get acknowledgedAt => $composableBuilder(
+    column: $table.acknowledgedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ExerciseRankAcknowledgementsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ExerciseRankAcknowledgementsTable> {
+  $$ExerciseRankAcknowledgementsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get exerciseId => $composableBuilder(
+    column: $table.exerciseId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get tierIndex =>
+      $composableBuilder(column: $table.tierIndex, builder: (column) => column);
+
+  GeneratedColumn<int> get subTier =>
+      $composableBuilder(column: $table.subTier, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get acknowledgedAt => $composableBuilder(
+    column: $table.acknowledgedAt,
+    builder: (column) => column,
+  );
+}
+
+class $$ExerciseRankAcknowledgementsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ExerciseRankAcknowledgementsTable,
+          ExerciseRankAcknowledgement,
+          $$ExerciseRankAcknowledgementsTableFilterComposer,
+          $$ExerciseRankAcknowledgementsTableOrderingComposer,
+          $$ExerciseRankAcknowledgementsTableAnnotationComposer,
+          $$ExerciseRankAcknowledgementsTableCreateCompanionBuilder,
+          $$ExerciseRankAcknowledgementsTableUpdateCompanionBuilder,
+          (
+            ExerciseRankAcknowledgement,
+            BaseReferences<
+              _$AppDatabase,
+              $ExerciseRankAcknowledgementsTable,
+              ExerciseRankAcknowledgement
+            >,
+          ),
+          ExerciseRankAcknowledgement,
+          PrefetchHooks Function()
+        > {
+  $$ExerciseRankAcknowledgementsTableTableManager(
+    _$AppDatabase db,
+    $ExerciseRankAcknowledgementsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ExerciseRankAcknowledgementsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$ExerciseRankAcknowledgementsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$ExerciseRankAcknowledgementsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> exerciseId = const Value.absent(),
+                Value<int> tierIndex = const Value.absent(),
+                Value<int> subTier = const Value.absent(),
+                Value<DateTime> acknowledgedAt = const Value.absent(),
+              }) => ExerciseRankAcknowledgementsCompanion(
+                exerciseId: exerciseId,
+                tierIndex: tierIndex,
+                subTier: subTier,
+                acknowledgedAt: acknowledgedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> exerciseId = const Value.absent(),
+                required int tierIndex,
+                required int subTier,
+                Value<DateTime> acknowledgedAt = const Value.absent(),
+              }) => ExerciseRankAcknowledgementsCompanion.insert(
+                exerciseId: exerciseId,
+                tierIndex: tierIndex,
+                subTier: subTier,
+                acknowledgedAt: acknowledgedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ExerciseRankAcknowledgementsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ExerciseRankAcknowledgementsTable,
+      ExerciseRankAcknowledgement,
+      $$ExerciseRankAcknowledgementsTableFilterComposer,
+      $$ExerciseRankAcknowledgementsTableOrderingComposer,
+      $$ExerciseRankAcknowledgementsTableAnnotationComposer,
+      $$ExerciseRankAcknowledgementsTableCreateCompanionBuilder,
+      $$ExerciseRankAcknowledgementsTableUpdateCompanionBuilder,
+      (
+        ExerciseRankAcknowledgement,
+        BaseReferences<
+          _$AppDatabase,
+          $ExerciseRankAcknowledgementsTable,
+          ExerciseRankAcknowledgement
+        >,
+      ),
+      ExerciseRankAcknowledgement,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -7515,4 +8041,10 @@ class $AppDatabaseManager {
       $$BodyWeightLogsTableTableManager(_db, _db.bodyWeightLogs);
   $$UserSettingsTableTableManager get userSettings =>
       $$UserSettingsTableTableManager(_db, _db.userSettings);
+  $$ExerciseRankAcknowledgementsTableTableManager
+  get exerciseRankAcknowledgements =>
+      $$ExerciseRankAcknowledgementsTableTableManager(
+        _db,
+        _db.exerciseRankAcknowledgements,
+      );
 }

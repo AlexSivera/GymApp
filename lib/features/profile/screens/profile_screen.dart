@@ -4,6 +4,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../insights/screens/insights_screen.dart';
 import '../../progress/screens/progress_screen.dart';
+import '../../ranking/screens/ranking_screen.dart';
 import 'about_screen.dart';
 import 'backups_screen.dart';
 import 'body_weight_screen.dart';
@@ -47,6 +48,12 @@ class ProfileScreen extends StatelessWidget {
               label: 'Récords personales',
               onTap: () => Navigator.of(context)
                   .push(MaterialPageRoute(builder: (_) => const PersonalRecordsScreen())),
+            ),
+            _ProfileTile(
+              icon: Icons.military_tech_outlined,
+              label: 'Rangos',
+              onTap: () =>
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RankingScreen())),
             ),
             _ProfileTile(
               icon: Icons.flag_outlined,

@@ -40,6 +40,34 @@ class ProgressDao extends DatabaseAccessor<AppDatabase> with _$ProgressDaoMixin 
     return [for (final d in sortedDays) (date: d, value: bestPerDay[d]!)];
   }
 
+  // Best-ever set per exercise (by estimated 1RM), across all completed
+  // sessions — the input to the Rangos ranking engine. A stream (not a
+  // one-off Future) so a rank recomputes live the moment a new best set is
+  // logged.
+  Stream<Map<int, WorkoutSet>> watchBestSetByExercise() {
+    final query = select(workoutSets).join([
+      innerJoin(sessionExercises, sessionExercises.id.equalsExp(workoutSets.sessionExerciseId)),
+      innerJoin(workoutSessions, workoutSessions.id.equalsExp(sessionExercises.workoutSessionId)),
+    ])
+      ..where(workoutSessions.status.equalsValue(SessionStatus.completed) &
+          workoutSets.weightKg.isNotNull() &
+          workoutSets.reps.isNotNull());
+
+    return query.watch().map((rows) {
+      final result = <int, WorkoutSet>{};
+      for (final row in rows) {
+        final set = row.readTable(workoutSets);
+        final exerciseId = row.readTable(sessionExercises).exerciseId;
+        final current = result[exerciseId];
+        final oneRm = estimatedOneRepMax(set.weightKg!, set.reps!);
+        if (current == null || oneRm > estimatedOneRepMax(current.weightKg!, current.reps!)) {
+          result[exerciseId] = set;
+        }
+      }
+      return result;
+    });
+  }
+
   // Total volume (Σ weight × reps) across all exercises, [start] inclusive, [end] exclusive.
   Future<double> totalVolumeInRange(DateTime start, DateTime end) async {
     final byExercise = await volumeByExerciseInRange(start, end);

@@ -7,7 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 void main() {
-  test('v1 -> v4 migration preserves existing rows and adds the new columns', () async {
+  test('v1 -> v5 migration preserves existing rows and adds the new columns', () async {
     final tempDir = Directory.systemTemp.createTempSync('gymapp_migration_test_v1');
     final dbPath = p.join(tempDir.path, 'v1.sqlite');
     addTearDown(() => tempDir.deleteSync(recursive: true));
@@ -207,5 +207,39 @@ void main() {
     expect(settings.gender, isNull, reason: 'new column defaults to null');
     expect(settings.birthDate, isNull, reason: 'new column defaults to null');
     expect(settings.onboardingCompleted, isFalse, reason: 'new column gets its default');
+  });
+
+  test('v4 -> v5 migration creates exercise_rank_acknowledgements', () async {
+    final tempDir = Directory.systemTemp.createTempSync('gymapp_migration_test_v4');
+    final dbPath = p.join(tempDir.path, 'v4.sqlite');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+
+    // Minimal v4 shape: just enough to open at user_version 4.
+    final seed = sqlite3.sqlite3.open(dbPath);
+    seed.execute('''
+      CREATE TABLE exercises (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL
+      );
+      INSERT INTO exercises (id, name) VALUES (1, 'Press banca');
+      PRAGMA user_version = 4;
+    ''');
+    seed.dispose();
+
+    final db = AppDatabase.forTesting(NativeDatabase(File(dbPath)));
+    addTearDown(db.close);
+
+    final tableExists = await db
+        .customSelect(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='exercise_rank_acknowledgements'")
+        .get();
+    expect(tableExists, isNotEmpty, reason: 'exercise_rank_acknowledgements should be created');
+
+    // The table should be usable — insert and read back a row.
+    await db.rankingDao.acknowledge(1, 2, 3);
+    final rows = await db.rankingDao.watchAcknowledged().first;
+    expect(rows, hasLength(1));
+    expect(rows.first.tierIndex, 2);
+    expect(rows.first.subTier, 3);
   });
 }

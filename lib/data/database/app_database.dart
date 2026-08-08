@@ -10,12 +10,14 @@ import 'daos/body_weight_dao.dart';
 import 'daos/exercises_dao.dart';
 import 'daos/personal_records_dao.dart';
 import 'daos/progress_dao.dart';
+import 'daos/ranking_dao.dart';
 import 'daos/routines_dao.dart';
 import 'daos/session_logging_dao.dart';
 import 'daos/user_settings_dao.dart';
 import 'daos/workout_sessions_dao.dart';
 import 'enums.dart';
 import 'tables/body_weight_logs_table.dart';
+import 'tables/exercise_rank_acknowledgements_table.dart';
 import 'tables/exercises_table.dart';
 import 'tables/personal_records_table.dart';
 import 'tables/routines_table.dart';
@@ -38,6 +40,7 @@ part 'app_database.g.dart';
   PersonalRecords,
   BodyWeightLogs,
   UserSettings,
+  ExerciseRankAcknowledgements,
 ], daos: [
   WorkoutSessionsDao,
   BodyWeightDao,
@@ -47,13 +50,14 @@ part 'app_database.g.dart';
   PersonalRecordsDao,
   ProgressDao,
   UserSettingsDao,
+  RankingDao,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -75,6 +79,9 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(userSettings, userSettings.gender);
             await m.addColumn(userSettings, userSettings.birthDate);
             await m.addColumn(userSettings, userSettings.onboardingCompleted);
+          }
+          if (from < 5) {
+            await m.createTable(exerciseRankAcknowledgements);
           }
         },
         beforeOpen: (details) async {

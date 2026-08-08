@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/muscle_groups.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/exercise_thumbnail.dart';
@@ -119,44 +120,6 @@ class ExerciseLibraryScreen extends ConsumerWidget {
   }
 }
 
-// Muscles grouped by body region, in display order — used both by the
-// "Categorías" tab and the muscle-filter sheet. Any muscle present in the
-// data but not listed here (e.g. a custom exercise with a made-up muscle
-// name) still shows up, tacked onto "Otros", so nothing gets silently hidden.
-const _muscleGroups = {
-  'Tren superior': ['Pecho', 'Espalda', 'Hombros', 'Bíceps', 'Tríceps'],
-  'Tren inferior': ['Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Gemelos'],
-  'Core': ['Abdomen'],
-};
-
-const _muscleIcons = {
-  'Pecho': Icons.fitness_center,
-  'Espalda': Icons.rowing,
-  'Hombros': Icons.sports_gymnastics,
-  'Bíceps': Icons.front_hand,
-  'Tríceps': Icons.back_hand,
-  'Abdomen': Icons.self_improvement,
-  'Cuádriceps': Icons.directions_run,
-  'Isquiotibiales': Icons.directions_walk,
-  'Glúteos': Icons.accessibility_new,
-  'Gemelos': Icons.bolt,
-};
-
-IconData _iconForMuscle(String muscle) => _muscleIcons[muscle] ?? Icons.fitness_center;
-
-// Same grouping as above, but only the muscles that actually have exercises
-// right now, with any unrecognized ones appended under "Otros".
-Map<String, List<String>> _groupedAvailableMuscles(List<String> available) {
-  final remaining = available.toSet();
-  final grouped = <String, List<String>>{};
-  for (final entry in _muscleGroups.entries) {
-    final present = entry.value.where(remaining.remove).toList();
-    if (present.isNotEmpty) grouped[entry.key] = present;
-  }
-  if (remaining.isNotEmpty) grouped['Otros'] = remaining.toList()..sort();
-  return grouped;
-}
-
 class _MuscleFilterChip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -186,7 +149,7 @@ class _MuscleFilterSheet extends ConsumerWidget {
     final theme = Theme.of(context);
     final available = ref.watch(availableMusclesProvider);
     final selected = ref.watch(exerciseMuscleFilterProvider);
-    final grouped = _groupedAvailableMuscles(available);
+    final grouped = groupedAvailableMuscles(available);
     final resultCount = ref.watch(filteredExercisesProvider).length;
 
     void toggle(String muscle) {
@@ -229,7 +192,7 @@ class _MuscleFilterSheet extends ConsumerWidget {
                           final isSelected = selected.contains(muscle);
                           return _MuscleTile(
                             label: muscle,
-                            icon: _iconForMuscle(muscle),
+                            icon: iconForMuscle(muscle),
                             selected: isSelected,
                             onTap: () => toggle(muscle),
                           );
@@ -346,7 +309,7 @@ class _CategoriesTab extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: Row(
                 children: [
-                  Icon(_iconForMuscle(muscle), size: 18, color: theme.colorScheme.primary),
+                  Icon(iconForMuscle(muscle), size: 18, color: theme.colorScheme.primary),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(muscle, style: theme.textTheme.titleMedium, overflow: TextOverflow.ellipsis),
