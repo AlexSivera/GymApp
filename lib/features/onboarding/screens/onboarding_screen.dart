@@ -310,11 +310,84 @@ class _SelectableOptionCard extends StatelessWidget {
   }
 }
 
-class _BirthDateStep extends StatelessWidget {
+class _BirthDateStep extends StatefulWidget {
   const _BirthDateStep({required this.value, required this.onChanged});
 
   final DateTime value;
   final ValueChanged<DateTime> onChanged;
+
+  @override
+  State<_BirthDateStep> createState() => _BirthDateStepState();
+}
+
+class _BirthDateStepState extends State<_BirthDateStep> {
+  static const _months = [
+    'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+    'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
+  ];
+  static const _minYear = 1930;
+  final int _maxYear = DateTime.now().year;
+
+  late int _day;
+  late int _month;
+  late int _year;
+  late final FixedExtentScrollController _dayController;
+  late final FixedExtentScrollController _monthController;
+  late final FixedExtentScrollController _yearController;
+
+  int get _daysInMonth => DateUtils.getDaysInMonth(_year, _month);
+
+  @override
+  void initState() {
+    super.initState();
+    _day = widget.value.day;
+    _month = widget.value.month;
+    _year = widget.value.year.clamp(_minYear, _maxYear);
+    _dayController = FixedExtentScrollController(initialItem: _day - 1);
+    _monthController = FixedExtentScrollController(initialItem: _month - 1);
+    _yearController = FixedExtentScrollController(initialItem: _year - _minYear);
+  }
+
+  @override
+  void dispose() {
+    _dayController.dispose();
+    _monthController.dispose();
+    _yearController.dispose();
+    super.dispose();
+  }
+
+  // Changing month/year can push the selected day past the new month's
+  // length (e.g. 31 -> feb); clamp it and snap the day wheel to match.
+  void _clampDay() {
+    final maxDay = _daysInMonth;
+    if (_day > maxDay) {
+      _day = maxDay;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_dayController.hasClients) _dayController.jumpToItem(_day - 1);
+      });
+    }
+  }
+
+  void _onDayChanged(int index) {
+    setState(() => _day = index + 1);
+    widget.onChanged(DateTime(_year, _month, _day));
+  }
+
+  void _onMonthChanged(int index) {
+    setState(() {
+      _month = index + 1;
+      _clampDay();
+    });
+    widget.onChanged(DateTime(_year, _month, _day));
+  }
+
+  void _onYearChanged(int index) {
+    setState(() {
+      _year = _minYear + index;
+      _clampDay();
+    });
+    widget.onChanged(DateTime(_year, _month, _day));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -323,17 +396,106 @@ class _BirthDateStep extends StatelessWidget {
       child: Align(
         alignment: Alignment.center,
         child: SizedBox(
-          height: 216,
-          child: CupertinoTheme(
-            data: const CupertinoThemeData(brightness: Brightness.dark),
-            child: CupertinoDatePicker(
-              mode: CupertinoDatePickerMode.date,
-              initialDateTime: value,
-              maximumDate: DateTime.now(),
-              minimumYear: 1930,
-              onDateTimeChanged: onChanged,
+          height: _WheelColumn.totalHeight,
+          child: Row(
+            children: [
+              Expanded(
+                child: _WheelColumn(
+                  controller: _dayController,
+                  itemCount: _daysInMonth,
+                  selectedIndex: _day - 1,
+                  labelBuilder: (i) => '${i + 1}',
+                  onChanged: _onDayChanged,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _WheelColumn(
+                  controller: _monthController,
+                  itemCount: 12,
+                  selectedIndex: _month - 1,
+                  labelBuilder: (i) => _months[i],
+                  onChanged: _onMonthChanged,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _WheelColumn(
+                  controller: _yearController,
+                  itemCount: _maxYear - _minYear + 1,
+                  selectedIndex: _year - _minYear,
+                  labelBuilder: (i) => '${_minYear + i}',
+                  onChanged: _onYearChanged,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// A single day/month/year wheel: a rounded card (matching the app's
+// surfaceContainerHighest boxes elsewhere) housing a CupertinoPicker, with
+// the centered value styled larger/bolder than its neighbours.
+class _WheelColumn extends StatelessWidget {
+  const _WheelColumn({
+    required this.controller,
+    required this.itemCount,
+    required this.selectedIndex,
+    required this.labelBuilder,
+    required this.onChanged,
+  });
+
+  final FixedExtentScrollController controller;
+  final int itemCount;
+  final int selectedIndex;
+  final String Function(int index) labelBuilder;
+  final ValueChanged<int> onChanged;
+
+  static const double itemExtent = 52;
+  static const double totalHeight = itemExtent * 3;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      height: totalHeight,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: CupertinoPicker(
+          scrollController: controller,
+          itemExtent: itemExtent,
+          diameterRatio: 1.4,
+          squeeze: 1.1,
+          selectionOverlay: Container(
+            margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
           ),
+          onSelectedItemChanged: onChanged,
+          children: [
+            for (var i = 0; i < itemCount; i++)
+              Center(
+                child: Text(
+                  labelBuilder(i),
+                  style: TextStyle(
+                    fontSize: i == selectedIndex ? 24 : 18,
+                    fontWeight: i == selectedIndex ? FontWeight.w700 : FontWeight.w400,
+                    color: i == selectedIndex
+                        ? theme.colorScheme.onSurface
+                        : theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
