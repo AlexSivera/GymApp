@@ -134,7 +134,18 @@ class SessionSummaryScreen extends StatelessWidget {
           ],
           const SizedBox(height: 24),
           FilledButton(
-            onPressed: () => context.go('/dashboard'),
+            onPressed: () {
+              // This screen is pushed imperatively on top of whichever tab's
+              // own navigator was active (Inicio, Calendario o Entreno), and
+              // that navigator keeps its stack when switching tabs. Just
+              // calling context.go('/dashboard') is a no-op when we're
+              // already on the Inicio tab, leaving this screen stuck on
+              // screen — and on other tabs it hides it without popping it,
+              // so it resurfaces stale next time that tab is revisited. Pop
+              // back to the tab's root first, then switch tabs.
+              Navigator.of(context).popUntil((route) => route.isFirst);
+              context.go('/dashboard');
+            },
             child: const Text('Volver al inicio'),
           ),
         ],
