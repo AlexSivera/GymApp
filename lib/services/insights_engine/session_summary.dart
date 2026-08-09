@@ -99,7 +99,7 @@ Future<SessionSummary> computeSessionSummary(AppDatabase db, {required int sessi
         volumeChangePercent = (sessionVolume - prevVolume) / prevVolume * 100;
       }
     }
-    routineDayName = (await db.routinesDao.watchDayById(session.routineDayId!).first)?.name;
+    routineDayName = await _sessionDisplayName(db, session.routineDayId!);
   }
 
   return SessionSummary(
@@ -110,4 +110,19 @@ Future<SessionSummary> computeSessionSummary(AppDatabase db, {required int sessi
     volumeThisSession: sessionVolume,
     volumeChangePercent: volumeChangePercent,
   );
+}
+
+// The routine's own name for a single-day routine (its day is just an
+// internal "Día 1" placeholder no screen should surface), or the day's name
+// for a routine with multiple days, where it's actually informative.
+Future<String?> _sessionDisplayName(AppDatabase db, int routineDayId) async {
+  final day = await db.routinesDao.watchDayById(routineDayId).first;
+  if (day == null) return null;
+
+  final siblingDays = await db.routinesDao.watchDays(day.routineId).first;
+  if (siblingDays.length <= 1) {
+    final routine = await db.routinesDao.watchRoutine(day.routineId).first;
+    return routine?.name ?? day.name;
+  }
+  return day.name;
 }
