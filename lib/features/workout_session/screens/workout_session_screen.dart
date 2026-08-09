@@ -47,21 +47,7 @@ class WorkoutSessionScreen extends ConsumerWidget {
           return const Scaffold(body: Center(child: Text('Entrenamiento no encontrado')));
         }
 
-        // Routines created with a single day never expose that day's name in
-        // the UI (RoutineEditorScreen merges it into the routine itself), so
-        // showing it here would leak the internal "Día 1" placeholder — use
-        // the routine's own name instead. Multi-day routines (Full Body,
-        // Torso/Pierna...) keep showing the day name, since that's genuinely
-        // informative there.
-        final day = session.routineDayId != null
-            ? ref.watch(routineDayByIdProvider(session.routineDayId!)).valueOrNull
-            : null;
-        final siblingDays = day != null ? ref.watch(routineDaysProvider(day.routineId)).valueOrNull : null;
-        final routineName = day != null ? ref.watch(routineProvider(day.routineId)).valueOrNull?.name : null;
-        final isSingleDayRoutine = siblingDays != null && siblingDays.length <= 1;
-        final title = day == null
-            ? 'Entrenamiento libre'
-            : (isSingleDayRoutine ? (routineName ?? day.name) : day.name);
+        final title = ref.watch(routineDaySessionTitleProvider(session.routineDayId)) ?? 'Entrenamiento libre';
         final routineExercises = session.routineDayId == null
             ? const <RoutineExercise>[]
             : ref.watch(dayExercisesProvider(session.routineDayId!)).valueOrNull ?? const [];

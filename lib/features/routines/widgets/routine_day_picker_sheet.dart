@@ -71,7 +71,7 @@ class RoutineDayPickerSheet extends ConsumerWidget {
                     shrinkWrap: true,
                     itemCount: routines.length,
                     separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.sm),
-                    itemBuilder: (context, index) => _RoutineExpansion(routine: routines[index]),
+                    itemBuilder: (context, index) => _RoutinePickerCard(routine: routines[index]),
                   );
                 },
               ),
@@ -83,8 +83,12 @@ class RoutineDayPickerSheet extends ConsumerWidget {
   }
 }
 
-class _RoutineExpansion extends ConsumerWidget {
-  const _RoutineExpansion({required this.routine});
+// A single-day routine (the only kind you can create now) picks straight
+// from its name — no "Día 1" to tap through. Only routines with 2+ days
+// (Full Body, Torso/Pierna...) expand to let you choose which one, since
+// those day names actually carry information.
+class _RoutinePickerCard extends ConsumerWidget {
+  const _RoutinePickerCard({required this.routine});
 
   final Routine routine;
 
@@ -92,6 +96,18 @@ class _RoutineExpansion extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final daysAsync = ref.watch(routineDaysProvider(routine.id));
     final theme = Theme.of(context);
+    final days = daysAsync.valueOrNull;
+
+    if (days != null && days.length == 1) {
+      return AppCard(
+        padding: EdgeInsets.zero,
+        child: ListTile(
+          title: Text(routine.name, style: theme.textTheme.titleMedium),
+          trailing: Icon(Icons.chevron_right, size: 20, color: theme.colorScheme.onSurfaceVariant),
+          onTap: () => Navigator.of(context).pop(days.first),
+        ),
+      );
+    }
 
     return AppCard(
       padding: EdgeInsets.zero,

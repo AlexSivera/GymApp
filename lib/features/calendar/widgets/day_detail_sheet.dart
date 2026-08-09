@@ -68,9 +68,7 @@ class DayDetailSheet extends ConsumerWidget {
 
   Widget _buildSummary(BuildContext context, WidgetRef ref, WorkoutSession session) {
     final theme = Theme.of(context);
-    final dayName = session.routineDayId != null
-        ? ref.watch(routineDayByIdProvider(session.routineDayId!)).valueOrNull?.name
-        : null;
+    final dayName = ref.watch(routineDaySessionTitleProvider(session.routineDayId));
     final hasTimeOfDay = session.date.hour != 0 || session.date.minute != 0;
 
     return Column(

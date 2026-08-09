@@ -134,9 +134,7 @@ class HeroTodayCard extends ConsumerWidget {
     }
 
     // planned or inProgress with a routine attached.
-    final dayAsync =
-        session.routineDayId != null ? ref.watch(routineDayByIdProvider(session.routineDayId!)) : null;
-    final dayName = dayAsync?.valueOrNull?.name ?? 'Entrenamiento libre';
+    final dayName = ref.watch(routineDaySessionTitleProvider(session.routineDayId)) ?? 'Entrenamiento libre';
     final hasTimeOfDay = session.date.hour != 0 || session.date.minute != 0;
 
     return AppCard(

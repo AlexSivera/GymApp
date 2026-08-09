@@ -15,9 +15,7 @@ class NextSessionCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final dayName = session.routineDayId != null
-        ? ref.watch(routineDayByIdProvider(session.routineDayId!)).valueOrNull?.name
-        : null;
+    final dayName = ref.watch(routineDaySessionTitleProvider(session.routineDayId));
 
     return AppCard(
       child: Row(
