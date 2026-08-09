@@ -83,7 +83,6 @@ class ExerciseLibraryScreen extends ConsumerWidget {
           ],
           Expanded(
             child: switch (tab) {
-              ExerciseLibraryTab.categories => _CategoriesTab(),
               ExerciseLibraryTab.recent => _ExerciseCollection(
                   exercises: ref.watch(recentExercisesProvider),
                   emptyMessage: 'Todavía no has usado ningún ejercicio.',
@@ -112,8 +111,6 @@ class ExerciseLibraryScreen extends ConsumerWidget {
     switch (tab) {
       case ExerciseLibraryTab.recent:
         return 'Recientes';
-      case ExerciseLibraryTab.categories:
-        return 'Categorías';
       case ExerciseLibraryTab.all:
         return 'Todos';
     }
@@ -275,51 +272,6 @@ class _MuscleTile extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _CategoriesTab extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final muscles = ref.watch(availableMusclesProvider);
-    if (muscles.isEmpty) {
-      return const Center(child: Text('Todavía no hay ejercicios.'));
-    }
-    return GridView.builder(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: AppSpacing.md,
-        crossAxisSpacing: AppSpacing.md,
-        childAspectRatio: 2,
-      ),
-      itemCount: muscles.length,
-      itemBuilder: (context, index) {
-        final muscle = muscles[index];
-        final theme = Theme.of(context);
-        return Card(
-          child: InkWell(
-            borderRadius: BorderRadius.circular(18),
-            onTap: () {
-              ref.read(exerciseMuscleFilterProvider.notifier).state = {muscle};
-              ref.read(exerciseLibraryTabProvider.notifier).state = ExerciseLibraryTab.all;
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-              child: Row(
-                children: [
-                  Icon(iconForMuscle(muscle), size: 18, color: theme.colorScheme.primary),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(muscle, style: theme.textTheme.titleMedium, overflow: TextOverflow.ellipsis),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 }

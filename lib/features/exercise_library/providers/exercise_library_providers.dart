@@ -17,7 +17,7 @@ final allExercisesProvider = StreamProvider<List<Exercise>>((ref) {
 
 enum ExerciseViewMode { list, grid }
 
-enum ExerciseLibraryTab { recent, categories, all }
+enum ExerciseLibraryTab { recent, all }
 
 final exerciseViewModeProvider = StateProvider<ExerciseViewMode>((ref) => ExerciseViewMode.list);
 

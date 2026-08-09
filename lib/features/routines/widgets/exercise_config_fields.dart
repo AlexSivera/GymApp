@@ -36,6 +36,10 @@ class StatNumberField extends StatelessWidget {
             controller: controller,
             textAlign: TextAlign.center,
             keyboardType: TextInputType.numberWithOptions(decimal: decimal),
+            // Without this, Android's autofill treats these as fillable
+            // fields once they hold a value and draws its own highlight
+            // ring around the digits — the "weird white circle".
+            autofillHints: const [],
             style: theme.textTheme.titleLarge,
             decoration: InputDecoration(
               hintText: '—',
@@ -64,7 +68,7 @@ class RestSecondsChipsRow extends StatelessWidget {
   final int? selected;
   final ValueChanged<int> onSelected;
 
-  static const presets = [60, 90, 120, 180];
+  static const presets = [0, 60, 90, 120, 180];
 
   @override
   Widget build(BuildContext context) {
