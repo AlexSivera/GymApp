@@ -61,7 +61,7 @@ class CalendarScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Calendario'),
+        title: const Text('Planificar'),
         actions: [
           IconButton(
             tooltip: 'Ver ejercicios',

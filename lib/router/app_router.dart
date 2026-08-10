@@ -7,6 +7,7 @@ import '../features/calendar/screens/calendar_screen.dart';
 import '../features/dashboard/screens/dashboard_screen.dart';
 import '../features/onboarding/screens/onboarding_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
+import '../features/ranking/screens/ranking_screen.dart';
 import '../features/workout_session/providers/workout_session_providers.dart';
 import '../features/workout_session/screens/workout_branch_screen.dart';
 
@@ -14,8 +15,9 @@ import '../features/workout_session/screens/workout_branch_screen.dart';
 // table in sync instead of hard-coding raw ints everywhere.
 const _dashboardBranch = 0;
 const _calendarBranch = 1;
-const _profileBranch = 2;
-const _workoutBranch = 3;
+const _rankingBranch = 2;
+const _profileBranch = 3;
+const _workoutBranch = 4;
 
 // Built once in main() with the initial location resolved from whether
 // onboarding has been completed, so a first-time install lands on
@@ -32,6 +34,9 @@ GoRouter buildAppRouter({required String initialLocation}) => GoRouter(
         ]),
         StatefulShellBranch(routes: [
           GoRoute(path: '/calendar', builder: (context, state) => const CalendarScreen()),
+        ]),
+        StatefulShellBranch(routes: [
+          GoRoute(path: '/ranking', builder: (context, state) => const RankingScreen()),
         ]),
         StatefulShellBranch(routes: [
           GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
@@ -89,7 +94,8 @@ class _BottomNav extends StatelessWidget {
 
   static const _fixedDestinations = [
     _NavItem(_dashboardBranch, Icons.home_outlined, Icons.home, 'Inicio'),
-    _NavItem(_calendarBranch, Icons.calendar_today_outlined, Icons.calendar_today, 'Calendario'),
+    _NavItem(_calendarBranch, Icons.calendar_today_outlined, Icons.calendar_today, 'Planificar'),
+    _NavItem(_rankingBranch, Icons.military_tech_outlined, Icons.military_tech, 'Rangos'),
     _NavItem(_profileBranch, Icons.person_outline, Icons.person, 'Perfil'),
   ];
   static const _workoutItem =
@@ -99,7 +105,7 @@ class _BottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = List<_NavItem>.of(_fixedDestinations);
     if (showWorkoutTab) {
-      // Center slot: after Calendario, before Perfil.
+      // Center slot: after Planificar, before Rangos.
       items.insert(2, _workoutItem);
     }
 
