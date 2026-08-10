@@ -140,16 +140,44 @@ class CalendarScreen extends ConsumerWidget {
                       selectedBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
                     ),
                   ),
-                  IconButton(
-                    tooltip: calendarFormat == CalendarFormat.week ? 'Ver mes completo' : 'Ver semana',
-                    onPressed: () => ref.read(calendarFormatProvider.notifier).state =
-                        calendarFormat == CalendarFormat.week ? CalendarFormat.month : CalendarFormat.week,
-                    icon: AnimatedRotation(
-                      duration: AppMotion.fast,
-                      curve: AppMotion.curve,
-                      turns: calendarFormat == CalendarFormat.week ? 0 : 0.5,
-                      child: const Icon(Icons.keyboard_arrow_down),
-                    ),
+                  Row(
+                    children: [
+                      const SizedBox(width: 48),
+                      Expanded(
+                        child: Center(
+                          child: IconButton(
+                            tooltip:
+                                calendarFormat == CalendarFormat.week ? 'Ver mes completo' : 'Ver semana',
+                            onPressed: () => ref.read(calendarFormatProvider.notifier).state =
+                                calendarFormat == CalendarFormat.week
+                                    ? CalendarFormat.month
+                                    : CalendarFormat.week,
+                            icon: AnimatedRotation(
+                              duration: AppMotion.fast,
+                              curve: AppMotion.curve,
+                              turns: calendarFormat == CalendarFormat.week ? 0 : 0.5,
+                              child: const Icon(Icons.keyboard_arrow_down),
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Selecting several days to bulk-assign was only reachable
+                      // by long-pressing one — an invisible, undiscoverable
+                      // gesture. This gives it a visible entry point too; the
+                      // long-press shortcut still works exactly as before.
+                      IconButton(
+                        tooltip: selectionMode ? 'Salir de selección múltiple' : 'Seleccionar varios días',
+                        onPressed: () {
+                          if (selectionMode) {
+                            ref.read(calendarSelectionModeProvider.notifier).state = false;
+                            ref.read(calendarSelectedDaysProvider.notifier).state = {};
+                          } else {
+                            ref.read(calendarSelectionModeProvider.notifier).state = true;
+                          }
+                        },
+                        icon: Icon(selectionMode ? Icons.close : Icons.checklist),
+                      ),
+                    ],
                   ),
                 ],
               ),
