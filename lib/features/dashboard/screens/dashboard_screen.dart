@@ -23,6 +23,7 @@ class DashboardScreen extends ConsumerWidget {
     final bodyWeight = ref.watch(latestBodyWeightProvider);
     final streak = ref.watch(workoutStreakProvider);
     final totalWorkouts = ref.watch(totalWorkoutsCompletedProvider);
+    final caloriesToday = ref.watch(caloriesBurnedTodayProvider);
     final weeklyGoal = ref.watch(weeklyGoalProvider);
     final insight = ref.watch(insightOfDayProvider);
 
@@ -44,42 +45,62 @@ class DashboardScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.md),
           FadeSlideIn(
             index: 1,
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: streak.when(
-                    data: (value) => StatTile(
-                      icon: Icons.local_fire_department_outlined,
-                      label: 'Racha',
-                      value: '$value',
+                Row(
+                  children: [
+                    Expanded(
+                      child: streak.when(
+                        data: (value) => StatTile(
+                          icon: Icons.local_fire_department_outlined,
+                          label: 'Racha',
+                          value: '$value',
+                        ),
+                        loading: () => const _CardPlaceholder(),
+                        error: (e, _) => _CardError(message: '$e'),
+                      ),
                     ),
-                    loading: () => const _CardPlaceholder(),
-                    error: (e, _) => _CardError(message: '$e'),
-                  ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: bodyWeight.when(
+                        data: (log) => StatTile(
+                          icon: Icons.monitor_weight_outlined,
+                          label: 'Peso corporal',
+                          value: log == null ? '—' : '${log.weightKg} kg',
+                        ),
+                        loading: () => const _CardPlaceholder(),
+                        error: (e, _) => _CardError(message: '$e'),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: bodyWeight.when(
-                    data: (log) => StatTile(
-                      icon: Icons.monitor_weight_outlined,
-                      label: 'Peso corporal',
-                      value: log == null ? '—' : '${log.weightKg} kg',
+                const SizedBox(height: AppSpacing.md),
+                Row(
+                  children: [
+                    Expanded(
+                      child: totalWorkouts.when(
+                        data: (value) => StatTile(
+                          icon: Icons.fitness_center_outlined,
+                          label: 'Entrenamientos',
+                          value: '$value',
+                        ),
+                        loading: () => const _CardPlaceholder(),
+                        error: (e, _) => _CardError(message: '$e'),
+                      ),
                     ),
-                    loading: () => const _CardPlaceholder(),
-                    error: (e, _) => _CardError(message: '$e'),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: totalWorkouts.when(
-                    data: (value) => StatTile(
-                      icon: Icons.fitness_center_outlined,
-                      label: 'Entrenamientos',
-                      value: '$value',
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: caloriesToday.when(
+                        data: (value) => StatTile(
+                          icon: Icons.local_fire_department,
+                          label: 'Calorías hoy',
+                          value: value <= 0 ? '—' : '${value.round()} kcal',
+                        ),
+                        loading: () => const _CardPlaceholder(),
+                        error: (e, _) => _CardError(message: '$e'),
+                      ),
                     ),
-                    loading: () => const _CardPlaceholder(),
-                    error: (e, _) => _CardError(message: '$e'),
-                  ),
+                  ],
                 ),
               ],
             ),

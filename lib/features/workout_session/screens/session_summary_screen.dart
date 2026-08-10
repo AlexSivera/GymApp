@@ -75,6 +75,30 @@ class SessionSummaryScreen extends StatelessWidget {
               ],
             ),
           ),
+          if (summary.caloriesBurned > 0) ...[
+            const SizedBox(height: 12),
+            AppCard(
+              child: Row(
+                children: [
+                  Icon(Icons.local_fire_department_outlined, color: theme.colorScheme.primary, size: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('${summary.caloriesBurned.round()} kcal', style: theme.textTheme.headlineMedium),
+                        Text(
+                          'Calorías quemadas (estimado)',
+                          style: theme.textTheme.bodyMedium
+                              ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (hasPRs) ...[
             const SizedBox(height: 12),
             AppCard(

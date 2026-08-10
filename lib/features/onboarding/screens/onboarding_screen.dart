@@ -11,10 +11,13 @@ import '../../../data/database/database_provider.dart';
 
 const _totalSteps = 4;
 
-// First-launch questionnaire: one question per screen, each skippable, that
-// seeds UserSettings (name/gender/birthDate) and the first BodyWeightLogs
-// entry. Reached only when UserSettingsDao.isOnboardingCompleted() is false
-// at app startup (see main.dart) — never shown again once finished/skipped.
+// First-launch questionnaire: one question per screen, seeding UserSettings
+// (name/gender/birthDate) and the first BodyWeightLogs entry. None of the 4
+// steps can be skipped — the calorie-burn estimate (session summary, Home's
+// daily total) needs weight/age/gender to be anything more than a generic
+// guess, so onboarding is the one place they're guaranteed to get filled in.
+// Reached only when UserSettingsDao.isOnboardingCompleted() is false at app
+// startup (see main.dart) — never shown again once finished.
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -28,15 +31,33 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   final _nameController = TextEditingController();
   String? _gender;
+  // Birth date and weight always hold a concrete value (the wheel/ruler
+  // pickers have no empty state), so only name and gender need to gate the
+  // "Continuar" button.
   DateTime _birthDate = DateTime(DateTime.now().year - 25, 1, 1);
-  bool _birthDateSkipped = false;
   double _weightKg = 70;
-  bool _weightSkipped = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.addListener(() => setState(() {}));
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
+  }
+
+  bool get _canContinue {
+    switch (_step) {
+      case 0:
+        return _nameController.text.trim().isNotEmpty;
+      case 1:
+        return _gender != null;
+      default:
+        return true;
+    }
   }
 
   void _next() {
@@ -47,40 +68,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     setState(() => _step++);
   }
 
-  void _skip() {
-    switch (_step) {
-      case 0:
-        _nameController.clear();
-      case 1:
-        _gender = null;
-      case 2:
-        _birthDateSkipped = true;
-      case 3:
-        _weightSkipped = true;
-    }
-    _next();
-  }
-
   void _back() => setState(() => _step--);
 
   Future<void> _finish() async {
     setState(() => _saving = true);
     final db = ref.read(appDatabaseProvider);
-    final name = _nameController.text.trim();
 
     await db.userSettingsDao.updateSettings(UserSettingsCompanion(
-      name: Value(name.isEmpty ? null : name),
+      name: Value(_nameController.text.trim()),
       gender: Value(_gender),
-      birthDate: Value(_birthDateSkipped ? null : _birthDate),
+      birthDate: Value(_birthDate),
       onboardingCompleted: const Value(true),
     ));
 
-    if (!_weightSkipped) {
-      await db.bodyWeightDao.insertLog(BodyWeightLogsCompanion.insert(
-        date: DateTime.now(),
-        weightKg: _weightKg,
-      ));
-    }
+    await db.bodyWeightDao.insertLog(BodyWeightLogsCompanion.insert(
+      date: DateTime.now(),
+      weightKg: _weightKg,
+    ));
 
     if (!mounted) return;
     context.go('/dashboard');
@@ -137,17 +141,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _saving ? null : _next,
+                  onPressed: _saving || !_canContinue ? null : _next,
                   child: _saving
                       ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
                       : Text(_step == _totalSteps - 1 ? 'Finalizar' : 'Continuar'),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Center(
-                child: TextButton(
-                  onPressed: _saving ? null : _skip,
-                  child: const Text('Omitir'),
                 ),
               ),
             ],
@@ -169,18 +166,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       case 2:
         return _BirthDateStep(
           value: _birthDate,
-          onChanged: (value) => setState(() {
-            _birthDate = value;
-            _birthDateSkipped = false;
-          }),
+          onChanged: (value) => setState(() => _birthDate = value),
         );
       default:
         return _WeightStep(
           initialValue: _weightKg,
-          onChanged: (value) => setState(() {
-            _weightKg = value;
-            _weightSkipped = false;
-          }),
+          onChanged: (value) => setState(() => _weightKg = value),
         );
     }
   }

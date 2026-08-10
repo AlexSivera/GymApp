@@ -121,14 +121,20 @@ class _MuscleFilterChip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(exerciseMuscleFilterProvider);
+    final cardioOnly = ref.watch(exerciseCardioOnlyProvider);
     final theme = Theme.of(context);
-    final label = selected.isEmpty ? 'Músculos' : 'Músculos (${selected.length})';
+    final isActive = selected.isNotEmpty || cardioOnly;
+    final label = cardioOnly
+        ? 'Cardio'
+        : selected.isEmpty
+            ? 'Músculos'
+            : 'Músculos (${selected.length})';
 
     return ActionChip(
-      avatar: Icon(Icons.tune, size: 18, color: selected.isEmpty ? null : theme.colorScheme.onPrimary),
+      avatar: Icon(Icons.tune, size: 18, color: isActive ? theme.colorScheme.onPrimary : null),
       label: Text(label),
-      backgroundColor: selected.isEmpty ? null : theme.colorScheme.primary,
-      labelStyle: selected.isEmpty ? null : TextStyle(color: theme.colorScheme.onPrimary),
+      backgroundColor: isActive ? theme.colorScheme.primary : null,
+      labelStyle: isActive ? TextStyle(color: theme.colorScheme.onPrimary) : null,
       onPressed: () => showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -146,13 +152,21 @@ class _MuscleFilterSheet extends ConsumerWidget {
     final theme = Theme.of(context);
     final available = ref.watch(availableMusclesProvider);
     final selected = ref.watch(exerciseMuscleFilterProvider);
+    final cardioOnly = ref.watch(exerciseCardioOnlyProvider);
     final grouped = groupedAvailableMuscles(available);
     final resultCount = ref.watch(filteredExercisesProvider).length;
 
     void toggle(String muscle) {
+      if (cardioOnly) ref.read(exerciseCardioOnlyProvider.notifier).state = false;
       final current = {...ref.read(exerciseMuscleFilterProvider)};
       if (!current.remove(muscle)) current.add(muscle);
       ref.read(exerciseMuscleFilterProvider.notifier).state = current;
+    }
+
+    void toggleCardio() {
+      final next = !cardioOnly;
+      ref.read(exerciseCardioOnlyProvider.notifier).state = next;
+      if (next) ref.read(exerciseMuscleFilterProvider.notifier).state = {};
     }
 
     return SafeArea(
@@ -162,6 +176,19 @@ class _MuscleFilterSheet extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text('Tipo', style: theme.textTheme.bodySmall
+                ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            const SizedBox(height: AppSpacing.sm),
+            SizedBox(
+              height: 44,
+              child: _MuscleTile(
+                label: 'Cardio',
+                icon: Icons.directions_run,
+                selected: cardioOnly,
+                onTap: toggleCardio,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
             Text('Grupo muscular', style: theme.textTheme.titleLarge),
             const SizedBox(height: AppSpacing.lg),
             Flexible(
@@ -205,9 +232,12 @@ class _MuscleFilterSheet extends ConsumerWidget {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: selected.isEmpty
+                    onPressed: selected.isEmpty && !cardioOnly
                         ? null
-                        : () => ref.read(exerciseMuscleFilterProvider.notifier).state = {},
+                        : () {
+                            ref.read(exerciseMuscleFilterProvider.notifier).state = {};
+                            ref.read(exerciseCardioOnlyProvider.notifier).state = false;
+                          },
                     child: const Text('Eliminar filtros'),
                   ),
                 ),

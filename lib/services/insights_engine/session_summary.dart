@@ -1,4 +1,5 @@
 import '../../data/database/app_database.dart';
+import '../calories_engine/estimate_calories_burned.dart';
 import '../progression_engine/previous_performance.dart';
 
 class ExerciseImprovement {
@@ -23,6 +24,7 @@ class SessionSummary {
     required this.newPRs,
     required this.volumeThisSession,
     required this.volumeChangePercent,
+    required this.caloriesBurned,
   });
 
   final String? routineDayName;
@@ -31,6 +33,7 @@ class SessionSummary {
   final List<String> newPRs;
   final double volumeThisSession;
   final double? volumeChangePercent;
+  final double caloriesBurned;
 }
 
 String _fmtWeight(double value) =>
@@ -129,6 +132,9 @@ Future<SessionSummary> computeSessionSummary(AppDatabase db, {required int sessi
     routineDayName = await _sessionDisplayName(db, session.routineDayId!);
   }
 
+  final profile = await loadUserProfile(db);
+  final caloriesBurned = await estimateSessionCalories(db, sessionId: sessionId, profile: profile);
+
   return SessionSummary(
     routineDayName: routineDayName,
     exerciseLogs: exerciseLogs,
@@ -136,6 +142,7 @@ Future<SessionSummary> computeSessionSummary(AppDatabase db, {required int sessi
     newPRs: newPRs.toList(),
     volumeThisSession: sessionVolume,
     volumeChangePercent: volumeChangePercent,
+    caloriesBurned: caloriesBurned,
   );
 }
 
