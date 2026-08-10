@@ -14,12 +14,21 @@ import '../widgets/exercise_config_fields.dart';
 // A local, not-yet-persisted exercise entry — edited freely in memory while
 // building the routine, only written to the DB once "Guardar" is tapped.
 class _StagedExercise {
-  _StagedExercise({required this.localId, required this.exerciseId, required this.name, required this.imagePaths});
+  _StagedExercise({
+    required this.localId,
+    required this.exerciseId,
+    required this.name,
+    required this.imagePaths,
+    required this.category,
+    required this.equipment,
+  });
 
   final int localId;
   final int exerciseId;
   final String name;
   final List<String> imagePaths;
+  final ExerciseCategory category;
+  final String? equipment;
   int sets = 3;
   int repsMin = 8;
   int repsMax = 12;
@@ -75,6 +84,8 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
           exerciseId: exercise.id,
           name: exercise.name,
           imagePaths: exercise.imagePaths,
+          category: exercise.category,
+          equipment: exercise.equipment,
         ));
         newIds.add(id);
       }
@@ -279,6 +290,9 @@ class _StagedExerciseCardState extends State<_StagedExerciseCard> {
   }
 
   Widget _fields(ThemeData theme) {
+    final isCardio = widget.exercise.category == ExerciseCategory.cardio;
+    final isBodyweight = widget.exercise.equipment == 'Peso corporal';
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
       child: Column(
@@ -294,31 +308,39 @@ class _StagedExerciseCardState extends State<_StagedExerciseCard> {
                   onChanged: (v) => widget.exercise.sets = int.tryParse(v) ?? widget.exercise.sets,
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: StatNumberField(
-                  controller: _repsMin,
-                  label: 'Reps mín.',
-                  onChanged: (v) => widget.exercise.repsMin = int.tryParse(v) ?? widget.exercise.repsMin,
+              // Reps and weight targets don't mean anything for cardio (it's
+              // logged by duration/distance instead) — only "Series" applies.
+              if (!isCardio) ...[
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: StatNumberField(
+                    controller: _repsMin,
+                    label: 'Reps mín.',
+                    onChanged: (v) =>
+                        widget.exercise.repsMin = int.tryParse(v) ?? widget.exercise.repsMin,
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: StatNumberField(
-                  controller: _repsMax,
-                  label: 'Reps máx.',
-                  onChanged: (v) => widget.exercise.repsMax = int.tryParse(v) ?? widget.exercise.repsMax,
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: StatNumberField(
+                    controller: _repsMax,
+                    label: 'Reps máx.',
+                    onChanged: (v) =>
+                        widget.exercise.repsMax = int.tryParse(v) ?? widget.exercise.repsMax,
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: StatNumberField(
-                  controller: _weight,
-                  label: 'Peso (kg)',
-                  decimal: true,
-                  onChanged: (v) => widget.exercise.weight = double.tryParse(v.replaceAll(',', '.')),
-                ),
-              ),
+                if (!isBodyweight) ...[
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: StatNumberField(
+                      controller: _weight,
+                      label: 'Peso (kg)',
+                      decimal: true,
+                      onChanged: (v) => widget.exercise.weight = double.tryParse(v.replaceAll(',', '.')),
+                    ),
+                  ),
+                ],
+              ],
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -341,7 +363,7 @@ class _StagedExerciseCardState extends State<_StagedExerciseCard> {
     final e = widget.exercise;
     final parts = <String>[
       '${e.sets} series',
-      '${e.repsMin}-${e.repsMax} reps',
+      if (e.category != ExerciseCategory.cardio) '${e.repsMin}-${e.repsMax} reps',
       if (e.weight != null) '${_fmt(e.weight!)} kg',
       if (e.restSeconds != null) 'descanso ${e.restSeconds}s',
     ];

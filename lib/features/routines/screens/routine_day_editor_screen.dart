@@ -133,6 +133,7 @@ class DayExercisesList extends ConsumerWidget {
                 entry: entry,
                 exerciseName: exercise?.name ?? 'Ejercicio eliminado',
                 imagePaths: exercise?.imagePaths ?? const [],
+                exercise: exercise,
               ),
             );
           },
@@ -159,15 +160,18 @@ class _RoutineExerciseRow extends ConsumerWidget {
     required this.entry,
     required this.exerciseName,
     required this.imagePaths,
+    required this.exercise,
   });
 
   final RoutineExercise entry;
   final String exerciseName;
   final List<String> imagePaths;
+  final Exercise? exercise;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isExpanded = ref.watch(expandedRoutineExerciseIdsProvider).contains(entry.id);
+    final isCardio = exercise?.category == ExerciseCategory.cardio;
 
     return AppCard(
       padding: EdgeInsets.zero,
@@ -176,7 +180,7 @@ class _RoutineExerciseRow extends ConsumerWidget {
           ListTile(
             leading: ExerciseThumbnail(imagePaths: imagePaths),
             title: Text(exerciseName),
-            subtitle: Text(_summarize(entry)),
+            subtitle: Text(_summarize(entry, isCardio: isCardio)),
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: () => ref.read(routinesDaoProvider).removeExerciseFromDay(entry.id),
@@ -194,7 +198,11 @@ class _RoutineExerciseRow extends ConsumerWidget {
             curve: AppMotion.curve,
             alignment: Alignment.topCenter,
             child: isExpanded
-                ? _RoutineExerciseFields(key: ValueKey('fields-${entry.id}'), entry: entry)
+                ? _RoutineExerciseFields(
+                    key: ValueKey('fields-${entry.id}'),
+                    entry: entry,
+                    exercise: exercise,
+                  )
                 : const SizedBox(width: double.infinity),
           ),
         ],
@@ -202,10 +210,10 @@ class _RoutineExerciseRow extends ConsumerWidget {
     );
   }
 
-  String _summarize(RoutineExercise entry) {
+  String _summarize(RoutineExercise entry, {required bool isCardio}) {
     final parts = <String>[
       '${entry.targetSets} series',
-      '${entry.targetRepsMin}-${entry.targetRepsMax} reps',
+      if (!isCardio) '${entry.targetRepsMin}-${entry.targetRepsMax} reps',
       if (entry.targetWeight != null) '${_fmt(entry.targetWeight!)} kg',
       if (entry.restSeconds != null) 'descanso ${entry.restSeconds}s',
     ];
@@ -217,9 +225,10 @@ class _RoutineExerciseRow extends ConsumerWidget {
 }
 
 class _RoutineExerciseFields extends ConsumerStatefulWidget {
-  const _RoutineExerciseFields({super.key, required this.entry});
+  const _RoutineExerciseFields({super.key, required this.entry, required this.exercise});
 
   final RoutineExercise entry;
+  final Exercise? exercise;
 
   @override
   ConsumerState<_RoutineExerciseFields> createState() => _RoutineExerciseFieldsState();
@@ -269,6 +278,8 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isCardio = widget.exercise?.category == ExerciseCategory.cardio;
+    final isBodyweight = widget.exercise?.equipment == 'Peso corporal';
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
@@ -279,16 +290,24 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
           Row(
             children: [
               Expanded(child: StatNumberField(controller: _sets, label: 'Series', onCommit: _persist)),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                  child: StatNumberField(controller: _repsMin, label: 'Reps mín.', onCommit: _persist)),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                  child: StatNumberField(controller: _repsMax, label: 'Reps máx.', onCommit: _persist)),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                  child: StatNumberField(
-                      controller: _weight, label: 'Peso (kg)', decimal: true, onCommit: _persist)),
+              // Reps and weight targets don't mean anything for cardio (it's
+              // logged by duration/distance instead) — only "Series" applies.
+              if (!isCardio) ...[
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                    child:
+                        StatNumberField(controller: _repsMin, label: 'Reps mín.', onCommit: _persist)),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                    child:
+                        StatNumberField(controller: _repsMax, label: 'Reps máx.', onCommit: _persist)),
+                if (!isBodyweight) ...[
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                      child: StatNumberField(
+                          controller: _weight, label: 'Peso (kg)', decimal: true, onCommit: _persist)),
+                ],
+              ],
             ],
           ),
           const SizedBox(height: AppSpacing.md),

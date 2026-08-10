@@ -88,13 +88,33 @@ void main() {
       expect(manyReps, greaterThan(fewReps));
     });
 
-    test('a bodyweight-only strength set (no weightKg) still burns something', () {
-      final kcal = estimateSetCalories(
+    test('a bodyweight-only strength set (no weightKg) burns as much as one loaded at bodyweight', () {
+      final noWeight = estimateSetCalories(
         exercise: _strengthExercise(),
         set: _set(reps: 12),
         profile: _profile,
       );
-      expect(kcal, greaterThan(0));
+      final loadedAtBodyweight = estimateSetCalories(
+        exercise: _strengthExercise(),
+        set: _set(weightKg: _profile.weightKg, reps: 12),
+        profile: _profile,
+      );
+      expect(noWeight, greaterThan(0));
+      expect(noWeight, closeTo(loadedAtBodyweight, 0.01));
+    });
+
+    test('a set logged with weightKg 0 (e.g. Crunch, never touched the kg stepper) is not treated as zero effort', () {
+      final zeroWeight = estimateSetCalories(
+        exercise: _strengthExercise(),
+        set: _set(weightKg: 0, reps: 12),
+        profile: _profile,
+      );
+      final noWeight = estimateSetCalories(
+        exercise: _strengthExercise(),
+        set: _set(reps: 12),
+        profile: _profile,
+      );
+      expect(zeroWeight, closeTo(noWeight, 0.01));
     });
 
     test('a cardio set uses the logged duration directly', () {

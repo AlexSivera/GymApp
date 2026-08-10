@@ -63,7 +63,13 @@ double estimateSetCalories({
   final reps = set.reps;
   if (reps == null || reps <= 0) return 0;
   final activeHours = (reps * _secondsPerRep) / 3600;
-  final load = set.weightKg ?? profile.weightKg; // bodyweight exercises: treat bodyweight as the load
+  // Bodyweight exercises (Crunch, Plancha...) never get an added weight
+  // dialed in, so weightKg is either null or left at its 0 default — either
+  // way, treat the load as bodyweight itself rather than reading "0kg" as
+  // literally no effort (which would floor relativeIntensity at its 0.2
+  // minimum and badly under-count the calorie burn).
+  final loggedWeight = set.weightKg;
+  final load = (loggedWeight == null || loggedWeight == 0) ? profile.weightKg : loggedWeight;
   final relativeIntensity = (load / profile.weightKg).clamp(0.2, 1.5);
   final effectiveMet = strengthMet * (0.7 + relativeIntensity);
   return effectiveMet * profile.weightKg * activeHours * correction;
