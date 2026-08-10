@@ -153,6 +153,15 @@ class DayDetailSheet extends ConsumerWidget {
           icon: const Icon(Icons.swap_horiz),
           label: const Text('Cambiar rutina'),
         ),
+        // Only offered for a day that hasn't been trained yet — flipping a
+        // completed/skipped/in-progress day to "Descanso" would erase real
+        // history, not just re-plan it.
+        if (session.status == SessionStatus.planned)
+          OutlinedButton.icon(
+            onPressed: () => _markRest(context, ref, existingSession: session),
+            icon: const Icon(Icons.nightlight_outlined),
+            label: const Text('Marcar descanso'),
+          ),
         OutlinedButton.icon(
           onPressed: () {
             Navigator.of(context).pop();
@@ -199,7 +208,24 @@ class DayDetailSheet extends ConsumerWidget {
     final db = ref.read(appDatabaseProvider);
 
     if (existingSession != null) {
-      await db.workoutSessionsDao.updateSession(existingSession.copyWith(routineDayId: Value(day.id)));
+      // A rest (or otherwise untrained) day picking up a routine needs to
+      // become "planned" too, not just gain a routineDayId — otherwise the
+      // calendar cell's color/status stays stuck on the old one even though
+      // the name underneath (which reads straight off routineDayId) already
+      // shows the new routine. Completed/skipped/in-progress days keep their
+      // status: this is just correcting which routine a real session was,
+      // not un-doing that it happened.
+      const preserveStatus = {
+        SessionStatus.completed,
+        SessionStatus.skipped,
+        SessionStatus.inProgress,
+      };
+      await db.workoutSessionsDao.updateSession(existingSession.copyWith(
+        routineDayId: Value(day.id),
+        status: preserveStatus.contains(existingSession.status)
+            ? existingSession.status
+            : SessionStatus.planned,
+      ));
     } else {
       await db.workoutSessionsDao.createSession(WorkoutSessionsCompanion.insert(
         date: date,
@@ -210,12 +236,19 @@ class DayDetailSheet extends ConsumerWidget {
     if (context.mounted) Navigator.of(context).pop();
   }
 
-  Future<void> _markRest(BuildContext context, WidgetRef ref) async {
+  Future<void> _markRest(BuildContext context, WidgetRef ref, {WorkoutSession? existingSession}) async {
     final db = ref.read(appDatabaseProvider);
-    await db.workoutSessionsDao.createSession(WorkoutSessionsCompanion.insert(
-      date: date,
-      status: const Value(SessionStatus.rest),
-    ));
+    if (existingSession != null) {
+      await db.workoutSessionsDao.updateSession(existingSession.copyWith(
+        routineDayId: const Value(null),
+        status: SessionStatus.rest,
+      ));
+    } else {
+      await db.workoutSessionsDao.createSession(WorkoutSessionsCompanion.insert(
+        date: date,
+        status: const Value(SessionStatus.rest),
+      ));
+    }
     if (context.mounted) Navigator.of(context).pop();
   }
 
