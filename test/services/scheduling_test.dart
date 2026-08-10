@@ -73,7 +73,7 @@ void main() {
       expect(orderedDayIds, [pushDayId, pullDayId, legsDayId, pushDayId, pullDayId]);
     });
 
-    test('does not overwrite a date that already has a session', () async {
+    test('leaves a completed session untouched', () async {
       final routineId = await createRoutineWithDays(['Full body']);
       await db.workoutSessionsDao.createSession(WorkoutSessionsCompanion.insert(
         date: DateTime(2026, 8, 3),
@@ -92,6 +92,32 @@ void main() {
           .first;
       expect(sessions.length, 1);
       expect(sessions.single.status, SessionStatus.completed);
+    });
+
+    test('re-running over an already-planned range replaces the old plan', () async {
+      final oldRoutineId = await createRoutineWithDays(['Old routine']);
+      final newRoutineId = await createRoutineWithDays(['New routine']);
+      final newDayId = (await db.routinesDao.watchDays(newRoutineId).first).single.id;
+
+      await bulkAssignRoutine(
+        db,
+        routineIds: [oldRoutineId],
+        startDate: DateTime(2026, 8, 3),
+        endDate: DateTime(2026, 8, 5),
+      );
+
+      await bulkAssignRoutine(
+        db,
+        routineIds: [newRoutineId],
+        startDate: DateTime(2026, 8, 3),
+        endDate: DateTime(2026, 8, 5),
+      );
+
+      final sessions = await db.workoutSessionsDao
+          .watchSessionsInRange(DateTime(2026, 8, 3), DateTime(2026, 8, 6))
+          .first;
+      expect(sessions.length, 3); // replaced in place, not duplicated
+      expect(sessions.every((s) => s.routineDayId == newDayId), isTrue);
     });
   });
 

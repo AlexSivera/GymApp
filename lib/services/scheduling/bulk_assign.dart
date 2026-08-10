@@ -4,8 +4,7 @@ import '../../data/database/app_database.dart';
 
 // Fills [startDate]..[endDate] (inclusive) with planned sessions, cycling
 // through [routineIds] in the given order and skipping [restWeekdays]
-// (DateTime.weekday values, 1=Monday..7=Sunday) and any date that already
-// has a session assigned.
+// (DateTime.weekday values, 1=Monday..7=Sunday).
 //
 // Routines are single-day now (Push, Pull, Legs are separate routines
 // instead of days nested under one), so the rotation is built by
@@ -13,6 +12,13 @@ import '../../data/database/app_database.dart';
 // picked — Push's day, then Pull's, then Legs' — rather than the days of a
 // single routine like before. A routine with more than one day (from
 // before that change) still contributes all of them, in order.
+//
+// Re-running this over an already-planned range replaces that plan instead
+// of silently doing nothing (the previous behavior skipped any occupied
+// date, so fixing a wrong quick-assign meant it never took effect). Days
+// already completed, skipped, or in progress are real training history and
+// are left untouched either way — only `planned`/`rest` placeholders get
+// overwritten.
 Future<int> bulkAssignRoutine(
   AppDatabase db, {
   required List<int> routineIds,
@@ -31,27 +37,47 @@ Future<int> bulkAssignRoutine(
   final existing = await db.workoutSessionsDao
       .watchSessionsInRange(start, end.add(const Duration(days: 1)))
       .first;
-  final occupiedDates = existing.map((s) => DateTime(s.date.year, s.date.month, s.date.day)).toSet();
+
+  const protectedStatuses = {
+    SessionStatus.completed,
+    SessionStatus.skipped,
+    SessionStatus.inProgress,
+  };
+  final protectedDates = <DateTime>{};
+  final overwritableIds = <int>[];
+  for (final s in existing) {
+    final date = DateTime(s.date.year, s.date.month, s.date.day);
+    if (protectedStatuses.contains(s.status)) {
+      protectedDates.add(date);
+    } else {
+      overwritableIds.add(s.id);
+    }
+  }
+  if (overwritableIds.isNotEmpty) {
+    await db.workoutSessionsDao.deleteSessions(overwritableIds);
+  }
 
   final entries = <WorkoutSessionsCompanion>[];
   var cursor = start;
   var dayIndex = 0;
 
   while (!cursor.isAfter(end)) {
-    final isRestDay = restWeekdays.contains(cursor.weekday);
-    if (!isRestDay && !occupiedDates.contains(cursor)) {
-      final routineDay = days[dayIndex % days.length];
-      entries.add(WorkoutSessionsCompanion.insert(
-        date: cursor,
-        routineDayId: Value(routineDay.id),
-        status: const Value(SessionStatus.planned),
-      ));
-      dayIndex++;
-    } else if (isRestDay && !occupiedDates.contains(cursor)) {
-      entries.add(WorkoutSessionsCompanion.insert(
-        date: cursor,
-        status: const Value(SessionStatus.rest),
-      ));
+    if (!protectedDates.contains(cursor)) {
+      final isRestDay = restWeekdays.contains(cursor.weekday);
+      if (isRestDay) {
+        entries.add(WorkoutSessionsCompanion.insert(
+          date: cursor,
+          status: const Value(SessionStatus.rest),
+        ));
+      } else {
+        final routineDay = days[dayIndex % days.length];
+        entries.add(WorkoutSessionsCompanion.insert(
+          date: cursor,
+          routineDayId: Value(routineDay.id),
+          status: const Value(SessionStatus.planned),
+        ));
+        dayIndex++;
+      }
     }
     cursor = cursor.add(const Duration(days: 1));
   }
