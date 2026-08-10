@@ -3,17 +3,27 @@ import 'package:drift/drift.dart';
 import '../../data/database/app_database.dart';
 
 // Fills [startDate]..[endDate] (inclusive) with planned sessions, cycling
-// through the routine's days in order and skipping [restWeekdays]
+// through [routineIds] in the given order and skipping [restWeekdays]
 // (DateTime.weekday values, 1=Monday..7=Sunday) and any date that already
 // has a session assigned.
+//
+// Routines are single-day now (Push, Pull, Legs are separate routines
+// instead of days nested under one), so the rotation is built by
+// concatenating each selected routine's day(s) in the order they were
+// picked — Push's day, then Pull's, then Legs' — rather than the days of a
+// single routine like before. A routine with more than one day (from
+// before that change) still contributes all of them, in order.
 Future<int> bulkAssignRoutine(
   AppDatabase db, {
-  required int routineId,
+  required List<int> routineIds,
   required DateTime startDate,
   required DateTime endDate,
   Set<int> restWeekdays = const {},
 }) async {
-  final days = await db.routinesDao.watchDays(routineId).first;
+  final days = <RoutineDay>[];
+  for (final routineId in routineIds) {
+    days.addAll(await db.routinesDao.watchDays(routineId).first);
+  }
   if (days.isEmpty) return 0;
 
   final start = DateTime(startDate.year, startDate.month, startDate.day);

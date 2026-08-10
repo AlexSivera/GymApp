@@ -27,7 +27,7 @@ void main() {
       // Monday 2026-08-03 .. Sunday 2026-08-09, resting on weekends (6, 7).
       final created = await bulkAssignRoutine(
         db,
-        routineId: routineId,
+        routineIds: [routineId],
         startDate: DateTime(2026, 8, 3),
         endDate: DateTime(2026, 8, 9),
         restWeekdays: {DateTime.saturday, DateTime.sunday},
@@ -45,6 +45,34 @@ void main() {
       expect(plannedDays.length, 5);
     });
 
+    test('cycles through several single-day routines in the given order', () async {
+      // Push/Pull/Legs as three separate single-day routines (today's model)
+      // instead of one routine with three days (the old, no-longer-possible
+      // shape the previous test still exercises for regression coverage).
+      final pushId = await createRoutineWithDays(['Push']);
+      final pullId = await createRoutineWithDays(['Pull']);
+      final legsId = await createRoutineWithDays(['Legs']);
+      final pushDayId = (await db.routinesDao.watchDays(pushId).first).single.id;
+      final pullDayId = (await db.routinesDao.watchDays(pullId).first).single.id;
+      final legsDayId = (await db.routinesDao.watchDays(legsId).first).single.id;
+
+      // Monday 2026-08-03 .. Friday 2026-08-07, no rest days.
+      await bulkAssignRoutine(
+        db,
+        routineIds: [pushId, pullId, legsId],
+        startDate: DateTime(2026, 8, 3),
+        endDate: DateTime(2026, 8, 7),
+      );
+
+      final sessions = await db.workoutSessionsDao
+          .watchSessionsInRange(DateTime(2026, 8, 3), DateTime(2026, 8, 8))
+          .first;
+      final orderedDayIds = (sessions.toList()..sort((a, b) => a.date.compareTo(b.date)))
+          .map((s) => s.routineDayId)
+          .toList();
+      expect(orderedDayIds, [pushDayId, pullDayId, legsDayId, pushDayId, pullDayId]);
+    });
+
     test('does not overwrite a date that already has a session', () async {
       final routineId = await createRoutineWithDays(['Full body']);
       await db.workoutSessionsDao.createSession(WorkoutSessionsCompanion.insert(
@@ -54,7 +82,7 @@ void main() {
 
       await bulkAssignRoutine(
         db,
-        routineId: routineId,
+        routineIds: [routineId],
         startDate: DateTime(2026, 8, 3),
         endDate: DateTime(2026, 8, 3),
       );

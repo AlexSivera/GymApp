@@ -34,7 +34,10 @@ class QuickAssignSheet extends ConsumerStatefulWidget {
 }
 
 class _QuickAssignSheetState extends ConsumerState<QuickAssignSheet> {
-  int? _routineId;
+  // Order matters: routines are single-day now (Push/Pull/Legs are separate
+  // routines), so the rotation cycles through them in the order they were
+  // tapped — first tapped lands on day 1, second on day 2, and so on.
+  final List<int> _routineIds = [];
   _Duration _duration = _Duration.oneWeek;
   DateTime? _customEnd;
   final Set<int> _restWeekdays = {};
@@ -77,7 +80,7 @@ class _QuickAssignSheetState extends ConsumerState<QuickAssignSheet> {
           children: [
             Text('Asignación rápida', style: theme.textTheme.titleLarge),
             const SizedBox(height: AppSpacing.lg),
-            Text('Rutina', style: theme.textTheme.labelMedium),
+            Text('Rutinas (en el orden en que las toques)', style: theme.textTheme.labelMedium),
             const SizedBox(height: AppSpacing.sm),
             routinesAsync.when(
               loading: () => const CircularProgressIndicator(),
@@ -89,17 +92,36 @@ class _QuickAssignSheetState extends ConsumerState<QuickAssignSheet> {
                     style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   );
                 }
-                _routineId ??= routines.first.id;
-                return Wrap(
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.sm,
+                final routinesById = {for (final r in routines) r.id: r};
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (final r in routines)
-                      ChoiceChip(
-                        label: Text(r.name),
-                        selected: _routineId == r.id,
-                        onSelected: (_) => setState(() => _routineId = r.id),
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
+                      children: [
+                        for (final r in routines)
+                          FilterChip(
+                            label: Text(r.name),
+                            selected: _routineIds.contains(r.id),
+                            onSelected: (selected) => setState(() {
+                              if (selected) {
+                                _routineIds.add(r.id);
+                              } else {
+                                _routineIds.remove(r.id);
+                              }
+                            }),
+                          ),
+                      ],
+                    ),
+                    if (_routineIds.isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Se repetirá: ${_routineIds.map((id) => routinesById[id]?.name ?? '?').join(' → ')}',
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                       ),
+                    ],
                   ],
                 );
               },
@@ -169,7 +191,7 @@ class _QuickAssignSheetState extends ConsumerState<QuickAssignSheet> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _routineId == null || _saving ? null : _confirm,
+                onPressed: _routineIds.isEmpty || _saving ? null : _confirm,
                 child: _saving
                     ? const SizedBox(
                         height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
@@ -187,7 +209,7 @@ class _QuickAssignSheetState extends ConsumerState<QuickAssignSheet> {
     final db = ref.read(appDatabaseProvider);
     final created = await bulkAssignRoutine(
       db,
-      routineId: _routineId!,
+      routineIds: _routineIds,
       startDate: _startDate,
       endDate: _endDate,
       restWeekdays: _restWeekdays,
