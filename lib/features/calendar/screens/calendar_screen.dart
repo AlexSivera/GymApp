@@ -50,10 +50,20 @@ class CalendarScreen extends ConsumerWidget {
       final session = sessionsByDay[normalized];
       final isToday = isSameDay(normalized, DateTime.now());
       final isSelected = selectedDays.contains(normalized);
+      // routineDaySessionTitleProvider (not RoutineDay.name directly) so this
+      // never shows the internal "Día 1" placeholder for single-day routines.
+      final label = session == null
+          ? null
+          : session.routineDayId != null
+              ? ref.watch(routineDaySessionTitleProvider(session.routineDayId))
+              : session.status == SessionStatus.rest
+                  ? 'Descanso'
+                  : null;
 
       return _DayCell(
         day: normalized,
         status: session?.status,
+        label: label,
         isToday: isToday,
         isSelectedForBulk: isSelected,
       );
@@ -119,6 +129,7 @@ class CalendarScreen extends ConsumerWidget {
                     },
                     onPageChanged: (focused) => ref.read(focusedMonthProvider.notifier).state = focused,
                     headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
+                    rowHeight: 58,
                     calendarBuilders: CalendarBuilders(
                       defaultBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
                       todayBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
@@ -297,12 +308,14 @@ class _DayCell extends StatelessWidget {
   const _DayCell({
     required this.day,
     required this.status,
+    required this.label,
     required this.isToday,
     required this.isSelectedForBulk,
   });
 
   final DateTime day;
   final SessionStatus? status;
+  final String? label;
   final bool isToday;
   final bool isSelectedForBulk;
 
@@ -328,31 +341,61 @@ class _DayCell extends StatelessWidget {
     final theme = Theme.of(context);
     final fill = _fillColor;
 
+    // FittedBox absorbs both a long routine name and larger system font
+    // scales by shrinking the whole cell instead of overflowing the fixed
+    // rowHeight the calendar grid allocates per row.
     return Padding(
-      padding: const EdgeInsets.all(4),
-      child: AnimatedContainer(
-        duration: AppMotion.fast,
-        curve: AppMotion.curve,
-        decoration: BoxDecoration(
-          color: fill?.withValues(alpha: 0.22) ?? AppTheme.statusEmpty.withValues(alpha: 0.5),
-          shape: BoxShape.circle,
-          border: isToday
-              ? Border.all(color: AppTheme.statusToday, width: 2)
-              : isSelectedForBulk
-                  ? Border.all(color: theme.colorScheme.primary, width: 2)
-                  : null,
-        ),
-        alignment: Alignment.center,
-        child: Stack(
-          alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text('${day.day}', style: theme.textTheme.bodyMedium),
-            if (isSelectedForBulk)
-              Positioned(
-                right: 2,
-                top: 2,
-                child: Icon(Icons.check_circle, size: 12, color: theme.colorScheme.primary),
+            AnimatedContainer(
+              duration: AppMotion.fast,
+              curve: AppMotion.curve,
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: fill?.withValues(alpha: 0.22) ?? AppTheme.statusEmpty.withValues(alpha: 0.5),
+                shape: BoxShape.circle,
+                border: isToday
+                    ? Border.all(color: AppTheme.statusToday, width: 2)
+                    : isSelectedForBulk
+                        ? Border.all(color: theme.colorScheme.primary, width: 2)
+                        : null,
               ),
+              alignment: Alignment.center,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Text('${day.day}', style: theme.textTheme.bodyMedium),
+                  if (isSelectedForBulk)
+                    Positioned(
+                      right: -2,
+                      top: -2,
+                      child: Icon(Icons.check_circle, size: 12, color: theme.colorScheme.primary),
+                    ),
+                ],
+              ),
+            ),
+            if (label != null) ...[
+              const SizedBox(height: 2),
+              SizedBox(
+                width: 46,
+                child: Text(
+                  label!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: fill ?? theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
