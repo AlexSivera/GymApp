@@ -171,7 +171,7 @@ class _RoutineExerciseRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isExpanded = ref.watch(expandedRoutineExerciseIdsProvider).contains(entry.id);
-    final isCardio = exercise?.category == ExerciseCategory.cardio;
+    final isStrength = exercise?.category == ExerciseCategory.strength;
 
     return AppCard(
       padding: EdgeInsets.zero,
@@ -180,7 +180,7 @@ class _RoutineExerciseRow extends ConsumerWidget {
           ListTile(
             leading: ExerciseThumbnail(imagePaths: imagePaths),
             title: Text(exerciseName),
-            subtitle: Text(_summarize(entry, isCardio: isCardio)),
+            subtitle: Text(_summarize(entry, isStrength: isStrength)),
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: () => ref.read(routinesDaoProvider).removeExerciseFromDay(entry.id),
@@ -210,10 +210,10 @@ class _RoutineExerciseRow extends ConsumerWidget {
     );
   }
 
-  String _summarize(RoutineExercise entry, {required bool isCardio}) {
+  String _summarize(RoutineExercise entry, {required bool isStrength}) {
     final parts = <String>[
       '${entry.targetSets} series',
-      if (!isCardio) '${entry.targetRepsMin}-${entry.targetRepsMax} reps',
+      if (isStrength) '${entry.targetRepsMin}-${entry.targetRepsMax} reps',
       if (entry.targetWeight != null) '${_fmt(entry.targetWeight!)} kg',
       if (entry.restSeconds != null) 'descanso ${entry.restSeconds}s',
     ];
@@ -278,7 +278,7 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isCardio = widget.exercise?.category == ExerciseCategory.cardio;
+    final isStrength = widget.exercise?.category == ExerciseCategory.strength;
     final isBodyweight = widget.exercise?.equipment == 'Peso corporal';
 
     return Padding(
@@ -290,9 +290,10 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
           Row(
             children: [
               Expanded(child: StatNumberField(controller: _sets, label: 'Series', onCommit: _persist)),
-              // Reps and weight targets don't mean anything for cardio (it's
-              // logged by duration/distance instead) — only "Series" applies.
-              if (!isCardio) ...[
+              // Reps and weight targets don't mean anything for cardio or
+              // isometric holds (both logged by duration instead) — only
+              // "Series" applies to them.
+              if (isStrength) ...[
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                     child:

@@ -290,7 +290,7 @@ class _StagedExerciseCardState extends State<_StagedExerciseCard> {
   }
 
   Widget _fields(ThemeData theme) {
-    final isCardio = widget.exercise.category == ExerciseCategory.cardio;
+    final isStrength = widget.exercise.category == ExerciseCategory.strength;
     final isBodyweight = widget.exercise.equipment == 'Peso corporal';
 
     return Padding(
@@ -308,9 +308,10 @@ class _StagedExerciseCardState extends State<_StagedExerciseCard> {
                   onChanged: (v) => widget.exercise.sets = int.tryParse(v) ?? widget.exercise.sets,
                 ),
               ),
-              // Reps and weight targets don't mean anything for cardio (it's
-              // logged by duration/distance instead) — only "Series" applies.
-              if (!isCardio) ...[
+              // Reps and weight targets don't mean anything for cardio or
+              // isometric holds (both logged by duration instead) — only
+              // "Series" applies to them.
+              if (isStrength) ...[
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: StatNumberField(
@@ -363,7 +364,7 @@ class _StagedExerciseCardState extends State<_StagedExerciseCard> {
     final e = widget.exercise;
     final parts = <String>[
       '${e.sets} series',
-      if (e.category != ExerciseCategory.cardio) '${e.repsMin}-${e.repsMax} reps',
+      if (e.category == ExerciseCategory.strength) '${e.repsMin}-${e.repsMax} reps',
       if (e.weight != null) '${_fmt(e.weight!)} kg',
       if (e.restSeconds != null) 'descanso ${e.restSeconds}s',
     ];

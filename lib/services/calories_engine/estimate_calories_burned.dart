@@ -44,8 +44,10 @@ double _ageFactor(int? age) {
 // time from reps (no rest-timer time counted — that's recovery, not effort)
 // and scale the MET up or down by how heavy the load is relative to
 // bodyweight, so a heavier set of the same rep count reads as more effort.
-// Cardio sets use the logged duration directly (or a rough pace-based
-// estimate if only distance was logged).
+// Cardio and isometric sets both use the logged duration directly (cardio
+// falls back to a rough pace-based estimate if only distance was logged;
+// isometric holds never log distance, so that fallback is simply unused for
+// them) — they only differ in which MET applies.
 double estimateSetCalories({
   required Exercise exercise,
   required WorkoutSet set,
@@ -54,8 +56,8 @@ double estimateSetCalories({
   if (!set.isCompleted) return 0;
   final correction = _genderFactor(profile.gender) * _ageFactor(profile.age);
 
-  if (exercise.category == ExerciseCategory.cardio) {
-    final hours = _cardioHours(exercise, set);
+  if (exercise.category == ExerciseCategory.cardio || exercise.category == ExerciseCategory.isometric) {
+    final hours = _durationHours(exercise, set);
     if (hours <= 0) return 0;
     return metForExercise(exercise) * profile.weightKg * hours * correction;
   }
@@ -75,9 +77,13 @@ double estimateSetCalories({
   return effectiveMet * profile.weightKg * activeHours * correction;
 }
 
-double _cardioHours(Exercise exercise, WorkoutSet set) {
+double _durationHours(Exercise exercise, WorkoutSet set) {
   final duration = set.durationSeconds;
   if (duration != null && duration > 0) return duration / 3600;
+  // Pace-based fallback only makes sense for cardio (distance implies
+  // movement) — isometric holds have no distance in the UI, so a stray
+  // distance value on one shouldn't be read as "ran this far".
+  if (exercise.category != ExerciseCategory.cardio) return 0;
   final distance = set.distanceMeters;
   if (distance != null && distance > 0) {
     final km = distance / 1000;

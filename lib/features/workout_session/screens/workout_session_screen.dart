@@ -300,8 +300,10 @@ enum _ExerciseMenuAction { history, notes, skip }
 typedef _SetResult = ({double? weight, int? reps, int? durationSeconds, double? distanceMeters});
 
 // "12 min" / "45s" / "5 km" / "12 min · 5 km" — whichever of duration/distance
-// a cardio set actually has. Shared by every cardio set display below.
-String _fmtCardio(WorkoutSet set) {
+// a cardio or isometric set actually has (isometric sets never carry
+// distance, so that half is simply skipped for them). Shared by every
+// duration-tracked set display below.
+String _fmtDuration(WorkoutSet set) {
   final parts = <String>[];
   final duration = set.durationSeconds;
   if (duration != null) {
@@ -388,10 +390,12 @@ class _ExerciseRow extends ConsumerWidget {
       exerciseId: sessionExercise.exerciseId,
       excludeSessionId: sessionId,
     );
+    final isStrength = category == ExerciseCategory.strength;
     final isCardio = category == ExerciseCategory.cardio;
     // suggestNextLoad's progression heuristic is rep-range based and doesn't
-    // apply to cardio — those sets just carry over duration/distance as-is.
-    final suggestion = isCardio || previousSets.isEmpty
+    // apply to cardio/isometric — those sets just carry over duration (and,
+    // for cardio, distance) as-is.
+    final suggestion = !isStrength || previousSets.isEmpty
         ? null
         : suggestNextLoad(
             previousSets: previousSets,
@@ -405,9 +409,9 @@ class _ExerciseRow extends ConsumerWidget {
       await dao.addSet(WorkoutSetsCompanion.insert(
         sessionExerciseId: sessionExercise.id,
         setNumber: i + 1,
-        weightKg: Value(isCardio ? null : matchingPrevious?.weightKg ?? suggestion?.suggestedWeight),
-        reps: Value(isCardio ? null : matchingPrevious?.reps ?? targets!.repsMax),
-        durationSeconds: Value(isCardio ? matchingPrevious?.durationSeconds : null),
+        weightKg: Value(isStrength ? matchingPrevious?.weightKg ?? suggestion?.suggestedWeight : null),
+        reps: Value(isStrength ? matchingPrevious?.reps ?? targets!.repsMax : null),
+        durationSeconds: Value(isStrength ? null : matchingPrevious?.durationSeconds),
         distanceMeters: Value(isCardio ? matchingPrevious?.distanceMeters : null),
         isCompleted: const Value(false),
       ));
@@ -416,10 +420,10 @@ class _ExerciseRow extends ConsumerWidget {
 
   String _setsSummary(List<WorkoutSet> sets) {
     if (sets.isEmpty) return 'Sin series todavía';
-    if (category == ExerciseCategory.cardio) {
+    if (category != ExerciseCategory.strength) {
       final valid = sets.where((s) => s.durationSeconds != null || s.distanceMeters != null).toList();
       if (valid.isEmpty) return '${sets.length} serie${sets.length == 1 ? '' : 's'}';
-      final parts = valid.take(3).map(_fmtCardio);
+      final parts = valid.take(3).map(_fmtDuration);
       final suffix = valid.length > 3 ? ' +${valid.length - 3}' : '';
       return '${parts.join(' · ')}$suffix';
     }
@@ -483,7 +487,7 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
   final _ExerciseTargets? targets;
   final List<WorkoutSet> sets;
 
-  bool get isCardio => category == ExerciseCategory.cardio;
+  bool get isStrength => category == ExerciseCategory.strength;
   int get exerciseId => sessionExercise.exerciseId;
   int get restSeconds => targets?.restSeconds ?? 90;
   int get repsMin => targets?.repsMin ?? 8;
@@ -498,8 +502,8 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
     );
     final previousSets = previousSetsAsync.valueOrNull ?? const <WorkoutSet>[];
     // suggestNextLoad's progression heuristic is rep-range based and doesn't
-    // apply to cardio.
-    final suggestion = isCardio || previousSets.isEmpty
+    // apply to cardio/isometric.
+    final suggestion = !isStrength || previousSets.isEmpty
         ? null
         : suggestNextLoad(previousSets: previousSets, targetRepsMin: repsMin, targetRepsMax: repsMax);
 
@@ -525,7 +529,7 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
                       children: [
                         if (previousSets.isNotEmpty)
                           Text(
-                            'Última vez: ${previousSets.map((s) => isCardio ? _fmtCardio(s) : '${_fmt(s.weightKg)}×${s.reps ?? '—'}').join(', ')}',
+                            'Última vez: ${previousSets.map((s) => isStrength ? '${_fmt(s.weightKg)}×${s.reps ?? '—'}' : _fmtDuration(s)).join(', ')}',
                             style: theme.textTheme.bodySmall
                                 ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                           ),
@@ -555,7 +559,7 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
               child: _ActiveSetCard(
                 key: ValueKey('active-${activeSet.id}'),
                 set: activeSet,
-                isCardio: isCardio,
+                category: category,
                 onComplete: (result) => _completeSet(context, ref, activeSet, result),
               ),
             ),
@@ -563,7 +567,7 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
             _CompactSetRow(
               key: ValueKey('row-${set.id}'),
               set: set,
-              isCardio: isCardio,
+              category: category,
               onDelete: () => ref.read(sessionLoggingDaoProvider).deleteSet(set.id),
             ),
           if (otherSets.isNotEmpty) const SizedBox(height: AppSpacing.sm),
@@ -602,12 +606,13 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
 
   Future<void> _addSet(WidgetRef ref, List<WorkoutSet> existingSets, LoadSuggestion? suggestion) async {
     final last = existingSets.isEmpty ? null : existingSets.last;
+    final isCardio = category == ExerciseCategory.cardio;
     await ref.read(sessionLoggingDaoProvider).addSet(WorkoutSetsCompanion.insert(
           sessionExerciseId: sessionExercise.id,
           setNumber: existingSets.length + 1,
-          weightKg: Value(isCardio ? null : last?.weightKg ?? suggestion?.suggestedWeight),
-          reps: Value(isCardio ? null : last?.reps),
-          durationSeconds: Value(isCardio ? last?.durationSeconds : null),
+          weightKg: Value(isStrength ? last?.weightKg ?? suggestion?.suggestedWeight : null),
+          reps: Value(isStrength ? last?.reps : null),
+          durationSeconds: Value(isStrength ? null : last?.durationSeconds),
           distanceMeters: Value(isCardio ? last?.distanceMeters : null),
           isCompleted: const Value(false),
         ));
@@ -796,10 +801,10 @@ class _OverflowMenu extends StatelessWidget {
 // +/- steppers instead of raw text fields — matches "no abrir una ventana
 // con teclado para poner los kilos".
 class _ActiveSetCard extends ConsumerStatefulWidget {
-  const _ActiveSetCard({super.key, required this.set, required this.isCardio, required this.onComplete});
+  const _ActiveSetCard({super.key, required this.set, required this.category, required this.onComplete});
 
   final WorkoutSet set;
-  final bool isCardio;
+  final ExerciseCategory category;
   final Future<void> Function(_SetResult result) onComplete;
 
   @override
@@ -811,6 +816,7 @@ class _ActiveSetCardState extends ConsumerState<_ActiveSetCard> {
   late int _reps;
   late int _durationMin;
   late double _distanceKm;
+  late int _isometricSeconds;
   bool _submitting = false;
 
   @override
@@ -820,6 +826,7 @@ class _ActiveSetCardState extends ConsumerState<_ActiveSetCard> {
     _reps = widget.set.reps ?? 0;
     _durationMin = ((widget.set.durationSeconds ?? 0) / 60).round();
     _distanceKm = (widget.set.distanceMeters ?? 0) / 1000;
+    _isometricSeconds = widget.set.durationSeconds ?? 0;
   }
 
   void _adjustWeight(double delta) => setState(() => _weight = (_weight + delta).clamp(0, 999));
@@ -827,17 +834,26 @@ class _ActiveSetCardState extends ConsumerState<_ActiveSetCard> {
   void _adjustDuration(int delta) => setState(() => _durationMin = (_durationMin + delta).clamp(0, 999));
   void _adjustDistance(double delta) => setState(
       () => _distanceKm = (((_distanceKm + delta).clamp(0, 999)) * 10).round() / 10);
+  void _adjustIsometric(int delta) =>
+      setState(() => _isometricSeconds = (_isometricSeconds + delta).clamp(0, 3600));
 
   Future<void> _markSet() async {
     setState(() => _submitting = true);
-    final _SetResult result = widget.isCardio
-        ? (
-            weight: null,
-            reps: null,
-            durationSeconds: _durationMin > 0 ? _durationMin * 60 : null,
-            distanceMeters: _distanceKm > 0 ? _distanceKm * 1000 : null,
-          )
-        : (weight: _weight, reps: _reps, durationSeconds: null, distanceMeters: null);
+    final _SetResult result = switch (widget.category) {
+      ExerciseCategory.strength => (weight: _weight, reps: _reps, durationSeconds: null, distanceMeters: null),
+      ExerciseCategory.cardio => (
+          weight: null,
+          reps: null,
+          durationSeconds: _durationMin > 0 ? _durationMin * 60 : null,
+          distanceMeters: _distanceKm > 0 ? _distanceKm * 1000 : null,
+        ),
+      ExerciseCategory.isometric => (
+          weight: null,
+          reps: null,
+          durationSeconds: _isometricSeconds > 0 ? _isometricSeconds : null,
+          distanceMeters: null,
+        ),
+    };
     await widget.onComplete(result);
     if (mounted) setState(() => _submitting = false);
   }
@@ -857,39 +873,48 @@ class _ActiveSetCardState extends ConsumerState<_ActiveSetCard> {
         children: [
           Text('SERIE ${widget.set.setNumber}', style: theme.textTheme.labelMedium),
           const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: widget.isCardio
-                ? [
-                    Expanded(
-                        child: _Stepper(
-                            label: 'min',
-                            value: '$_durationMin',
-                            onDecrement: () => _adjustDuration(-1),
-                            onIncrement: () => _adjustDuration(1))),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                        child: _Stepper(
-                            label: 'km',
-                            value: _fmt(_distanceKm),
-                            onDecrement: () => _adjustDistance(-0.1),
-                            onIncrement: () => _adjustDistance(0.1))),
-                  ]
-                : [
-                    Expanded(
-                        child: _Stepper(
-                            label: 'kg',
-                            value: _fmt(_weight),
-                            onDecrement: () => _adjustWeight(-2.5),
-                            onIncrement: () => _adjustWeight(2.5))),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                        child: _Stepper(
-                            label: 'reps',
-                            value: '$_reps',
-                            onDecrement: () => _adjustReps(-1),
-                            onIncrement: () => _adjustReps(1))),
-                  ],
-          ),
+          switch (widget.category) {
+            ExerciseCategory.cardio => Row(
+                children: [
+                  Expanded(
+                      child: _Stepper(
+                          label: 'min',
+                          value: '$_durationMin',
+                          onDecrement: () => _adjustDuration(-1),
+                          onIncrement: () => _adjustDuration(1))),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                      child: _Stepper(
+                          label: 'km',
+                          value: _fmt(_distanceKm),
+                          onDecrement: () => _adjustDistance(-0.1),
+                          onIncrement: () => _adjustDistance(0.1))),
+                ],
+              ),
+            ExerciseCategory.isometric => _Stepper(
+                label: 'segundos',
+                value: '$_isometricSeconds',
+                onDecrement: () => _adjustIsometric(-5),
+                onIncrement: () => _adjustIsometric(5),
+              ),
+            ExerciseCategory.strength => Row(
+                children: [
+                  Expanded(
+                      child: _Stepper(
+                          label: 'kg',
+                          value: _fmt(_weight),
+                          onDecrement: () => _adjustWeight(-2.5),
+                          onIncrement: () => _adjustWeight(2.5))),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                      child: _Stepper(
+                          label: 'reps',
+                          value: '$_reps',
+                          onDecrement: () => _adjustReps(-1),
+                          onIncrement: () => _adjustReps(1))),
+                ],
+              ),
+          },
           const SizedBox(height: AppSpacing.md),
           SizedBox(
             width: double.infinity,
@@ -970,10 +995,10 @@ class _StepperButton extends StatelessWidget {
 // A set that isn't the active one — either already completed, or queued
 // further down the plan. Shown as a plain summary row with a way to remove it.
 class _CompactSetRow extends StatelessWidget {
-  const _CompactSetRow({super.key, required this.set, required this.isCardio, required this.onDelete});
+  const _CompactSetRow({super.key, required this.set, required this.category, required this.onDelete});
 
   final WorkoutSet set;
-  final bool isCardio;
+  final ExerciseCategory category;
   final VoidCallback onDelete;
 
   @override
@@ -997,7 +1022,9 @@ class _CompactSetRow extends StatelessWidget {
             ),
           ),
           Text(
-            isCardio ? _fmtCardio(set) : '${_fmt(set.weightKg)} kg × ${set.reps ?? '—'}',
+            category == ExerciseCategory.strength
+                ? '${_fmt(set.weightKg)} kg × ${set.reps ?? '—'}'
+                : _fmtDuration(set),
             style: theme.textTheme.bodyMedium?.copyWith(color: set.isCompleted ? null : mutedColor),
           ),
           IconButton(

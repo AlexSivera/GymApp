@@ -8,6 +8,11 @@ import '../../data/database/app_database.dart';
 // level per set.
 const double strengthMet = 5.0;
 
+// Static holds (Plancha, isometric neck exercises...) burn less than active
+// cardio but more than sitting still — "abdominal exercise, plank" sits
+// around this in the Compendium.
+const double isometricMet = 3.5;
+
 const Map<String, double> _cardioMetByExerciseName = {
   'Bicicleta': 8.0,
   'Bicicleta estática': 7.0,
@@ -38,8 +43,14 @@ const Map<String, double> _cardioPaceMinPerKm = {
 const double _defaultPaceMinPerKm = 6.0;
 
 double metForExercise(Exercise exercise) {
-  if (exercise.category != ExerciseCategory.cardio) return strengthMet;
-  return _cardioMetByExerciseName[exercise.name] ?? 6.0;
+  switch (exercise.category) {
+    case ExerciseCategory.cardio:
+      return _cardioMetByExerciseName[exercise.name] ?? 6.0;
+    case ExerciseCategory.isometric:
+      return isometricMet;
+    case ExerciseCategory.strength:
+      return strengthMet;
+  }
 }
 
 double paceMinPerKmForExercise(Exercise exercise) =>

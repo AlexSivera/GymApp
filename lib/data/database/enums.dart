@@ -7,5 +7,9 @@ enum PersonalRecordType { maxWeight, maxReps, estimatedOneRepMax, maxVolume }
 enum SessionExerciseStatus { pending, inProgress, completed, skipped }
 
 // `strength` first so it stays the default for every existing exercise row
-// once this column is added by migration.
-enum ExerciseCategory { strength, cardio }
+// once this column is added by migration. `isometric` appended after
+// `cardio` (not alphabetically) so existing stored indices don't shift —
+// same reasoning as SessionStatus.rest above. Isometric holds (Plancha,
+// isometric neck exercises...) are tracked by duration like cardio, but
+// have no distance and use their own MET for calorie estimates.
+enum ExerciseCategory { strength, cardio, isometric }

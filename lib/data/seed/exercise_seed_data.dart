@@ -347,6 +347,7 @@ const exerciseSeedData = <ExerciseSeed>[
     equipment: 'Peso corporal',
     instructions: 'Mantén el cuerpo recto apoyado en antebrazos y pies, sin dejar caer la cadera.',
     imageAsset: 'assets/exercises/plancha.jpg',
+    category: ExerciseCategory.isometric,
   ),
   ExerciseSeed(
     name: 'Elevación de piernas',
@@ -951,6 +952,7 @@ const exerciseSeedData = <ExerciseSeed>[
     equipment: 'Peso corporal',
     instructions: 'Con la mano en la frente y luego en la nuca, empuja la cabeza contra la mano sin que se mueva.',
     imageAsset: 'assets/exercises/cuello_isometrico_frontal.jpg',
+    category: ExerciseCategory.isometric,
   ),
   ExerciseSeed(
     name: 'Ejercicio isométrico de cuello (lateral)',
@@ -959,6 +961,7 @@ const exerciseSeedData = <ExerciseSeed>[
     equipment: 'Peso corporal',
     instructions: 'Con la mano en el lateral de la cabeza, empuja la cabeza contra la mano sin que se mueva.',
     imageAsset: 'assets/exercises/cuello_isometrico_lateral.jpg',
+    category: ExerciseCategory.isometric,
   ),
 
   // Abdomen
@@ -993,6 +996,7 @@ const exerciseSeedData = <ExerciseSeed>[
     equipment: 'Peso corporal',
     instructions: 'Apoyado en un antebrazo y el lateral de los pies, mantén el cuerpo recto sin dejar caer la cadera.',
     imageAsset: 'assets/exercises/plancha_lateral.jpg',
+    category: ExerciseCategory.isometric,
   ),
   ExerciseSeed(
     name: 'Dead bug',

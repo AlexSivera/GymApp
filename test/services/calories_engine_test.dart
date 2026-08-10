@@ -28,6 +28,17 @@ Exercise _cardioExercise({int id = 2, String name = 'Correr en cinta'}) => Exerc
       createdAt: DateTime(2026, 1, 1),
     );
 
+Exercise _isometricExercise({int id = 3}) => Exercise(
+      id: id,
+      name: 'Plancha',
+      primaryMuscles: const ['Abdomen'],
+      secondaryMuscles: const [],
+      category: ExerciseCategory.isometric,
+      imagePaths: const [],
+      isCustom: false,
+      createdAt: DateTime(2026, 1, 1),
+    );
+
 WorkoutSet _set({
   int id = 1,
   double? weightKg,
@@ -160,6 +171,39 @@ void main() {
         profile: womenProfile,
       );
       expect(forWomen, lessThan(forMen));
+    });
+
+    test('an isometric hold (Plancha) uses duration like cardio, but its own MET', () {
+      // 3.5 MET (isometric) * 80kg * (45/3600)h = 3.5.
+      final kcal = estimateSetCalories(
+        exercise: _isometricExercise(),
+        set: _set(durationSeconds: 45),
+        profile: _profile,
+      );
+      expect(kcal, closeTo(3.5, 0.01));
+    });
+
+    test('an isometric hold never logs distance, so a distance-only set still contributes nothing', () {
+      final kcal = estimateSetCalories(
+        exercise: _isometricExercise(),
+        set: _set(distanceMeters: 500),
+        profile: _profile,
+      );
+      expect(kcal, 0);
+    });
+
+    test('a longer isometric hold burns more than a shorter one', () {
+      final shortHold = estimateSetCalories(
+        exercise: _isometricExercise(),
+        set: _set(durationSeconds: 30),
+        profile: _profile,
+      );
+      final longHold = estimateSetCalories(
+        exercise: _isometricExercise(),
+        set: _set(durationSeconds: 90),
+        profile: _profile,
+      );
+      expect(longHold, greaterThan(shortHold));
     });
   });
 

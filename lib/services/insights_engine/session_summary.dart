@@ -39,12 +39,16 @@ class SessionSummary {
 String _fmtWeight(double value) =>
     value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
 
-// "12 min" / "5 km" / "12 min · 5 km" — whichever of duration/distance a
-// cardio set actually has.
-String _fmtCardio(WorkoutSet set) {
+// "12 min" / "45s" / "5 km" / "12 min · 5 km" — whichever of duration/distance
+// a cardio or isometric set actually has (isometric never has distance, and
+// holds are usually under a minute, hence the seconds fallback).
+String _fmtDuration(WorkoutSet set) {
   final parts = <String>[];
   final duration = set.durationSeconds;
-  if (duration != null) parts.add('${(duration / 60).round()} min');
+  if (duration != null) {
+    final minutes = duration ~/ 60;
+    parts.add(minutes > 0 ? '$minutes min' : '${duration % 60}s');
+  }
   final distance = set.distanceMeters;
   if (distance != null) {
     final km = distance / 1000;
@@ -70,15 +74,15 @@ Future<SessionSummary> computeSessionSummary(AppDatabase db, {required int sessi
     final sets = await db.sessionLoggingDao.watchSets(sessionExercise.id).first;
     final validSets = sets.where((s) => s.weightKg != null && s.reps != null).toList();
     if (validSets.isEmpty) {
-      // Cardio sets never have weightKg/reps, so they never show up as
-      // "valid" above — log them separately instead of dropping the
-      // exercise from the summary entirely. They don't count toward
+      // Cardio and isometric sets never have weightKg/reps, so they never
+      // show up as "valid" above — log them separately instead of dropping
+      // the exercise from the summary entirely. They don't count toward
       // volume/improvements/PRs, which are strength-specific.
-      final cardioSets = sets.where((s) => s.durationSeconds != null || s.distanceMeters != null).toList();
-      if (cardioSets.isNotEmpty) {
+      final durationSets = sets.where((s) => s.durationSeconds != null || s.distanceMeters != null).toList();
+      if (durationSets.isNotEmpty) {
         exerciseLogs.add(ExerciseLog(
           exerciseName: exercisesById[sessionExercise.exerciseId]?.name ?? 'Ejercicio',
-          setsSummary: cardioSets.map(_fmtCardio).join(', '),
+          setsSummary: durationSets.map(_fmtDuration).join(', '),
         ));
       }
       continue;
