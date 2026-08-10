@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_motion.dart';
+import '../../../core/theme/app_spacing.dart';
 import '../providers/rest_timer_controller.dart';
 
 // Persistent countdown banner driven by [restTimerControllerProvider]. Ticks
@@ -52,39 +53,68 @@ class _RestTimerBannerState extends ConsumerState<RestTimerBanner> {
     final remaining = restState.remainingSeconds();
     final minutes = remaining ~/ 60;
     final seconds = remaining % 60;
-    final label = '$minutes:${seconds.toString().padLeft(2, '0')}';
+    final label = '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    final progress = restState.totalSeconds <= 0 ? 0.0 : (remaining / restState.totalSeconds).clamp(0.0, 1.0);
+    final controller = ref.read(restTimerControllerProvider.notifier);
 
     return Material(
-      color: theme.colorScheme.primaryContainer,
+      color: theme.colorScheme.surface,
       child: SafeArea(
         top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            LinearProgressIndicator(
+              value: progress,
+              minHeight: 3,
+              backgroundColor: theme.colorScheme.surfaceContainerHighest,
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.sm),
+              child: Row(
+                children: [
+                  _AdjustChip(label: '-15', onTap: () => controller.adjustSeconds(-15)),
+                  Expanded(
+                    child: Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.displaySmall?.copyWith(fontSize: 30),
+                    ),
+                  ),
+                  _AdjustChip(label: '+15', onTap: () => controller.adjustSeconds(15)),
+                  const SizedBox(width: AppSpacing.sm),
+                  FilledButton(
+                    onPressed: () => ref.read(restTimerControllerProvider.notifier).skip(),
+                    child: const Text('Omitir'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AdjustChip extends StatelessWidget {
+  const _AdjustChip({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: theme.colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(AppRadius.pill),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              Icon(Icons.timer_outlined, color: theme.colorScheme.onPrimaryContainer),
-              const SizedBox(width: 12),
-              Text(
-                'Descanso: $label',
-                style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onPrimaryContainer),
-              ),
-              const Spacer(),
-              IconButton(
-                icon: Icon(
-                  restState.isPaused ? Icons.play_arrow : Icons.pause,
-                  color: theme.colorScheme.onPrimaryContainer,
-                ),
-                onPressed: () {
-                  final controller = ref.read(restTimerControllerProvider.notifier);
-                  restState.isPaused ? controller.resume() : controller.pause();
-                },
-              ),
-              TextButton(
-                onPressed: () => ref.read(restTimerControllerProvider.notifier).skip(),
-                child: const Text('Saltar'),
-              ),
-            ],
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+          child: Text(label, style: theme.textTheme.titleMedium),
         ),
       ),
     );

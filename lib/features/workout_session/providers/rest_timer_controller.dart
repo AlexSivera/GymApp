@@ -35,13 +35,41 @@ class RestTimerController extends StateNotifier<RestTimerState> {
 
   Timer? _ticker;
 
-  void start(int seconds) {
+  void start(int seconds) => _restart(remaining: seconds, total: seconds);
+
+  // +15/-15 buttons on the rest timer bar. Adjusts whichever clock is live
+  // (the wall-clock endTime while running, or the frozen pausedRemaining)
+  // without resetting totalSeconds, so the progress bar's fill fraction
+  // keeps referring to the original rest length.
+  void adjustSeconds(int delta) {
+    if (state.isPaused) {
+      final updated = state.pausedRemaining! + delta;
+      if (updated <= 0) {
+        skip();
+        return;
+      }
+      state = RestTimerState(
+        totalSeconds: updated > state.totalSeconds ? updated : state.totalSeconds,
+        pausedRemaining: updated,
+      );
+      return;
+    }
+    if (!state.isRunning) return;
+    final updated = state.remainingSeconds() + delta;
+    if (updated <= 0) {
+      _finish();
+      return;
+    }
+    _restart(remaining: updated, total: updated > state.totalSeconds ? updated : state.totalSeconds);
+  }
+
+  void _restart({required int remaining, required int total}) {
     _ticker?.cancel();
-    state = RestTimerState(totalSeconds: seconds, endTime: DateTime.now().add(Duration(seconds: seconds)));
+    state = RestTimerState(totalSeconds: total, endTime: DateTime.now().add(Duration(seconds: remaining)));
     // Scheduled independently of this Dart timer so the alert still fires
     // even if the app is backgrounded (or this provider gets disposed after
     // the user navigates away — see the class doc on autoDispose below).
-    NotificationService.scheduleRestTimerFinished(Duration(seconds: seconds));
+    NotificationService.scheduleRestTimerFinished(Duration(seconds: remaining));
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (state.remainingSeconds() <= 0) {
         _finish();
