@@ -40,6 +40,11 @@ class WorkoutSets extends Table {
   RealColumn get weightKg => real().nullable()();
   IntColumn get reps => integer().nullable()();
   RealColumn get rir => real().nullable()();
+  // Cardio sets use these instead of weightKg/reps, which stay null — every
+  // query that computes 1RM/volume/PRs already filters on weightKg/reps
+  // being non-null, so cardio sets fall out of those automatically.
+  IntColumn get durationSeconds => integer().nullable()();
+  RealColumn get distanceMeters => real().nullable()();
   BoolColumn get isWarmup => boolean().withDefault(const Constant(false))();
   BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
   DateTimeColumn get completedAt => dateTime().nullable()();

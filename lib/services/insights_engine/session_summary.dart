@@ -36,6 +36,20 @@ class SessionSummary {
 String _fmtWeight(double value) =>
     value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
 
+// "12 min" / "5 km" / "12 min · 5 km" — whichever of duration/distance a
+// cardio set actually has.
+String _fmtCardio(WorkoutSet set) {
+  final parts = <String>[];
+  final duration = set.durationSeconds;
+  if (duration != null) parts.add('${(duration / 60).round()} min');
+  final distance = set.distanceMeters;
+  if (distance != null) {
+    final km = distance / 1000;
+    parts.add(km >= 1 ? '${_fmtWeight(km)} km' : '${distance.round()} m');
+  }
+  return parts.isEmpty ? '—' : parts.join(' · ');
+}
+
 // Compares a just-completed session against prior history to surface
 // what improved — meant to be shown right after finishing a workout.
 Future<SessionSummary> computeSessionSummary(AppDatabase db, {required int sessionId}) async {
@@ -52,7 +66,20 @@ Future<SessionSummary> computeSessionSummary(AppDatabase db, {required int sessi
   for (final sessionExercise in sessionExercises) {
     final sets = await db.sessionLoggingDao.watchSets(sessionExercise.id).first;
     final validSets = sets.where((s) => s.weightKg != null && s.reps != null).toList();
-    if (validSets.isEmpty) continue;
+    if (validSets.isEmpty) {
+      // Cardio sets never have weightKg/reps, so they never show up as
+      // "valid" above — log them separately instead of dropping the
+      // exercise from the summary entirely. They don't count toward
+      // volume/improvements/PRs, which are strength-specific.
+      final cardioSets = sets.where((s) => s.durationSeconds != null || s.distanceMeters != null).toList();
+      if (cardioSets.isNotEmpty) {
+        exerciseLogs.add(ExerciseLog(
+          exerciseName: exercisesById[sessionExercise.exerciseId]?.name ?? 'Ejercicio',
+          setsSummary: cardioSets.map(_fmtCardio).join(', '),
+        ));
+      }
+      continue;
+    }
 
     sessionVolume += validSets.fold(0.0, (sum, s) => sum + s.weightKg! * s.reps!);
     final exerciseName = exercisesById[sessionExercise.exerciseId]?.name ?? 'Ejercicio';

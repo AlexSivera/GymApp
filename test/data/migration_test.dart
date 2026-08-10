@@ -67,6 +67,13 @@ void main() {
         rest_seconds INTEGER,
         notes TEXT
       );
+      CREATE TABLE workout_sets (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        session_exercise_id INTEGER NOT NULL,
+        set_number INTEGER NOT NULL,
+        weight_kg REAL,
+        reps INTEGER
+      );
       INSERT INTO exercises (id, name) VALUES (1, 'Press banca');
       INSERT INTO workout_sessions (id, date, status) VALUES (1, 1690000000000, 2);
       INSERT INTO session_exercises (id, workout_session_id, exercise_id, order_index, notes)
@@ -153,6 +160,13 @@ void main() {
         goals TEXT,
         weekly_target_sessions INTEGER NOT NULL DEFAULT 4
       );
+      CREATE TABLE workout_sets (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        session_exercise_id INTEGER NOT NULL,
+        set_number INTEGER NOT NULL,
+        weight_kg REAL,
+        reps INTEGER
+      );
       INSERT INTO exercises (id, name) VALUES (1, 'Press banca');
       INSERT INTO routines (id, name) VALUES (1, 'Full Body');
       INSERT INTO routine_days (id, routine_id, name, day_order) VALUES (1, 1, 'Día 1', 0);
@@ -185,6 +199,9 @@ void main() {
     addTearDown(() => tempDir.deleteSync(recursive: true));
 
     // Minimal v3 shape: user_settings without the onboarding columns yet.
+    // exercises/workout_sets are included too even though this test doesn't
+    // assert on them — later migrations (v6) alter both, so every fixture
+    // needs to have them regardless of which columns the test itself checks.
     final seed = sqlite3.sqlite3.open(dbPath);
     seed.execute('''
       CREATE TABLE user_settings (
@@ -193,6 +210,17 @@ void main() {
         name TEXT,
         goals TEXT,
         weekly_target_sessions INTEGER NOT NULL DEFAULT 4
+      );
+      CREATE TABLE exercises (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL
+      );
+      CREATE TABLE workout_sets (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        session_exercise_id INTEGER NOT NULL,
+        set_number INTEGER NOT NULL,
+        weight_kg REAL,
+        reps INTEGER
       );
       INSERT INTO user_settings (id, units, name, goals) VALUES (1, 'kg', 'Alex', NULL);
       PRAGMA user_version = 3;
@@ -221,6 +249,13 @@ void main() {
         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL
       );
+      CREATE TABLE workout_sets (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        session_exercise_id INTEGER NOT NULL,
+        set_number INTEGER NOT NULL,
+        weight_kg REAL,
+        reps INTEGER
+      );
       INSERT INTO exercises (id, name) VALUES (1, 'Press banca');
       PRAGMA user_version = 4;
     ''');
@@ -241,5 +276,73 @@ void main() {
     expect(rows, hasLength(1));
     expect(rows.first.tierIndex, 2);
     expect(rows.first.subTier, 3);
+  });
+
+  test('v5 -> v6 migration adds exercise category and set duration/distance', () async {
+    final tempDir = Directory.systemTemp.createTempSync('gymapp_migration_test_v5');
+    final dbPath = p.join(tempDir.path, 'v5.sqlite');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+
+    // Minimal v5 shape: exercises without `category`, workout_sets without
+    // `duration_seconds`/`distance_meters`.
+    final seed = sqlite3.sqlite3.open(dbPath);
+    seed.execute('''
+      CREATE TABLE exercises (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        primary_muscles TEXT NOT NULL DEFAULT '[]',
+        secondary_muscles TEXT NOT NULL DEFAULT '[]',
+        equipment TEXT,
+        image_paths TEXT NOT NULL DEFAULT '[]',
+        video_url TEXT,
+        instructions TEXT,
+        is_custom INTEGER NOT NULL DEFAULT 0,
+        external_id TEXT,
+        created_at INTEGER NOT NULL DEFAULT 0
+      );
+      CREATE TABLE workout_sessions (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        date INTEGER NOT NULL,
+        status INTEGER NOT NULL DEFAULT 0
+      );
+      CREATE TABLE session_exercises (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        workout_session_id INTEGER NOT NULL,
+        exercise_id INTEGER NOT NULL,
+        order_index INTEGER NOT NULL,
+        status INTEGER NOT NULL DEFAULT 0
+      );
+      CREATE TABLE workout_sets (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        session_exercise_id INTEGER NOT NULL,
+        set_number INTEGER NOT NULL,
+        weight_kg REAL,
+        reps INTEGER,
+        rir REAL,
+        is_warmup INTEGER NOT NULL DEFAULT 0,
+        is_completed INTEGER NOT NULL DEFAULT 0,
+        completed_at INTEGER
+      );
+      INSERT INTO exercises (id, name) VALUES (1, 'Press banca');
+      INSERT INTO workout_sessions (id, date, status) VALUES (1, 1690000000000, 2);
+      INSERT INTO session_exercises (id, workout_session_id, exercise_id, order_index)
+        VALUES (1, 1, 1, 0);
+      INSERT INTO workout_sets (id, session_exercise_id, set_number, weight_kg, reps)
+        VALUES (1, 1, 1, 80, 8);
+      PRAGMA user_version = 5;
+    ''');
+    seed.dispose();
+
+    final db = AppDatabase.forTesting(NativeDatabase(File(dbPath)));
+    addTearDown(db.close);
+
+    final exercise = await (db.select(db.exercises)..where((e) => e.id.equals(1))).getSingle();
+    expect(exercise.name, 'Press banca', reason: 'pre-existing row survives the upgrade');
+    expect(exercise.category, ExerciseCategory.strength, reason: 'new column gets its default');
+
+    final set = await (db.select(db.workoutSets)..where((s) => s.id.equals(1))).getSingle();
+    expect(set.weightKg, 80, reason: 'pre-existing row survives the upgrade');
+    expect(set.durationSeconds, isNull, reason: 'new column defaults to null');
+    expect(set.distanceMeters, isNull, reason: 'new column defaults to null');
   });
 }

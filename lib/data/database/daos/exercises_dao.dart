@@ -18,6 +18,14 @@ class ExercisesDao extends DatabaseAccessor<AppDatabase> with _$ExercisesDaoMixi
     return rows.length;
   }
 
+  // Used to diff the bundled seed list against what's already in the DB —
+  // exercise name is the only stable identity the original seed rows have
+  // (externalId wasn't recorded when they were first inserted).
+  Future<Set<String>> allNames() async {
+    final rows = await select(exercises).get();
+    return rows.map((r) => r.name).toSet();
+  }
+
   Future<void> insertAll(List<ExercisesCompanion> entries) {
     return batch((b) => b.insertAll(exercises, entries));
   }

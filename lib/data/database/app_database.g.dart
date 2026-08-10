@@ -63,6 +63,16 @@ class $ExercisesTable extends Exercises
     requiredDuringInsert: false,
   );
   @override
+  late final GeneratedColumnWithTypeConverter<ExerciseCategory, int> category =
+      GeneratedColumn<int>(
+        'category',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        defaultValue: Constant(ExerciseCategory.strength.index),
+      ).withConverter<ExerciseCategory>($ExercisesTable.$convertercategory);
+  @override
   late final GeneratedColumnWithTypeConverter<List<String>, String> imagePaths =
       GeneratedColumn<String>(
         'image_paths',
@@ -139,6 +149,7 @@ class $ExercisesTable extends Exercises
     primaryMuscles,
     secondaryMuscles,
     equipment,
+    category,
     imagePaths,
     videoUrl,
     instructions,
@@ -241,6 +252,12 @@ class $ExercisesTable extends Exercises
         DriftSqlType.string,
         data['${effectivePrefix}equipment'],
       ),
+      category: $ExercisesTable.$convertercategory.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}category'],
+        )!,
+      ),
       imagePaths: $ExercisesTable.$converterimagePaths.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -279,6 +296,8 @@ class $ExercisesTable extends Exercises
   $converterprimaryMuscles = const StringListConverter();
   static JsonTypeConverter2<List<String>, String, Object?>
   $convertersecondaryMuscles = const StringListConverter();
+  static JsonTypeConverter2<ExerciseCategory, int, int> $convertercategory =
+      const EnumIndexConverter<ExerciseCategory>(ExerciseCategory.values);
   static JsonTypeConverter2<List<String>, String, Object?>
   $converterimagePaths = const StringListConverter();
 }
@@ -289,6 +308,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
   final List<String> primaryMuscles;
   final List<String> secondaryMuscles;
   final String? equipment;
+  final ExerciseCategory category;
   final List<String> imagePaths;
   final String? videoUrl;
   final String? instructions;
@@ -301,6 +321,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     required this.primaryMuscles,
     required this.secondaryMuscles,
     this.equipment,
+    required this.category,
     required this.imagePaths,
     this.videoUrl,
     this.instructions,
@@ -325,6 +346,11 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     }
     if (!nullToAbsent || equipment != null) {
       map['equipment'] = Variable<String>(equipment);
+    }
+    {
+      map['category'] = Variable<int>(
+        $ExercisesTable.$convertercategory.toSql(category),
+      );
     }
     {
       map['image_paths'] = Variable<String>(
@@ -354,6 +380,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
       equipment: equipment == null && nullToAbsent
           ? const Value.absent()
           : Value(equipment),
+      category: Value(category),
       imagePaths: Value(imagePaths),
       videoUrl: videoUrl == null && nullToAbsent
           ? const Value.absent()
@@ -384,6 +411,9 @@ class Exercise extends DataClass implements Insertable<Exercise> {
         serializer.fromJson<Object?>(json['secondaryMuscles']),
       ),
       equipment: serializer.fromJson<String?>(json['equipment']),
+      category: $ExercisesTable.$convertercategory.fromJson(
+        serializer.fromJson<int>(json['category']),
+      ),
       imagePaths: $ExercisesTable.$converterimagePaths.fromJson(
         serializer.fromJson<Object?>(json['imagePaths']),
       ),
@@ -407,6 +437,9 @@ class Exercise extends DataClass implements Insertable<Exercise> {
         $ExercisesTable.$convertersecondaryMuscles.toJson(secondaryMuscles),
       ),
       'equipment': serializer.toJson<String?>(equipment),
+      'category': serializer.toJson<int>(
+        $ExercisesTable.$convertercategory.toJson(category),
+      ),
       'imagePaths': serializer.toJson<Object?>(
         $ExercisesTable.$converterimagePaths.toJson(imagePaths),
       ),
@@ -424,6 +457,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     List<String>? primaryMuscles,
     List<String>? secondaryMuscles,
     Value<String?> equipment = const Value.absent(),
+    ExerciseCategory? category,
     List<String>? imagePaths,
     Value<String?> videoUrl = const Value.absent(),
     Value<String?> instructions = const Value.absent(),
@@ -436,6 +470,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     primaryMuscles: primaryMuscles ?? this.primaryMuscles,
     secondaryMuscles: secondaryMuscles ?? this.secondaryMuscles,
     equipment: equipment.present ? equipment.value : this.equipment,
+    category: category ?? this.category,
     imagePaths: imagePaths ?? this.imagePaths,
     videoUrl: videoUrl.present ? videoUrl.value : this.videoUrl,
     instructions: instructions.present ? instructions.value : this.instructions,
@@ -454,6 +489,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           ? data.secondaryMuscles.value
           : this.secondaryMuscles,
       equipment: data.equipment.present ? data.equipment.value : this.equipment,
+      category: data.category.present ? data.category.value : this.category,
       imagePaths: data.imagePaths.present
           ? data.imagePaths.value
           : this.imagePaths,
@@ -477,6 +513,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           ..write('primaryMuscles: $primaryMuscles, ')
           ..write('secondaryMuscles: $secondaryMuscles, ')
           ..write('equipment: $equipment, ')
+          ..write('category: $category, ')
           ..write('imagePaths: $imagePaths, ')
           ..write('videoUrl: $videoUrl, ')
           ..write('instructions: $instructions, ')
@@ -494,6 +531,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
     primaryMuscles,
     secondaryMuscles,
     equipment,
+    category,
     imagePaths,
     videoUrl,
     instructions,
@@ -510,6 +548,7 @@ class Exercise extends DataClass implements Insertable<Exercise> {
           other.primaryMuscles == this.primaryMuscles &&
           other.secondaryMuscles == this.secondaryMuscles &&
           other.equipment == this.equipment &&
+          other.category == this.category &&
           other.imagePaths == this.imagePaths &&
           other.videoUrl == this.videoUrl &&
           other.instructions == this.instructions &&
@@ -524,6 +563,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
   final Value<List<String>> primaryMuscles;
   final Value<List<String>> secondaryMuscles;
   final Value<String?> equipment;
+  final Value<ExerciseCategory> category;
   final Value<List<String>> imagePaths;
   final Value<String?> videoUrl;
   final Value<String?> instructions;
@@ -536,6 +576,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     this.primaryMuscles = const Value.absent(),
     this.secondaryMuscles = const Value.absent(),
     this.equipment = const Value.absent(),
+    this.category = const Value.absent(),
     this.imagePaths = const Value.absent(),
     this.videoUrl = const Value.absent(),
     this.instructions = const Value.absent(),
@@ -549,6 +590,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     this.primaryMuscles = const Value.absent(),
     this.secondaryMuscles = const Value.absent(),
     this.equipment = const Value.absent(),
+    this.category = const Value.absent(),
     this.imagePaths = const Value.absent(),
     this.videoUrl = const Value.absent(),
     this.instructions = const Value.absent(),
@@ -562,6 +604,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     Expression<String>? primaryMuscles,
     Expression<String>? secondaryMuscles,
     Expression<String>? equipment,
+    Expression<int>? category,
     Expression<String>? imagePaths,
     Expression<String>? videoUrl,
     Expression<String>? instructions,
@@ -575,6 +618,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
       if (primaryMuscles != null) 'primary_muscles': primaryMuscles,
       if (secondaryMuscles != null) 'secondary_muscles': secondaryMuscles,
       if (equipment != null) 'equipment': equipment,
+      if (category != null) 'category': category,
       if (imagePaths != null) 'image_paths': imagePaths,
       if (videoUrl != null) 'video_url': videoUrl,
       if (instructions != null) 'instructions': instructions,
@@ -590,6 +634,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     Value<List<String>>? primaryMuscles,
     Value<List<String>>? secondaryMuscles,
     Value<String?>? equipment,
+    Value<ExerciseCategory>? category,
     Value<List<String>>? imagePaths,
     Value<String?>? videoUrl,
     Value<String?>? instructions,
@@ -603,6 +648,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
       primaryMuscles: primaryMuscles ?? this.primaryMuscles,
       secondaryMuscles: secondaryMuscles ?? this.secondaryMuscles,
       equipment: equipment ?? this.equipment,
+      category: category ?? this.category,
       imagePaths: imagePaths ?? this.imagePaths,
       videoUrl: videoUrl ?? this.videoUrl,
       instructions: instructions ?? this.instructions,
@@ -636,6 +682,11 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
     if (equipment.present) {
       map['equipment'] = Variable<String>(equipment.value);
     }
+    if (category.present) {
+      map['category'] = Variable<int>(
+        $ExercisesTable.$convertercategory.toSql(category.value),
+      );
+    }
     if (imagePaths.present) {
       map['image_paths'] = Variable<String>(
         $ExercisesTable.$converterimagePaths.toSql(imagePaths.value),
@@ -667,6 +718,7 @@ class ExercisesCompanion extends UpdateCompanion<Exercise> {
           ..write('primaryMuscles: $primaryMuscles, ')
           ..write('secondaryMuscles: $secondaryMuscles, ')
           ..write('equipment: $equipment, ')
+          ..write('category: $category, ')
           ..write('imagePaths: $imagePaths, ')
           ..write('videoUrl: $videoUrl, ')
           ..write('instructions: $instructions, ')
@@ -3169,6 +3221,28 @@ class $WorkoutSetsTable extends WorkoutSets
     type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _durationSecondsMeta = const VerificationMeta(
+    'durationSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> durationSeconds = GeneratedColumn<int>(
+    'duration_seconds',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _distanceMetersMeta = const VerificationMeta(
+    'distanceMeters',
+  );
+  @override
+  late final GeneratedColumn<double> distanceMeters = GeneratedColumn<double>(
+    'distance_meters',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isWarmupMeta = const VerificationMeta(
     'isWarmup',
   );
@@ -3218,6 +3292,8 @@ class $WorkoutSetsTable extends WorkoutSets
     weightKg,
     reps,
     rir,
+    durationSeconds,
+    distanceMeters,
     isWarmup,
     isCompleted,
     completedAt,
@@ -3272,6 +3348,24 @@ class $WorkoutSetsTable extends WorkoutSets
       context.handle(
         _rirMeta,
         rir.isAcceptableOrUnknown(data['rir']!, _rirMeta),
+      );
+    }
+    if (data.containsKey('duration_seconds')) {
+      context.handle(
+        _durationSecondsMeta,
+        durationSeconds.isAcceptableOrUnknown(
+          data['duration_seconds']!,
+          _durationSecondsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('distance_meters')) {
+      context.handle(
+        _distanceMetersMeta,
+        distanceMeters.isAcceptableOrUnknown(
+          data['distance_meters']!,
+          _distanceMetersMeta,
+        ),
       );
     }
     if (data.containsKey('is_warmup')) {
@@ -3331,6 +3425,14 @@ class $WorkoutSetsTable extends WorkoutSets
         DriftSqlType.double,
         data['${effectivePrefix}rir'],
       ),
+      durationSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_seconds'],
+      ),
+      distanceMeters: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}distance_meters'],
+      ),
       isWarmup: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_warmup'],
@@ -3359,6 +3461,8 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
   final double? weightKg;
   final int? reps;
   final double? rir;
+  final int? durationSeconds;
+  final double? distanceMeters;
   final bool isWarmup;
   final bool isCompleted;
   final DateTime? completedAt;
@@ -3369,6 +3473,8 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
     this.weightKg,
     this.reps,
     this.rir,
+    this.durationSeconds,
+    this.distanceMeters,
     required this.isWarmup,
     required this.isCompleted,
     this.completedAt,
@@ -3388,6 +3494,12 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
     if (!nullToAbsent || rir != null) {
       map['rir'] = Variable<double>(rir);
     }
+    if (!nullToAbsent || durationSeconds != null) {
+      map['duration_seconds'] = Variable<int>(durationSeconds);
+    }
+    if (!nullToAbsent || distanceMeters != null) {
+      map['distance_meters'] = Variable<double>(distanceMeters);
+    }
     map['is_warmup'] = Variable<bool>(isWarmup);
     map['is_completed'] = Variable<bool>(isCompleted);
     if (!nullToAbsent || completedAt != null) {
@@ -3406,6 +3518,12 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
           : Value(weightKg),
       reps: reps == null && nullToAbsent ? const Value.absent() : Value(reps),
       rir: rir == null && nullToAbsent ? const Value.absent() : Value(rir),
+      durationSeconds: durationSeconds == null && nullToAbsent
+          ? const Value.absent()
+          : Value(durationSeconds),
+      distanceMeters: distanceMeters == null && nullToAbsent
+          ? const Value.absent()
+          : Value(distanceMeters),
       isWarmup: Value(isWarmup),
       isCompleted: Value(isCompleted),
       completedAt: completedAt == null && nullToAbsent
@@ -3426,6 +3544,8 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
       weightKg: serializer.fromJson<double?>(json['weightKg']),
       reps: serializer.fromJson<int?>(json['reps']),
       rir: serializer.fromJson<double?>(json['rir']),
+      durationSeconds: serializer.fromJson<int?>(json['durationSeconds']),
+      distanceMeters: serializer.fromJson<double?>(json['distanceMeters']),
       isWarmup: serializer.fromJson<bool>(json['isWarmup']),
       isCompleted: serializer.fromJson<bool>(json['isCompleted']),
       completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
@@ -3441,6 +3561,8 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
       'weightKg': serializer.toJson<double?>(weightKg),
       'reps': serializer.toJson<int?>(reps),
       'rir': serializer.toJson<double?>(rir),
+      'durationSeconds': serializer.toJson<int?>(durationSeconds),
+      'distanceMeters': serializer.toJson<double?>(distanceMeters),
       'isWarmup': serializer.toJson<bool>(isWarmup),
       'isCompleted': serializer.toJson<bool>(isCompleted),
       'completedAt': serializer.toJson<DateTime?>(completedAt),
@@ -3454,6 +3576,8 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
     Value<double?> weightKg = const Value.absent(),
     Value<int?> reps = const Value.absent(),
     Value<double?> rir = const Value.absent(),
+    Value<int?> durationSeconds = const Value.absent(),
+    Value<double?> distanceMeters = const Value.absent(),
     bool? isWarmup,
     bool? isCompleted,
     Value<DateTime?> completedAt = const Value.absent(),
@@ -3464,6 +3588,12 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
     weightKg: weightKg.present ? weightKg.value : this.weightKg,
     reps: reps.present ? reps.value : this.reps,
     rir: rir.present ? rir.value : this.rir,
+    durationSeconds: durationSeconds.present
+        ? durationSeconds.value
+        : this.durationSeconds,
+    distanceMeters: distanceMeters.present
+        ? distanceMeters.value
+        : this.distanceMeters,
     isWarmup: isWarmup ?? this.isWarmup,
     isCompleted: isCompleted ?? this.isCompleted,
     completedAt: completedAt.present ? completedAt.value : this.completedAt,
@@ -3478,6 +3608,12 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
       weightKg: data.weightKg.present ? data.weightKg.value : this.weightKg,
       reps: data.reps.present ? data.reps.value : this.reps,
       rir: data.rir.present ? data.rir.value : this.rir,
+      durationSeconds: data.durationSeconds.present
+          ? data.durationSeconds.value
+          : this.durationSeconds,
+      distanceMeters: data.distanceMeters.present
+          ? data.distanceMeters.value
+          : this.distanceMeters,
       isWarmup: data.isWarmup.present ? data.isWarmup.value : this.isWarmup,
       isCompleted: data.isCompleted.present
           ? data.isCompleted.value
@@ -3497,6 +3633,8 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
           ..write('weightKg: $weightKg, ')
           ..write('reps: $reps, ')
           ..write('rir: $rir, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('distanceMeters: $distanceMeters, ')
           ..write('isWarmup: $isWarmup, ')
           ..write('isCompleted: $isCompleted, ')
           ..write('completedAt: $completedAt')
@@ -3512,6 +3650,8 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
     weightKg,
     reps,
     rir,
+    durationSeconds,
+    distanceMeters,
     isWarmup,
     isCompleted,
     completedAt,
@@ -3526,6 +3666,8 @@ class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
           other.weightKg == this.weightKg &&
           other.reps == this.reps &&
           other.rir == this.rir &&
+          other.durationSeconds == this.durationSeconds &&
+          other.distanceMeters == this.distanceMeters &&
           other.isWarmup == this.isWarmup &&
           other.isCompleted == this.isCompleted &&
           other.completedAt == this.completedAt);
@@ -3538,6 +3680,8 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSet> {
   final Value<double?> weightKg;
   final Value<int?> reps;
   final Value<double?> rir;
+  final Value<int?> durationSeconds;
+  final Value<double?> distanceMeters;
   final Value<bool> isWarmup;
   final Value<bool> isCompleted;
   final Value<DateTime?> completedAt;
@@ -3548,6 +3692,8 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSet> {
     this.weightKg = const Value.absent(),
     this.reps = const Value.absent(),
     this.rir = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
+    this.distanceMeters = const Value.absent(),
     this.isWarmup = const Value.absent(),
     this.isCompleted = const Value.absent(),
     this.completedAt = const Value.absent(),
@@ -3559,6 +3705,8 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSet> {
     this.weightKg = const Value.absent(),
     this.reps = const Value.absent(),
     this.rir = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
+    this.distanceMeters = const Value.absent(),
     this.isWarmup = const Value.absent(),
     this.isCompleted = const Value.absent(),
     this.completedAt = const Value.absent(),
@@ -3571,6 +3719,8 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSet> {
     Expression<double>? weightKg,
     Expression<int>? reps,
     Expression<double>? rir,
+    Expression<int>? durationSeconds,
+    Expression<double>? distanceMeters,
     Expression<bool>? isWarmup,
     Expression<bool>? isCompleted,
     Expression<DateTime>? completedAt,
@@ -3582,6 +3732,8 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSet> {
       if (weightKg != null) 'weight_kg': weightKg,
       if (reps != null) 'reps': reps,
       if (rir != null) 'rir': rir,
+      if (durationSeconds != null) 'duration_seconds': durationSeconds,
+      if (distanceMeters != null) 'distance_meters': distanceMeters,
       if (isWarmup != null) 'is_warmup': isWarmup,
       if (isCompleted != null) 'is_completed': isCompleted,
       if (completedAt != null) 'completed_at': completedAt,
@@ -3595,6 +3747,8 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSet> {
     Value<double?>? weightKg,
     Value<int?>? reps,
     Value<double?>? rir,
+    Value<int?>? durationSeconds,
+    Value<double?>? distanceMeters,
     Value<bool>? isWarmup,
     Value<bool>? isCompleted,
     Value<DateTime?>? completedAt,
@@ -3606,6 +3760,8 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSet> {
       weightKg: weightKg ?? this.weightKg,
       reps: reps ?? this.reps,
       rir: rir ?? this.rir,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
+      distanceMeters: distanceMeters ?? this.distanceMeters,
       isWarmup: isWarmup ?? this.isWarmup,
       isCompleted: isCompleted ?? this.isCompleted,
       completedAt: completedAt ?? this.completedAt,
@@ -3633,6 +3789,12 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSet> {
     if (rir.present) {
       map['rir'] = Variable<double>(rir.value);
     }
+    if (durationSeconds.present) {
+      map['duration_seconds'] = Variable<int>(durationSeconds.value);
+    }
+    if (distanceMeters.present) {
+      map['distance_meters'] = Variable<double>(distanceMeters.value);
+    }
     if (isWarmup.present) {
       map['is_warmup'] = Variable<bool>(isWarmup.value);
     }
@@ -3654,6 +3816,8 @@ class WorkoutSetsCompanion extends UpdateCompanion<WorkoutSet> {
           ..write('weightKg: $weightKg, ')
           ..write('reps: $reps, ')
           ..write('rir: $rir, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('distanceMeters: $distanceMeters, ')
           ..write('isWarmup: $isWarmup, ')
           ..write('isCompleted: $isCompleted, ')
           ..write('completedAt: $completedAt')
@@ -5307,6 +5471,7 @@ typedef $$ExercisesTableCreateCompanionBuilder =
       Value<List<String>> primaryMuscles,
       Value<List<String>> secondaryMuscles,
       Value<String?> equipment,
+      Value<ExerciseCategory> category,
       Value<List<String>> imagePaths,
       Value<String?> videoUrl,
       Value<String?> instructions,
@@ -5321,6 +5486,7 @@ typedef $$ExercisesTableUpdateCompanionBuilder =
       Value<List<String>> primaryMuscles,
       Value<List<String>> secondaryMuscles,
       Value<String?> equipment,
+      Value<ExerciseCategory> category,
       Value<List<String>> imagePaths,
       Value<String?> videoUrl,
       Value<String?> instructions,
@@ -5363,6 +5529,12 @@ class $$ExercisesTableFilterComposer
   ColumnFilters<String> get equipment => $composableBuilder(
     column: $table.equipment,
     builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<ExerciseCategory, ExerciseCategory, int>
+  get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
   ColumnWithTypeConverterFilters<List<String>, List<String>, String>
@@ -5431,6 +5603,11 @@ class $$ExercisesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get imagePaths => $composableBuilder(
     column: $table.imagePaths,
     builder: (column) => ColumnOrderings(column),
@@ -5492,6 +5669,9 @@ class $$ExercisesTableAnnotationComposer
   GeneratedColumn<String> get equipment =>
       $composableBuilder(column: $table.equipment, builder: (column) => column);
 
+  GeneratedColumnWithTypeConverter<ExerciseCategory, int> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
   GeneratedColumnWithTypeConverter<List<String>, String> get imagePaths =>
       $composableBuilder(
         column: $table.imagePaths,
@@ -5551,6 +5731,7 @@ class $$ExercisesTableTableManager
                 Value<List<String>> primaryMuscles = const Value.absent(),
                 Value<List<String>> secondaryMuscles = const Value.absent(),
                 Value<String?> equipment = const Value.absent(),
+                Value<ExerciseCategory> category = const Value.absent(),
                 Value<List<String>> imagePaths = const Value.absent(),
                 Value<String?> videoUrl = const Value.absent(),
                 Value<String?> instructions = const Value.absent(),
@@ -5563,6 +5744,7 @@ class $$ExercisesTableTableManager
                 primaryMuscles: primaryMuscles,
                 secondaryMuscles: secondaryMuscles,
                 equipment: equipment,
+                category: category,
                 imagePaths: imagePaths,
                 videoUrl: videoUrl,
                 instructions: instructions,
@@ -5577,6 +5759,7 @@ class $$ExercisesTableTableManager
                 Value<List<String>> primaryMuscles = const Value.absent(),
                 Value<List<String>> secondaryMuscles = const Value.absent(),
                 Value<String?> equipment = const Value.absent(),
+                Value<ExerciseCategory> category = const Value.absent(),
                 Value<List<String>> imagePaths = const Value.absent(),
                 Value<String?> videoUrl = const Value.absent(),
                 Value<String?> instructions = const Value.absent(),
@@ -5589,6 +5772,7 @@ class $$ExercisesTableTableManager
                 primaryMuscles: primaryMuscles,
                 secondaryMuscles: secondaryMuscles,
                 equipment: equipment,
+                category: category,
                 imagePaths: imagePaths,
                 videoUrl: videoUrl,
                 instructions: instructions,
@@ -6876,6 +7060,8 @@ typedef $$WorkoutSetsTableCreateCompanionBuilder =
       Value<double?> weightKg,
       Value<int?> reps,
       Value<double?> rir,
+      Value<int?> durationSeconds,
+      Value<double?> distanceMeters,
       Value<bool> isWarmup,
       Value<bool> isCompleted,
       Value<DateTime?> completedAt,
@@ -6888,6 +7074,8 @@ typedef $$WorkoutSetsTableUpdateCompanionBuilder =
       Value<double?> weightKg,
       Value<int?> reps,
       Value<double?> rir,
+      Value<int?> durationSeconds,
+      Value<double?> distanceMeters,
       Value<bool> isWarmup,
       Value<bool> isCompleted,
       Value<DateTime?> completedAt,
@@ -6929,6 +7117,16 @@ class $$WorkoutSetsTableFilterComposer
 
   ColumnFilters<double> get rir => $composableBuilder(
     column: $table.rir,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get distanceMeters => $composableBuilder(
+    column: $table.distanceMeters,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6987,6 +7185,16 @@ class $$WorkoutSetsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get distanceMeters => $composableBuilder(
+    column: $table.distanceMeters,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isWarmup => $composableBuilder(
     column: $table.isWarmup,
     builder: (column) => ColumnOrderings(column),
@@ -7031,6 +7239,16 @@ class $$WorkoutSetsTableAnnotationComposer
 
   GeneratedColumn<double> get rir =>
       $composableBuilder(column: $table.rir, builder: (column) => column);
+
+  GeneratedColumn<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get distanceMeters => $composableBuilder(
+    column: $table.distanceMeters,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<bool> get isWarmup =>
       $composableBuilder(column: $table.isWarmup, builder: (column) => column);
@@ -7083,6 +7301,8 @@ class $$WorkoutSetsTableTableManager
                 Value<double?> weightKg = const Value.absent(),
                 Value<int?> reps = const Value.absent(),
                 Value<double?> rir = const Value.absent(),
+                Value<int?> durationSeconds = const Value.absent(),
+                Value<double?> distanceMeters = const Value.absent(),
                 Value<bool> isWarmup = const Value.absent(),
                 Value<bool> isCompleted = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
@@ -7093,6 +7313,8 @@ class $$WorkoutSetsTableTableManager
                 weightKg: weightKg,
                 reps: reps,
                 rir: rir,
+                durationSeconds: durationSeconds,
+                distanceMeters: distanceMeters,
                 isWarmup: isWarmup,
                 isCompleted: isCompleted,
                 completedAt: completedAt,
@@ -7105,6 +7327,8 @@ class $$WorkoutSetsTableTableManager
                 Value<double?> weightKg = const Value.absent(),
                 Value<int?> reps = const Value.absent(),
                 Value<double?> rir = const Value.absent(),
+                Value<int?> durationSeconds = const Value.absent(),
+                Value<double?> distanceMeters = const Value.absent(),
                 Value<bool> isWarmup = const Value.absent(),
                 Value<bool> isCompleted = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
@@ -7115,6 +7339,8 @@ class $$WorkoutSetsTableTableManager
                 weightKg: weightKg,
                 reps: reps,
                 rir: rir,
+                durationSeconds: durationSeconds,
+                distanceMeters: distanceMeters,
                 isWarmup: isWarmup,
                 isCompleted: isCompleted,
                 completedAt: completedAt,

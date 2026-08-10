@@ -15,7 +15,7 @@ void main() async {
   await NotificationService.init();
 
   final db = AppDatabase();
-  await seedExercisesIfEmpty(db);
+  await syncSeedExercises(db);
   await db.userSettingsDao.ensureDefaultRow();
   final onboardingDone = await db.userSettingsDao.isOnboardingCompleted();
 

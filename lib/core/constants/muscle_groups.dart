@@ -6,9 +6,9 @@ import 'package:flutter/material.dart';
 // made-up muscle name) still shows up, tacked onto "Otros", so nothing gets
 // silently hidden.
 const muscleGroups = {
-  'Tren superior': ['Pecho', 'Espalda', 'Hombros', 'Bíceps', 'Tríceps'],
-  'Tren inferior': ['Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Gemelos'],
-  'Core': ['Abdomen'],
+  'Tren superior': ['Pecho', 'Espalda', 'Hombros', 'Bíceps', 'Tríceps', 'Trapecio', 'Antebrazo', 'Cuello'],
+  'Tren inferior': ['Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Gemelos', 'Aductores', 'Abductores'],
+  'Core': ['Abdomen', 'Lumbares'],
 };
 
 const _muscleIcons = {
@@ -17,11 +17,17 @@ const _muscleIcons = {
   'Hombros': Icons.sports_gymnastics,
   'Bíceps': Icons.front_hand,
   'Tríceps': Icons.back_hand,
+  'Trapecio': Icons.expand_less,
+  'Antebrazo': Icons.pan_tool_outlined,
+  'Cuello': Icons.face_outlined,
   'Abdomen': Icons.self_improvement,
+  'Lumbares': Icons.horizontal_rule,
   'Cuádriceps': Icons.directions_run,
   'Isquiotibiales': Icons.directions_walk,
   'Glúteos': Icons.accessibility_new,
   'Gemelos': Icons.bolt,
+  'Aductores': Icons.compress,
+  'Abductores': Icons.open_in_full,
 };
 
 IconData iconForMuscle(String muscle) => _muscleIcons[muscle] ?? Icons.fitness_center;
