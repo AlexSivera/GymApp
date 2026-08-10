@@ -82,57 +82,65 @@ class CalendarScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.only(bottom: AppSpacing.xxxl),
         children: [
-          TableCalendar<WorkoutSession>(
-            locale: 'es',
-            firstDay: DateTime(2020, 1, 1),
-            lastDay: DateTime(2035, 12, 31),
-            focusedDay: focusedMonth,
-            calendarFormat: calendarFormat,
-            availableCalendarFormats: const {
-              CalendarFormat.week: 'Semana',
-              CalendarFormat.month: 'Mes',
-            },
-            selectedDayPredicate: (_) => false,
-            onDaySelected: (selected, focused) {
-              final normalized = DateTime(selected.year, selected.month, selected.day);
-              ref.read(selectedDayProvider.notifier).state = normalized;
-              ref.read(focusedMonthProvider.notifier).state = focused;
+          Padding(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.md),
+            child: AppCard(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.sm, AppSpacing.md, AppSpacing.sm, 0),
+              child: Column(
+                children: [
+                  TableCalendar<WorkoutSession>(
+                    locale: 'es',
+                    firstDay: DateTime(2020, 1, 1),
+                    lastDay: DateTime(2035, 12, 31),
+                    focusedDay: focusedMonth,
+                    calendarFormat: calendarFormat,
+                    availableCalendarFormats: const {
+                      CalendarFormat.week: 'Semana',
+                      CalendarFormat.month: 'Mes',
+                    },
+                    selectedDayPredicate: (_) => false,
+                    onDaySelected: (selected, focused) {
+                      final normalized = DateTime(selected.year, selected.month, selected.day);
+                      ref.read(selectedDayProvider.notifier).state = normalized;
+                      ref.read(focusedMonthProvider.notifier).state = focused;
 
-              if (selectionMode) {
-                final current = {...ref.read(calendarSelectedDaysProvider)};
-                if (!current.remove(normalized)) current.add(normalized);
-                ref.read(calendarSelectedDaysProvider.notifier).state = current;
-                return;
-              }
-              _openDay(context, ref, normalized, sessionsByDay[normalized]);
-            },
-            onDayLongPressed: (selected, focused) {
-              final normalized = DateTime(selected.year, selected.month, selected.day);
-              ref.read(calendarSelectionModeProvider.notifier).state = true;
-              ref.read(calendarSelectedDaysProvider.notifier).state = {normalized};
-            },
-            onPageChanged: (focused) => ref.read(focusedMonthProvider.notifier).state = focused,
-            headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-            calendarBuilders: CalendarBuilders(
-              defaultBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
-              todayBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
-              outsideBuilder: (context, day, focusedDay) => Opacity(
-                opacity: 0.35,
-                child: dayCellBuilder(context, day, focusedDay),
-              ),
-              selectedBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
-            ),
-          ),
-          Center(
-            child: IconButton(
-              tooltip: calendarFormat == CalendarFormat.week ? 'Ver mes completo' : 'Ver semana',
-              onPressed: () => ref.read(calendarFormatProvider.notifier).state =
-                  calendarFormat == CalendarFormat.week ? CalendarFormat.month : CalendarFormat.week,
-              icon: AnimatedRotation(
-                duration: AppMotion.fast,
-                curve: AppMotion.curve,
-                turns: calendarFormat == CalendarFormat.week ? 0 : 0.5,
-                child: const Icon(Icons.keyboard_arrow_down),
+                      if (selectionMode) {
+                        final current = {...ref.read(calendarSelectedDaysProvider)};
+                        if (!current.remove(normalized)) current.add(normalized);
+                        ref.read(calendarSelectedDaysProvider.notifier).state = current;
+                        return;
+                      }
+                      _openDay(context, ref, normalized, sessionsByDay[normalized]);
+                    },
+                    onDayLongPressed: (selected, focused) {
+                      final normalized = DateTime(selected.year, selected.month, selected.day);
+                      ref.read(calendarSelectionModeProvider.notifier).state = true;
+                      ref.read(calendarSelectedDaysProvider.notifier).state = {normalized};
+                    },
+                    onPageChanged: (focused) => ref.read(focusedMonthProvider.notifier).state = focused,
+                    headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
+                    calendarBuilders: CalendarBuilders(
+                      defaultBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
+                      todayBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
+                      outsideBuilder: (context, day, focusedDay) => Opacity(
+                        opacity: 0.35,
+                        child: dayCellBuilder(context, day, focusedDay),
+                      ),
+                      selectedBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: calendarFormat == CalendarFormat.week ? 'Ver mes completo' : 'Ver semana',
+                    onPressed: () => ref.read(calendarFormatProvider.notifier).state =
+                        calendarFormat == CalendarFormat.week ? CalendarFormat.month : CalendarFormat.week,
+                    icon: AnimatedRotation(
+                      duration: AppMotion.fast,
+                      curve: AppMotion.curve,
+                      turns: calendarFormat == CalendarFormat.week ? 0 : 0.5,
+                      child: const Icon(Icons.keyboard_arrow_down),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
