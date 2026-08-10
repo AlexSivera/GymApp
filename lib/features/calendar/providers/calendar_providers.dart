@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
@@ -10,6 +11,12 @@ final _workoutSessionsDaoProvider = Provider(
 final selectedDayProvider = StateProvider<DateTime>((ref) => _dateOnly(DateTime.now()));
 
 final focusedMonthProvider = StateProvider<DateTime>((ref) => DateTime.now());
+
+// Calendar + Rutinas now share one screen: it starts collapsed to the
+// current week (so the routines list below is visible without scrolling)
+// and expands to the full month via a chevron, which gives more days at
+// once for assigning routines.
+final calendarFormatProvider = StateProvider<CalendarFormat>((ref) => CalendarFormat.week);
 
 // All sessions in the month currently shown, used to draw calendar markers.
 final sessionsInVisibleMonthProvider = StreamProvider<List<WorkoutSession>>((ref) {

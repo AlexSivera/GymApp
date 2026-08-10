@@ -1,28 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/app_card.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
+import '../../../services/scheduling/bulk_assign.dart';
+import '../../exercise_library/screens/exercise_library_screen.dart';
+import '../../routines/providers/routines_providers.dart';
+import '../../routines/screens/create_routine_screen.dart';
+import '../../routines/screens/routine_editor_screen.dart';
 import '../../routines/widgets/routine_day_picker_sheet.dart';
 import '../providers/calendar_providers.dart';
 import '../widgets/day_detail_sheet.dart';
 import '../widgets/quick_assign_sheet.dart';
 import '../widgets/reorganize_dialog.dart';
-import '../../../services/scheduling/bulk_assign.dart';
 
+// Calendar and Rutinas used to be separate tabs; they're merged here so
+// assigning a routine to a day and managing the routines themselves happen
+// in one place. The calendar starts collapsed to the current week (leaving
+// room to see the routines list without scrolling) and expands to the full
+// month via the chevron beneath it, which makes it easier to bulk-assign
+// routines across many days at once.
 class CalendarScreen extends ConsumerWidget {
   const CalendarScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final focusedMonth = ref.watch(focusedMonthProvider);
+    final calendarFormat = ref.watch(calendarFormatProvider);
     final sessionsAsync = ref.watch(sessionsInVisibleMonthProvider);
     final selectionMode = ref.watch(calendarSelectionModeProvider);
     final selectedDays = ref.watch(calendarSelectedDaysProvider);
+    final routinesAsync = ref.watch(routinesListProvider);
 
     final sessionsByDay = <DateTime, WorkoutSession>{};
     for (final s in sessionsAsync.valueOrNull ?? const <WorkoutSession>[]) {
@@ -45,52 +60,85 @@ class CalendarScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Calendario')),
-      body: Column(
+      appBar: AppBar(
+        title: const Text('Calendario'),
+        actions: [
+          IconButton(
+            tooltip: 'Ver ejercicios',
+            icon: const Icon(Icons.menu_book_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ExerciseLibraryScreen()),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: selectionMode
+          ? null
+          : FloatingActionButton(
+              onPressed: () => _createRoutine(context),
+              child: const Icon(Icons.add),
+            ),
+      bottomNavigationBar: selectionMode ? _SelectionActionBar(selectedDays: selectedDays) : null,
+      body: ListView(
+        padding: const EdgeInsets.only(bottom: AppSpacing.xxxl),
         children: [
-          Expanded(
-            child: TableCalendar<WorkoutSession>(
-              locale: 'es',
-              firstDay: DateTime(2020, 1, 1),
-              lastDay: DateTime(2035, 12, 31),
-              focusedDay: focusedMonth,
-              selectedDayPredicate: (_) => false,
-              onDaySelected: (selected, focused) {
-                final normalized = DateTime(selected.year, selected.month, selected.day);
-                ref.read(selectedDayProvider.notifier).state = normalized;
-                ref.read(focusedMonthProvider.notifier).state = focused;
+          TableCalendar<WorkoutSession>(
+            locale: 'es',
+            firstDay: DateTime(2020, 1, 1),
+            lastDay: DateTime(2035, 12, 31),
+            focusedDay: focusedMonth,
+            calendarFormat: calendarFormat,
+            availableCalendarFormats: const {
+              CalendarFormat.week: 'Semana',
+              CalendarFormat.month: 'Mes',
+            },
+            selectedDayPredicate: (_) => false,
+            onDaySelected: (selected, focused) {
+              final normalized = DateTime(selected.year, selected.month, selected.day);
+              ref.read(selectedDayProvider.notifier).state = normalized;
+              ref.read(focusedMonthProvider.notifier).state = focused;
 
-                if (selectionMode) {
-                  final current = {...ref.read(calendarSelectedDaysProvider)};
-                  if (!current.remove(normalized)) current.add(normalized);
-                  ref.read(calendarSelectedDaysProvider.notifier).state = current;
-                  return;
-                }
-                _openDay(context, ref, normalized, sessionsByDay[normalized]);
-              },
-              onDayLongPressed: (selected, focused) {
-                final normalized = DateTime(selected.year, selected.month, selected.day);
-                ref.read(calendarSelectionModeProvider.notifier).state = true;
-                ref.read(calendarSelectedDaysProvider.notifier).state = {normalized};
-              },
-              onPageChanged: (focused) => ref.read(focusedMonthProvider.notifier).state = focused,
-              headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-              calendarBuilders: CalendarBuilders(
-                defaultBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
-                todayBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
-                outsideBuilder: (context, day, focusedDay) => Opacity(
-                  opacity: 0.35,
-                  child: dayCellBuilder(context, day, focusedDay),
-                ),
-                selectedBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
+              if (selectionMode) {
+                final current = {...ref.read(calendarSelectedDaysProvider)};
+                if (!current.remove(normalized)) current.add(normalized);
+                ref.read(calendarSelectedDaysProvider.notifier).state = current;
+                return;
+              }
+              _openDay(context, ref, normalized, sessionsByDay[normalized]);
+            },
+            onDayLongPressed: (selected, focused) {
+              final normalized = DateTime(selected.year, selected.month, selected.day);
+              ref.read(calendarSelectionModeProvider.notifier).state = true;
+              ref.read(calendarSelectedDaysProvider.notifier).state = {normalized};
+            },
+            onPageChanged: (focused) => ref.read(focusedMonthProvider.notifier).state = focused,
+            headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
+            calendarBuilders: CalendarBuilders(
+              defaultBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
+              todayBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
+              outsideBuilder: (context, day, focusedDay) => Opacity(
+                opacity: 0.35,
+                child: dayCellBuilder(context, day, focusedDay),
+              ),
+              selectedBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
+            ),
+          ),
+          Center(
+            child: IconButton(
+              tooltip: calendarFormat == CalendarFormat.week ? 'Ver mes completo' : 'Ver semana',
+              onPressed: () => ref.read(calendarFormatProvider.notifier).state =
+                  calendarFormat == CalendarFormat.week ? CalendarFormat.month : CalendarFormat.week,
+              icon: AnimatedRotation(
+                duration: AppMotion.fast,
+                curve: AppMotion.curve,
+                turns: calendarFormat == CalendarFormat.week ? 0 : 0.5,
+                child: const Icon(Icons.keyboard_arrow_down),
               ),
             ),
           ),
-          if (selectionMode)
-            _SelectionActionBar(selectedDays: selectedDays)
-          else
+          if (!selectionMode)
             Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -100,8 +148,48 @@ class CalendarScreen extends ConsumerWidget {
                 ),
               ),
             ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.sm),
+            child: Text('Tus rutinas', style: theme.textTheme.titleMedium),
+          ),
+          routinesAsync.when(
+            loading: () => const Padding(
+              padding: EdgeInsets.all(AppSpacing.xl),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (e, _) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: Text('$e'),
+            ),
+            data: (routines) {
+              if (routines.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xl),
+                  child: _EmptyRoutines(onCreate: () => _createRoutine(context)),
+                );
+              }
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                child: Column(
+                  children: [
+                    for (final routine in routines)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                        child: _RoutineCard(routine: routine),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
         ],
       ),
+    );
+  }
+
+  void _createRoutine(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const CreateRoutineScreen()),
     );
   }
 
@@ -119,6 +207,81 @@ class CalendarScreen extends ConsumerWidget {
     }
     if (!context.mounted) return;
     showDayDetailSheet(context, date: day, existingSession: session);
+  }
+}
+
+class _EmptyRoutines extends StatelessWidget {
+  const _EmptyRoutines({required this.onCreate});
+
+  final VoidCallback onCreate;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Icon(Icons.list_alt_outlined, size: 32, color: theme.colorScheme.onSurfaceVariant),
+        const SizedBox(height: AppSpacing.sm),
+        Text('Todavía no has creado ninguna rutina', style: theme.textTheme.bodyMedium),
+        const SizedBox(height: AppSpacing.md),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            onPressed: onCreate,
+            child: const Text('Crear tu primera rutina'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RoutineCard extends ConsumerWidget {
+  const _RoutineCard({required this.routine});
+
+  final Routine routine;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final exerciseCount = ref.watch(routineExerciseCountProvider(routine.id)).valueOrNull;
+
+    return AppCard(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => RoutineEditorScreen(routineId: routine.id)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(AppSpacing.sm),
+              ),
+              child: Icon(Icons.fitness_center, color: theme.colorScheme.primary),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(routine.name, style: theme.textTheme.titleMedium),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    '${exerciseCount ?? '—'} ejercicios · actualizada ${DateFormat('d MMM', 'es').format(routine.updatedAt)}',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
+          ],
+        ),
+      ),
+    );
   }
 }
 

@@ -59,7 +59,7 @@ class RoutineDayPickerSheet extends ConsumerWidget {
                           child: ElevatedButton(
                             onPressed: () {
                               Navigator.of(context).pop();
-                              context.go('/routines');
+                              context.go('/calendar');
                             },
                             child: const Text('Crear rutina'),
                           ),

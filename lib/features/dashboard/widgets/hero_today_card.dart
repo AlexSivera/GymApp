@@ -57,7 +57,7 @@ class HeroTodayCard extends ConsumerWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => context.go('/routines'),
+                  onPressed: () => context.go('/calendar'),
                   child: const Text('Crear rutina'),
                 ),
               ),
