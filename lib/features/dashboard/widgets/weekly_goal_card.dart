@@ -17,6 +17,8 @@ class WeeklyGoalCard extends StatelessWidget {
     final theme = Theme.of(context);
     final todayIndex = DateTime.now().weekday - 1; // 0 = Monday
 
+    final remaining = goal.target - goal.completed;
+
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -24,9 +26,9 @@ class WeeklyGoalCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Objetivo semanal', style: theme.textTheme.titleMedium),
+              Text('OBJETIVO SEMANAL', style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 0.6)),
               Text(
-                '${goal.completed} de ${goal.target}',
+                '${goal.completed} / ${goal.target}',
                 style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.primary),
               ),
             ],
@@ -43,6 +45,13 @@ class WeeklyGoalCard extends StatelessWidget {
                   isFuture: i > todayIndex,
                 ),
             ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            remaining <= 0
+                ? '¡Objetivo semanal completado!'
+                : 'Te queda $remaining ${remaining == 1 ? 'entrenamiento' : 'entrenamientos'} para completar tu objetivo.',
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
         ],
       ),

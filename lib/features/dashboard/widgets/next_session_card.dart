@@ -26,7 +26,8 @@ class NextSessionCard extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Próximo entrenamiento', style: theme.textTheme.labelMedium),
+                Text('PRÓXIMO ENTRENAMIENTO',
+                    style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 0.6)),
                 const SizedBox(height: AppSpacing.xs),
                 Text(dayName ?? 'Entrenamiento libre', style: theme.textTheme.titleMedium),
                 Text(

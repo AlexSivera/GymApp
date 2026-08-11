@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/stat_tile.dart';
 import '../../insights/screens/insights_screen.dart';
+import '../providers/profile_providers.dart';
 import 'about_screen.dart';
 import 'backups_screen.dart';
 import 'body_weight_screen.dart';
@@ -11,16 +14,47 @@ import 'import_export_screen.dart';
 import 'personal_records_screen.dart';
 import 'settings_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bodyWeight = ref.watch(latestBodyWeightProvider);
+    final totalWorkouts = ref.watch(totalWorkoutsCompletedProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Perfil')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xl),
         children: [
+          Row(
+            children: [
+              Expanded(
+                child: bodyWeight.when(
+                  data: (log) => StatTile(
+                    icon: Icons.monitor_weight_outlined,
+                    label: 'Peso corporal',
+                    value: log == null ? '—' : '${log.weightKg} kg',
+                  ),
+                  loading: () => const SizedBox(height: 96),
+                  error: (e, _) => const SizedBox.shrink(),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: totalWorkouts.when(
+                  data: (value) => StatTile(
+                    icon: Icons.fitness_center_outlined,
+                    label: 'Entrenamientos',
+                    value: '$value',
+                  ),
+                  loading: () => const SizedBox(height: 96),
+                  error: (e, _) => const SizedBox.shrink(),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xl),
           _ProfileSectionHeader('Entrenamiento'),
           _ProfileSection(tiles: [
             _ProfileTile(

@@ -12,10 +12,25 @@ final bodyWeightHistoryProvider = StreamProvider<List<BodyWeightLog>>((ref) {
   return ref.watch(_bodyWeightDaoProvider).watchHistory();
 });
 
+final latestBodyWeightProvider = StreamProvider<BodyWeightLog?>((ref) {
+  return ref.watch(_bodyWeightDaoProvider).watchLatest();
+});
+
 final _personalRecordsDaoProvider = Provider(
   (ref) => ref.watch(appDatabaseProvider).personalRecordsDao,
 );
 
 final allPersonalRecordsProvider = StreamProvider<List<PersonalRecordWithExercise>>((ref) {
   return ref.watch(_personalRecordsDaoProvider).watchAllBest();
+});
+
+final _workoutSessionsDaoProvider = Provider(
+  (ref) => ref.watch(appDatabaseProvider).workoutSessionsDao,
+);
+
+final totalWorkoutsCompletedProvider = StreamProvider<int>((ref) {
+  return ref
+      .watch(_workoutSessionsDaoProvider)
+      .watchRecentCompletedSessions(limit: 100000)
+      .map((sessions) => sessions.length);
 });

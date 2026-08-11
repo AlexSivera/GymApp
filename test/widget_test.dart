@@ -25,7 +25,10 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
 
-    expect(find.text('Hoy'), findsOneWidget);
+    // "Inicio" is the bottom-nav label for this branch — stable regardless
+    // of which hero-card state (no routines yet / planned / etc.) the fresh
+    // test database happens to resolve to first.
+    expect(find.text('Inicio'), findsOneWidget);
 
     // Unmount while still inside the test body so drift's cleanup timer
     // (scheduled when the database's stream subscriptions are cancelled)

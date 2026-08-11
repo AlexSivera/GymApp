@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/app_card.dart';
+import '../theme/app_spacing.dart';
+import 'app_card.dart';
 
 class StatTile extends StatelessWidget {
   const StatTile({
@@ -16,8 +16,8 @@ class StatTile extends StatelessWidget {
   final String label;
   final String value;
 
-  // Each metric gets its own accent so the 4-tile grid reads at a glance
-  // instead of four identical grey boxes — defaults to the brand teal.
+  // Each metric gets its own accent so a multi-tile row reads at a glance
+  // instead of identical grey boxes — defaults to the brand teal.
   final Color? accentColor;
 
   @override

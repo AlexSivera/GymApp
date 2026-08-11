@@ -5,13 +5,14 @@ import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../services/calories_engine/estimate_calories_burned.dart';
 import '../../../services/insights_engine/daily_insight.dart';
+import '../../../services/insights_engine/weekly_summary.dart';
 
 final _workoutSessionsDaoProvider = Provider(
   (ref) => ref.watch(appDatabaseProvider).workoutSessionsDao,
 );
 
-final _bodyWeightDaoProvider = Provider(
-  (ref) => ref.watch(appDatabaseProvider).bodyWeightDao,
+final _sessionLoggingDaoProvider = Provider(
+  (ref) => ref.watch(appDatabaseProvider).sessionLoggingDao,
 );
 
 final _userSettingsDaoProvider = Provider(
@@ -30,22 +31,11 @@ final nextPlannedSessionProvider = StreamProvider<WorkoutSession?>((ref) {
   return ref.watch(_workoutSessionsDaoProvider).watchNextPlannedSession();
 });
 
-final latestBodyWeightProvider = StreamProvider<BodyWeightLog?>((ref) {
-  return ref.watch(_bodyWeightDaoProvider).watchLatest();
-});
-
 final workoutStreakProvider = StreamProvider<int>((ref) {
   return ref
       .watch(_workoutSessionsDaoProvider)
       .watchRecentCompletedSessions()
       .map((sessions) => calculateWorkoutStreak(sessions.map((s) => s.date).toList()));
-});
-
-final totalWorkoutsCompletedProvider = StreamProvider<int>((ref) {
-  return ref
-      .watch(_workoutSessionsDaoProvider)
-      .watchRecentCompletedSessions(limit: 100000)
-      .map((sessions) => sessions.length);
 });
 
 final userSettingsProvider = StreamProvider<UserSetting?>((ref) {
@@ -113,4 +103,24 @@ final caloriesBurnedTodayProvider = FutureProvider<double>((ref) async {
     total += await estimateSessionCalories(db, sessionId: session.id, profile: profile);
   }
   return total;
+});
+
+// Last 3 completed sessions, most recent first — powers the "Actividad
+// reciente" feed.
+final recentActivityProvider = StreamProvider<List<WorkoutSession>>((ref) {
+  return ref.watch(_workoutSessionsDaoProvider).watchRecentCompletedSessions(limit: 3);
+});
+
+final sessionExerciseCountProvider = StreamProvider.family<int, int>((ref, sessionId) {
+  return ref
+      .watch(_sessionLoggingDaoProvider)
+      .watchSessionExercises(sessionId)
+      .map((exercises) => exercises.length);
+});
+
+// Re-derives whenever a session completes, so the weekly volume trend on the
+// progress card stays live without its own stream plumbing.
+final weeklySummaryProvider = FutureProvider<WeeklySummary>((ref) async {
+  ref.watch(_recentCompletedSessionsProvider);
+  return computeWeeklySummary(ref.watch(appDatabaseProvider));
 });
