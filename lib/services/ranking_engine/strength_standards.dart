@@ -8,16 +8,31 @@
 // and scales with the person's own body weight. It's explicitly an estimate,
 // and the UI should always frame it as one.
 class ExerciseStandard {
-  const ExerciseStandard(this.ratio, {this.bodyweightBased = false});
+  const ExerciseStandard(this.ratio, {this.bodyweightBased = false}) : baselineReps = null;
+
+  // Bodyweight, rep-based exercises (ab/core work with no meaningful added
+  // weight — Crunch, Dead bug...) skip the weight-ratio formula entirely:
+  // the rank compares reps in the best set directly against a hand-
+  // estimated baseline rep count, the same "solid working set for an
+  // average untrained lifter" idea as the weight-based baselines below.
+  const ExerciseStandard.repsBased(this.baselineReps)
+      : ratio = 0,
+        bodyweightBased = false;
 
   // baseline 1RM ÷ reference body weight (83kg). Multiply by the current
   // user's body weight to get their personal baseline for this exercise.
+  // Unused (0) for repsBased standards.
   final double ratio;
 
   // True for exercises where the load logged is *added* weight on top of
   // the lifter's own body weight (dips, pull-ups) — the effective 1RM used
   // for ranking is bodyweight + logged weight, not the logged weight alone.
   final bool bodyweightBased;
+
+  // Non-null only for repsBased standards — the reps that anchor the middle
+  // of the ladder (Plata), same role `ratio * bodyweight` plays for weighted
+  // exercises.
+  final int? baselineReps;
 }
 
 const referenceBodyweightKg = 83.0;
@@ -180,9 +195,20 @@ const exerciseStandards = <String, ExerciseStandard>{
   'Leñador en polea (wood chop)': ExerciseStandard(20 / referenceBodyweightKg),
   'Inclinación lateral con mancuerna': ExerciseStandard(12 / referenceBodyweightKg),
 
-  // Other bodyweight-only exercises intentionally left unranked for the same
-  // reason as the abdomen ones above (no external weight typically logged):
-  // Flexiones, Flexiones con pies elevados, Hiperextensiones lumbares,
+  // Abdomen (rep-based): no external weight, so ranked by reps instead —
+  // see ExerciseStandard.repsBased above.
+  'Crunch': ExerciseStandard.repsBased(20),
+  'Elevación de piernas': ExerciseStandard.repsBased(12),
+  'Rueda abdominal': ExerciseStandard.repsBased(6),
+  'Bicicleta abdominal': ExerciseStandard.repsBased(20),
+  'Abdominal completo (sit-up)': ExerciseStandard.repsBased(20),
+  'Giro ruso': ExerciseStandard.repsBased(20),
+  'Dead bug': ExerciseStandard.repsBased(12),
+
+  // Other bodyweight-only exercises (chest/back/glutes/lumbar work, not
+  // abdomen) intentionally left unranked for now — same rep-based approach
+  // would work for them too (Flexiones, Flexiones con pies elevados,
   // Glute ham raise, Puente de glúteos, Puente de glúteo a una pierna,
-  // Step-up con elevación de rodilla.
+  // Step-up con elevación de rodilla), Hiperextensiones lumbares less so
+  // (usually done to a target time/failure rather than a fixed rep goal).
 };

@@ -61,13 +61,22 @@ class ProgressDao extends DatabaseAccessor<AppDatabase> with _$ProgressDaoMixin 
         final set = row.readTable(workoutSets);
         final exerciseId = row.readTable(sessionExercises).exerciseId;
         final current = result[exerciseId];
-        final oneRm = estimatedOneRepMax(set.weightKg!, set.reps!);
-        if (current == null || oneRm > estimatedOneRepMax(current.weightKg!, current.reps!)) {
+        if (current == null || _bestSetScore(set) > _bestSetScore(current)) {
           result[exerciseId] = set;
         }
       }
       return result;
     });
+  }
+
+  // Weighted sets are compared by estimated 1RM; a bodyweight-only set
+  // (weightKg 0 — no added weight ever logged, e.g. unweighted pull-ups or
+  // rep-based ab work) has no weight signal to compare on, so every such set
+  // would otherwise tie at an estimated 1RM of 0 regardless of reps. Reps
+  // become the tiebreaker in that case instead.
+  double _bestSetScore(WorkoutSet set) {
+    final weight = set.weightKg!;
+    return weight > 0 ? estimatedOneRepMax(weight, set.reps!) : set.reps!.toDouble();
   }
 
   // Total volume (Σ weight × reps) across all exercises, [start] inclusive, [end] exclusive.

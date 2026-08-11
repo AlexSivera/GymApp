@@ -55,10 +55,18 @@ Future<List<RankAchievement>> computeNewRankAchievements(
     final bestSet = bestSets[exerciseId];
     if (exercise == null || standard == null || bestSet == null) continue;
 
-    final rawOneRm = estimatedOneRepMax(bestSet.weightKg!, bestSet.reps!);
-    final effectiveOneRm = standard.bodyweightBased ? rawOneRm + bodyweightKg : rawOneRm;
-    final baseline = standard.ratio * bodyweightKg;
-    final rank = computeRank(estimated1RM: effectiveOneRm, baseline1RM: baseline);
+    final Rank rank;
+    if (standard.baselineReps != null) {
+      rank = computeRank(
+        estimated1RM: bestSet.reps!.toDouble(),
+        baseline1RM: standard.baselineReps!.toDouble(),
+      );
+    } else {
+      final rawOneRm = estimatedOneRepMax(bestSet.weightKg!, bestSet.reps!);
+      final effectiveOneRm = standard.bodyweightBased ? rawOneRm + bodyweightKg : rawOneRm;
+      final baseline = standard.ratio * bodyweightKg;
+      rank = computeRank(estimated1RM: effectiveOneRm, baseline1RM: baseline);
+    }
 
     final previousRank = acknowledgedByExercise[exerciseId];
     if (previousRank != null && rank.score <= previousRank.score) continue;

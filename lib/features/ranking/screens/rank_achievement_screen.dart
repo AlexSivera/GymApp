@@ -5,6 +5,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/exercise_thumbnail.dart';
 import '../../../services/progression_engine/estimated_one_rep_max.dart';
 import '../../../services/ranking_engine/compute_new_rank_achievements.dart';
+import '../../../services/ranking_engine/strength_standards.dart';
 import '../widgets/rank_badge.dart';
 import '../widgets/rank_stat_block.dart';
 
@@ -86,26 +87,33 @@ class _RankAchievementScreenState extends State<RankAchievementScreen> {
                           ),
                         Text(rank.label, style: theme.textTheme.headlineMedium?.copyWith(color: rankColor)),
                         const SizedBox(height: AppSpacing.xxl),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: RankStatBlock(
-                                icon: Icons.fitness_center,
-                                label: 'Mejor serie',
-                                value:
-                                    '${_fmt(achievement.bestSet.weightKg!)} kg × ${achievement.bestSet.reps}',
+                        if (exerciseStandards[achievement.exercise.name]?.baselineReps != null)
+                          RankStatBlock(
+                            icon: Icons.repeat,
+                            label: 'Mejor serie',
+                            value: '${achievement.bestSet.reps} reps',
+                          )
+                        else
+                          Row(
+                            children: [
+                              Expanded(
+                                child: RankStatBlock(
+                                  icon: Icons.fitness_center,
+                                  label: 'Mejor serie',
+                                  value:
+                                      '${_fmt(achievement.bestSet.weightKg!)} kg × ${achievement.bestSet.reps}',
+                                ),
                               ),
-                            ),
-                            Expanded(
-                              child: RankStatBlock(
-                                icon: Icons.show_chart,
-                                label: '1RM estimado',
-                                value:
-                                    '${estimatedOneRepMax(achievement.bestSet.weightKg!, achievement.bestSet.reps!).round()} kg',
+                              Expanded(
+                                child: RankStatBlock(
+                                  icon: Icons.show_chart,
+                                  label: '1RM estimado',
+                                  value:
+                                      '${estimatedOneRepMax(achievement.bestSet.weightKg!, achievement.bestSet.reps!).round()} kg',
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
                       ],
                     ),
                   ),

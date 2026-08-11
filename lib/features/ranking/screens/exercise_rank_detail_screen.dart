@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../services/progression_engine/estimated_one_rep_max.dart';
+import '../../../services/ranking_engine/strength_standards.dart';
 import '../../progress/providers/progress_providers.dart';
 import '../../progress/widgets/exercise_progress_summary.dart';
 import '../providers/ranking_providers.dart';
@@ -64,6 +65,7 @@ class _RankTab extends ConsumerWidget {
     final bestSet = detail.info.bestSet;
     final rankColor = rankTierColors[rank.tier]!;
     final next = detail.next;
+    final isRepsBased = exerciseStandards[detail.info.exercise.name]?.baselineReps != null;
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -79,24 +81,26 @@ class _RankTab extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.xl),
         AppCard(
-          child: Row(
-            children: [
-              Expanded(
-                child: RankStatBlock(
-                  icon: Icons.fitness_center,
-                  label: 'Mejor serie',
-                  value: '${_fmt(bestSet.weightKg!)} kg × ${bestSet.reps}',
+          child: isRepsBased
+              ? RankStatBlock(icon: Icons.repeat, label: 'Mejor serie', value: '${bestSet.reps} reps')
+              : Row(
+                  children: [
+                    Expanded(
+                      child: RankStatBlock(
+                        icon: Icons.fitness_center,
+                        label: 'Mejor serie',
+                        value: '${_fmt(bestSet.weightKg!)} kg × ${bestSet.reps}',
+                      ),
+                    ),
+                    Expanded(
+                      child: RankStatBlock(
+                        icon: Icons.show_chart,
+                        label: '1RM estimado',
+                        value: '${estimatedOneRepMax(bestSet.weightKg!, bestSet.reps!).round()} kg',
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              Expanded(
-                child: RankStatBlock(
-                  icon: Icons.show_chart,
-                  label: '1RM estimado',
-                  value: '${estimatedOneRepMax(bestSet.weightKg!, bestSet.reps!).round()} kg',
-                ),
-              ),
-            ],
-          ),
         ),
         if (next != null) ...[
           const SizedBox(height: AppSpacing.lg),
@@ -117,7 +121,9 @@ class _RankTab extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'Estimación de la serie que te haría subir: ${_fmt(next.weightKg)} kg × ${bestSet.reps}',
+                  next.reps != null
+                      ? 'Repeticiones que te harían subir: ${next.reps}'
+                      : 'Estimación de la serie que te haría subir: ${_fmt(next.weightKg!)} kg × ${bestSet.reps}',
                   style:
                       theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),
