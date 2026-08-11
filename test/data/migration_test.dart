@@ -222,6 +222,19 @@ void main() {
         weight_kg REAL,
         reps INTEGER
       );
+      CREATE TABLE routine_exercises (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        routine_day_id INTEGER NOT NULL,
+        exercise_id INTEGER NOT NULL,
+        order_index INTEGER NOT NULL,
+        target_sets INTEGER NOT NULL,
+        target_reps_min INTEGER NOT NULL,
+        target_reps_max INTEGER NOT NULL,
+        target_weight REAL,
+        target_rir INTEGER,
+        rest_seconds INTEGER,
+        notes TEXT
+      );
       INSERT INTO user_settings (id, units, name, goals) VALUES (1, 'kg', 'Alex', NULL);
       PRAGMA user_version = 3;
     ''');
@@ -255,6 +268,19 @@ void main() {
         set_number INTEGER NOT NULL,
         weight_kg REAL,
         reps INTEGER
+      );
+      CREATE TABLE routine_exercises (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        routine_day_id INTEGER NOT NULL,
+        exercise_id INTEGER NOT NULL,
+        order_index INTEGER NOT NULL,
+        target_sets INTEGER NOT NULL,
+        target_reps_min INTEGER NOT NULL,
+        target_reps_max INTEGER NOT NULL,
+        target_weight REAL,
+        target_rir INTEGER,
+        rest_seconds INTEGER,
+        notes TEXT
       );
       INSERT INTO exercises (id, name) VALUES (1, 'Press banca');
       PRAGMA user_version = 4;
@@ -322,6 +348,19 @@ void main() {
         is_warmup INTEGER NOT NULL DEFAULT 0,
         is_completed INTEGER NOT NULL DEFAULT 0,
         completed_at INTEGER
+      );
+      CREATE TABLE routine_exercises (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        routine_day_id INTEGER NOT NULL,
+        exercise_id INTEGER NOT NULL,
+        order_index INTEGER NOT NULL,
+        target_sets INTEGER NOT NULL,
+        target_reps_min INTEGER NOT NULL,
+        target_reps_max INTEGER NOT NULL,
+        target_weight REAL,
+        target_rir INTEGER,
+        rest_seconds INTEGER,
+        notes TEXT
       );
       INSERT INTO exercises (id, name) VALUES (1, 'Press banca');
       INSERT INTO workout_sessions (id, date, status) VALUES (1, 1690000000000, 2);
