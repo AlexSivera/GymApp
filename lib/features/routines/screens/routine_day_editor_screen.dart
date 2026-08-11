@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -9,6 +8,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/exercise_thumbnail.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
+import '../../../router/workout_branch_navigator_key.dart';
 import '../../../services/workout_session/start_session.dart';
 import '../../exercise_library/providers/exercise_library_providers.dart';
 import '../../exercise_library/screens/exercise_library_screen.dart';
@@ -60,7 +60,7 @@ Future<void> startWorkoutFromDay(BuildContext context, WidgetRef ref, int routin
   } else {
     await startSessionFromRoutineDay(db, routineDayId: routineDayId, date: today);
   }
-  if (context.mounted) context.go('/workout');
+  if (context.mounted) goToFreshWorkout(context);
 }
 
 // Multi-select the exercises, then drop straight back onto this screen —

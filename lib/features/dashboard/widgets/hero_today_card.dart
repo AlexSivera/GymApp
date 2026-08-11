@@ -10,6 +10,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
+import '../../../router/workout_branch_navigator_key.dart';
 import '../../../services/workout_session/start_session.dart';
 import '../../routines/providers/routines_providers.dart';
 import '../../routines/widgets/routine_day_picker_sheet.dart';
@@ -190,7 +191,7 @@ class HeroTodayCard extends ConsumerWidget {
   Future<void> _startSession(BuildContext context, WidgetRef ref, WorkoutSession session) async {
     final db = ref.read(appDatabaseProvider);
     await startPlannedSession(db, session: session);
-    if (context.mounted) context.go('/workout');
+    if (context.mounted) goToFreshWorkout(context);
   }
 
   // For people who train more than once a day: today already has a
@@ -202,7 +203,7 @@ class HeroTodayCard extends ConsumerWidget {
 
     final db = ref.read(appDatabaseProvider);
     await startSessionFromRoutineDay(db, routineDayId: day.id, date: DateTime.now());
-    if (context.mounted) context.go('/workout');
+    if (context.mounted) goToFreshWorkout(context);
   }
 
   Future<void> _pickRoutine(

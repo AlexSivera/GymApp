@@ -1,13 +1,13 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
+import '../../../router/workout_branch_navigator_key.dart';
 import '../../routines/providers/routines_providers.dart';
 import '../../routines/widgets/routine_day_picker_sheet.dart';
 import '../../workout_session/screens/session_summary_screen.dart';
@@ -199,7 +199,7 @@ class DayDetailSheet extends ConsumerWidget {
     await startPlannedSession(db, session: session);
     if (!context.mounted) return;
     Navigator.of(context).pop();
-    context.go('/workout');
+    goToFreshWorkout(context);
   }
 
   Future<void> _assignRoutine(BuildContext context, WidgetRef ref, {WorkoutSession? existingSession}) async {

@@ -10,6 +10,7 @@ import '../features/profile/screens/profile_screen.dart';
 import '../features/ranking/screens/ranking_screen.dart';
 import '../features/workout_session/providers/workout_session_providers.dart';
 import '../features/workout_session/screens/workout_branch_screen.dart';
+import 'workout_branch_navigator_key.dart';
 
 // Branch indices — used to keep the shell's nav-bar wiring and the route
 // table in sync instead of hard-coding raw ints everywhere.
@@ -44,9 +45,12 @@ GoRouter buildAppRouter({required String initialLocation}) => GoRouter(
         // No sessionId in the path on purpose: this branch always resolves
         // whatever session is currently in progress, so it stays valid even
         // if the active session changes (or disappears) while it's open.
-        StatefulShellBranch(routes: [
-          GoRoute(path: '/workout', builder: (context, state) => const WorkoutBranchScreen()),
-        ]),
+        StatefulShellBranch(
+          navigatorKey: workoutBranchNavigatorKey,
+          routes: [
+            GoRoute(path: '/workout', builder: (context, state) => const WorkoutBranchScreen()),
+          ],
+        ),
       ],
     ),
   ],
