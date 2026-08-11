@@ -53,9 +53,13 @@ final userSettingsProvider = StreamProvider<UserSetting?>((ref) {
 });
 
 class WeeklyGoal {
-  const WeeklyGoal({required this.completed, required this.target});
+  const WeeklyGoal({required this.completed, required this.target, required this.completedByWeekday});
   final int completed;
   final int target;
+
+  // 7 entries, Monday first — whether a session was completed that day.
+  // Powers the day-dot row on WeeklyGoalCard.
+  final List<bool> completedByWeekday;
 }
 
 // Derived synchronously from the two streams above so the progress bar
@@ -66,8 +70,19 @@ final weeklyGoalProvider = Provider<WeeklyGoal>((ref) {
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
   final startOfWeek = today.subtract(Duration(days: now.weekday - 1));
-  final completedThisWeek = sessions.where((s) => !s.date.isBefore(startOfWeek)).length;
-  return WeeklyGoal(completed: completedThisWeek, target: target);
+  final completedThisWeek = sessions.where((s) => !s.date.isBefore(startOfWeek)).toList();
+  final completedByWeekday = List<bool>.generate(7, (i) {
+    final day = startOfWeek.add(Duration(days: i));
+    return completedThisWeek.any((s) {
+      final sessionDay = DateTime(s.date.year, s.date.month, s.date.day);
+      return sessionDay == day;
+    });
+  });
+  return WeeklyGoal(
+    completed: completedThisWeek.length,
+    target: target,
+    completedByWeekday: completedByWeekday,
+  );
 });
 
 final _recentCompletedSessionsProvider = StreamProvider<List<WorkoutSession>>((ref) {

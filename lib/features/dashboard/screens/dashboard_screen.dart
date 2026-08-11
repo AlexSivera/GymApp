@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/fade_slide_in.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/hero_today_card.dart';
@@ -55,6 +56,7 @@ class DashboardScreen extends ConsumerWidget {
                           icon: Icons.local_fire_department_outlined,
                           label: 'Racha',
                           value: '$value',
+                          accentColor: AppTheme.statusPlanned,
                         ),
                         loading: () => const _CardPlaceholder(),
                         error: (e, _) => _CardError(message: '$e'),
@@ -67,6 +69,7 @@ class DashboardScreen extends ConsumerWidget {
                           icon: Icons.monitor_weight_outlined,
                           label: 'Peso corporal',
                           value: log == null ? '—' : '${log.weightKg} kg',
+                          accentColor: AppTheme.statusRest,
                         ),
                         loading: () => const _CardPlaceholder(),
                         error: (e, _) => _CardError(message: '$e'),
@@ -83,6 +86,7 @@ class DashboardScreen extends ConsumerWidget {
                           icon: Icons.fitness_center_outlined,
                           label: 'Entrenamientos',
                           value: '$value',
+                          accentColor: AppTheme.accent,
                         ),
                         loading: () => const _CardPlaceholder(),
                         error: (e, _) => _CardError(message: '$e'),
@@ -95,6 +99,7 @@ class DashboardScreen extends ConsumerWidget {
                           icon: Icons.local_fire_department,
                           label: 'Calorías hoy',
                           value: value <= 0 ? '—' : '${value.round()} kcal',
+                          accentColor: AppTheme.statusSkipped,
                         ),
                         loading: () => const _CardPlaceholder(),
                         error: (e, _) => _CardError(message: '$e'),

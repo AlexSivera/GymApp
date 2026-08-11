@@ -66,7 +66,10 @@ class HeroTodayCard extends ConsumerWidget {
         );
       }
 
+      final isRest = session?.status == SessionStatus.rest;
       return AppCard(
+        color: isRest ? AppTheme.statusRest.withValues(alpha: 0.08) : null,
+        borderColor: isRest ? AppTheme.statusRest.withValues(alpha: 0.35) : null,
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,9 +77,7 @@ class HeroTodayCard extends ConsumerWidget {
             Text('Hoy', style: theme.textTheme.labelMedium),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              session?.status == SessionStatus.rest
-                  ? 'Hoy es tu día de descanso.'
-                  : 'No tienes ningún entrenamiento programado.',
+              isRest ? 'Hoy es tu día de descanso.' : 'No tienes ningún entrenamiento programado.',
               style: theme.textTheme.titleLarge,
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -94,20 +95,27 @@ class HeroTodayCard extends ConsumerWidget {
     }
 
     if (session.status == SessionStatus.completed || session.status == SessionStatus.skipped) {
+      final stateColor =
+          session.status == SessionStatus.completed ? AppTheme.statusCompleted : AppTheme.statusSkipped;
       return AppCard(
+        color: stateColor.withValues(alpha: 0.08),
+        borderColor: stateColor.withValues(alpha: 0.35),
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(
-                  session.status == SessionStatus.completed
-                      ? Icons.check_circle
-                      : Icons.remove_circle_outline,
-                  color: session.status == SessionStatus.completed
-                      ? AppTheme.statusCompleted
-                      : AppTheme.statusSkipped,
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(color: stateColor.withValues(alpha: 0.18), shape: BoxShape.circle),
+                  child: Icon(
+                    session.status == SessionStatus.completed
+                        ? Icons.check_circle
+                        : Icons.remove_circle_outline,
+                    color: stateColor,
+                  ),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
@@ -120,7 +128,7 @@ class HeroTodayCard extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.lg),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
@@ -138,6 +146,8 @@ class HeroTodayCard extends ConsumerWidget {
     final hasTimeOfDay = session.date.hour != 0 || session.date.minute != 0;
 
     return AppCard(
+      color: AppTheme.accent.withValues(alpha: 0.08),
+      borderColor: AppTheme.accent.withValues(alpha: 0.35),
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
