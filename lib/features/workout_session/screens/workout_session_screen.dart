@@ -837,6 +837,54 @@ class _ActiveSetCardState extends ConsumerState<_ActiveSetCard> {
   void _adjustIsometric(int delta) =>
       setState(() => _isometricSeconds = (_isometricSeconds + delta).clamp(0, 3600));
 
+  // Typing the exact value beats tapping +/- dozens of times (a 50-minute
+  // run at 1 min per tap, for instance) — every stepper's value is also a
+  // button that opens this quick numeric-entry dialog.
+  Future<void> _promptValue({
+    required String label,
+    required num currentValue,
+    required bool decimal,
+    required void Function(num value) onSubmit,
+  }) async {
+    final controller = TextEditingController(
+      text: decimal ? _fmt(currentValue.toDouble()) : currentValue.round().toString(),
+    );
+    final result = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(label),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          textAlign: TextAlign.center,
+          style: Theme.of(dialogContext).textTheme.headlineMedium,
+          keyboardType: TextInputType.numberWithOptions(decimal: decimal),
+          inputFormatters: [
+            if (decimal)
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*[.,]?\d*$'))
+            else
+              FilteringTextInputFormatter.digitsOnly,
+          ],
+          onSubmitted: (value) => Navigator.of(dialogContext).pop(value),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(controller.text),
+            child: const Text('Aceptar'),
+          ),
+        ],
+      ),
+    );
+    if (result == null) return;
+    final parsed = num.tryParse(result.replaceAll(',', '.'));
+    if (parsed == null) return;
+    onSubmit(parsed);
+  }
+
   Future<void> _markSet() async {
     setState(() => _submitting = true);
     final _SetResult result = switch (widget.category) {
@@ -881,14 +929,28 @@ class _ActiveSetCardState extends ConsumerState<_ActiveSetCard> {
                           label: 'min',
                           value: '$_durationMin',
                           onDecrement: () => _adjustDuration(-1),
-                          onIncrement: () => _adjustDuration(1))),
+                          onIncrement: () => _adjustDuration(1),
+                          onTap: () => _promptValue(
+                                label: 'Minutos',
+                                currentValue: _durationMin,
+                                decimal: false,
+                                onSubmit: (v) =>
+                                    setState(() => _durationMin = v.toInt().clamp(0, 999)),
+                              ))),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                       child: _Stepper(
                           label: 'km',
                           value: _fmt(_distanceKm),
                           onDecrement: () => _adjustDistance(-0.1),
-                          onIncrement: () => _adjustDistance(0.1))),
+                          onIncrement: () => _adjustDistance(0.1),
+                          onTap: () => _promptValue(
+                                label: 'Kilómetros',
+                                currentValue: _distanceKm,
+                                decimal: true,
+                                onSubmit: (v) => setState(
+                                    () => _distanceKm = v.toDouble().clamp(0, 999)),
+                              ))),
                 ],
               ),
             ExerciseCategory.isometric => _Stepper(
@@ -896,6 +958,13 @@ class _ActiveSetCardState extends ConsumerState<_ActiveSetCard> {
                 value: '$_isometricSeconds',
                 onDecrement: () => _adjustIsometric(-5),
                 onIncrement: () => _adjustIsometric(5),
+                onTap: () => _promptValue(
+                      label: 'Segundos',
+                      currentValue: _isometricSeconds,
+                      decimal: false,
+                      onSubmit: (v) =>
+                          setState(() => _isometricSeconds = v.toInt().clamp(0, 3600)),
+                    ),
               ),
             ExerciseCategory.strength => Row(
                 children: [
@@ -904,14 +973,26 @@ class _ActiveSetCardState extends ConsumerState<_ActiveSetCard> {
                           label: 'kg',
                           value: _fmt(_weight),
                           onDecrement: () => _adjustWeight(-2.5),
-                          onIncrement: () => _adjustWeight(2.5))),
+                          onIncrement: () => _adjustWeight(2.5),
+                          onTap: () => _promptValue(
+                                label: 'Kilos',
+                                currentValue: _weight,
+                                decimal: true,
+                                onSubmit: (v) => setState(() => _weight = v.toDouble().clamp(0, 999)),
+                              ))),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                       child: _Stepper(
                           label: 'reps',
                           value: '$_reps',
                           onDecrement: () => _adjustReps(-1),
-                          onIncrement: () => _adjustReps(1))),
+                          onIncrement: () => _adjustReps(1),
+                          onTap: () => _promptValue(
+                                label: 'Repeticiones',
+                                currentValue: _reps,
+                                decimal: false,
+                                onSubmit: (v) => setState(() => _reps = v.toInt().clamp(0, 99)),
+                              ))),
                 ],
               ),
           },
@@ -939,6 +1020,7 @@ class _Stepper extends StatelessWidget {
     required this.value,
     required this.onDecrement,
     required this.onIncrement,
+    this.onTap,
   });
 
   final String label;
@@ -946,21 +1028,38 @@ class _Stepper extends StatelessWidget {
   final VoidCallback onDecrement;
   final VoidCallback onIncrement;
 
+  // Lets the value itself be tapped to type an exact number instead of
+  // stepping to it one +/- at a time.
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final valueColumn = Column(
+      children: [
+        Text(value, style: theme.textTheme.headlineMedium, textAlign: TextAlign.center),
+        Text(label,
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+      ],
+    );
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _StepperButton(icon: Icons.remove, onTap: onDecrement),
         Expanded(
-          child: Column(
-            children: [
-              Text(value, style: theme.textTheme.headlineMedium, textAlign: TextAlign.center),
-              Text(label,
-                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-            ],
-          ),
+          child: onTap == null
+              ? valueColumn
+              : Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                    onTap: onTap,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                      child: valueColumn,
+                    ),
+                  ),
+                ),
         ),
         _StepperButton(icon: Icons.add, onTap: onIncrement),
       ],
