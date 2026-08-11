@@ -87,7 +87,13 @@ class _RankAchievementScreenState extends State<RankAchievementScreen> {
                           ),
                         Text(rank.label, style: theme.textTheme.headlineMedium?.copyWith(color: rankColor)),
                         const SizedBox(height: AppSpacing.xxl),
-                        if (exerciseStandards[achievement.exercise.name]?.baselineReps != null)
+                        if (exerciseStandards[achievement.exercise.name]?.baselineHoldSeconds != null)
+                          RankStatBlock(
+                            icon: Icons.timer_outlined,
+                            label: 'Mejor serie',
+                            value: _fmtSeconds(achievement.bestSet.durationSeconds!),
+                          )
+                        else if (exerciseStandards[achievement.exercise.name]?.baselineReps != null)
                           RankStatBlock(
                             icon: Icons.repeat,
                             label: 'Mejor serie',
@@ -135,4 +141,11 @@ class _RankAchievementScreenState extends State<RankAchievementScreen> {
 
   String _fmt(double value) =>
       value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
+}
+
+// "45s" / "2 min" — matches the format used elsewhere for isometric/cardio
+// durations (session summary, live workout screen).
+String _fmtSeconds(int seconds) {
+  final minutes = seconds ~/ 60;
+  return minutes > 0 ? '$minutes min' : '${seconds}s';
 }

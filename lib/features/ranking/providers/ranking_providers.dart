@@ -24,6 +24,10 @@ final bestSetByExerciseProvider = StreamProvider<Map<int, WorkoutSet>>((ref) {
   return ref.watch(_progressDaoProvider).watchBestSetByExercise();
 });
 
+final bestDurationSetByExerciseProvider = StreamProvider<Map<int, WorkoutSet>>((ref) {
+  return ref.watch(_progressDaoProvider).watchBestDurationSetByExercise();
+});
+
 final acknowledgedRanksProvider = StreamProvider<Map<int, Rank>>((ref) {
   return ref.watch(rankingDaoProvider).watchAcknowledged().map((rows) => {
         for (final row in rows) row.exerciseId: Rank(RankTier.values[row.tierIndex], row.subTier),
@@ -44,21 +48,33 @@ class ExerciseRankInfo {
 final rankableExercisesProvider = Provider<List<ExerciseRankInfo>>((ref) {
   final exercises = ref.watch(allExercisesProvider).valueOrNull ?? const [];
   final bestSets = ref.watch(bestSetByExerciseProvider).valueOrNull ?? const {};
+  final bestDurationSets = ref.watch(bestDurationSetByExerciseProvider).valueOrNull ?? const {};
   final bodyweight = ref.watch(currentBodyweightProvider).valueOrNull ?? referenceBodyweightKg;
 
   final result = <ExerciseRankInfo>[];
   for (final exercise in exercises) {
     final standard = exerciseStandards[exercise.name];
-    final bestSet = bestSets[exercise.id];
-    if (standard == null || bestSet == null) continue;
+    if (standard == null) continue;
 
+    final WorkoutSet? bestSet;
     final Rank rank;
-    if (standard.baselineReps != null) {
+    if (standard.baselineHoldSeconds != null) {
+      bestSet = bestDurationSets[exercise.id];
+      if (bestSet == null) continue;
+      rank = computeRank(
+        estimated1RM: bestSet.durationSeconds!.toDouble(),
+        baseline1RM: standard.baselineHoldSeconds!.toDouble(),
+      );
+    } else if (standard.baselineReps != null) {
+      bestSet = bestSets[exercise.id];
+      if (bestSet == null) continue;
       rank = computeRank(
         estimated1RM: bestSet.reps!.toDouble(),
         baseline1RM: standard.baselineReps!.toDouble(),
       );
     } else {
+      bestSet = bestSets[exercise.id];
+      if (bestSet == null) continue;
       final rawOneRm = estimatedOneRepMax(bestSet.weightKg!, bestSet.reps!);
       // Approximation, not a re-derivation of Epley with bodyweight folded in
       // — good enough for an estimate, and keeps the DAO query simple.
@@ -114,9 +130,9 @@ final exercisesForMuscleProvider = Provider.family<List<ExerciseRankInfo>, Strin
   return revealed.where((info) => info.exercise.primaryMuscles.contains(muscle)).toList();
 });
 
-// Exactly one of weightKg/reps is set, matching whether the exercise is
-// weight-ranked or repsBased (see ExerciseStandard).
-typedef NextRankTarget = ({Rank rank, double? weightKg, int? reps});
+// Exactly one of weightKg/reps/seconds is set, matching which ExerciseStandard
+// mode the exercise uses (weight ratio, repsBased, or durationBased).
+typedef NextRankTarget = ({Rank rank, double? weightKg, int? reps, int? seconds});
 
 class ExerciseRankDetail {
   const ExerciseRankDetail({required this.info, required this.next});
@@ -145,6 +161,18 @@ final exerciseRankDetailProvider = Provider.family<ExerciseRankDetail?, int>((re
   final nextRatio = nextStepRatio(info.rank);
   if (nextRatio == null) return ExerciseRankDetail(info: info, next: null);
 
+  if (standard.baselineHoldSeconds != null) {
+    final targetSeconds = nextRatio * standard.baselineHoldSeconds!;
+    final nextRank = computeRank(
+      estimated1RM: targetSeconds * 1.0001,
+      baseline1RM: standard.baselineHoldSeconds!.toDouble(),
+    );
+    return ExerciseRankDetail(
+      info: info,
+      next: (rank: nextRank, weightKg: null, reps: null, seconds: targetSeconds.ceil()),
+    );
+  }
+
   if (standard.baselineReps != null) {
     final targetReps = nextRatio * standard.baselineReps!;
     final nextRank = computeRank(
@@ -153,7 +181,7 @@ final exerciseRankDetailProvider = Provider.family<ExerciseRankDetail?, int>((re
     );
     return ExerciseRankDetail(
       info: info,
-      next: (rank: nextRank, weightKg: null, reps: targetReps.ceil()),
+      next: (rank: nextRank, weightKg: null, reps: targetReps.ceil(), seconds: null),
     );
   }
 
@@ -165,7 +193,10 @@ final exerciseRankDetailProvider = Provider.family<ExerciseRankDetail?, int>((re
   final targetWeight = reps <= 1 ? targetRawOneRm : targetRawOneRm / (1 + reps / 30.0);
   final nextRank = computeRank(estimated1RM: targetOneRm * 1.0001, baseline1RM: baseline);
 
-  return ExerciseRankDetail(info: info, next: (rank: nextRank, weightKg: targetWeight, reps: null));
+  return ExerciseRankDetail(
+    info: info,
+    next: (rank: nextRank, weightKg: targetWeight, reps: null, seconds: null),
+  );
 });
 
 Rank averageRank(List<Rank> ranks) {

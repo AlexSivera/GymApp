@@ -34,7 +34,7 @@ class ExerciseRankDetailScreen extends StatelessWidget {
           children: [
             _RankTab(exerciseId: exerciseId),
             ExerciseProgressSummary(exerciseId: exerciseId),
-            _HistoryTab(exerciseId: exerciseId),
+            _HistoryTab(exerciseId: exerciseId, exerciseName: exerciseName),
           ],
         ),
       ),
@@ -65,7 +65,9 @@ class _RankTab extends ConsumerWidget {
     final bestSet = detail.info.bestSet;
     final rankColor = rankTierColors[rank.tier]!;
     final next = detail.next;
-    final isRepsBased = exerciseStandards[detail.info.exercise.name]?.baselineReps != null;
+    final standard = exerciseStandards[detail.info.exercise.name];
+    final isRepsBased = standard?.baselineReps != null;
+    final isDurationBased = standard?.baselineHoldSeconds != null;
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -81,26 +83,32 @@ class _RankTab extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.xl),
         AppCard(
-          child: isRepsBased
-              ? RankStatBlock(icon: Icons.repeat, label: 'Mejor serie', value: '${bestSet.reps} reps')
-              : Row(
-                  children: [
-                    Expanded(
-                      child: RankStatBlock(
-                        icon: Icons.fitness_center,
-                        label: 'Mejor serie',
-                        value: '${_fmt(bestSet.weightKg!)} kg × ${bestSet.reps}',
-                      ),
+          child: isDurationBased
+              ? RankStatBlock(
+                  icon: Icons.timer_outlined,
+                  label: 'Mejor serie',
+                  value: _fmtSeconds(bestSet.durationSeconds!),
+                )
+              : isRepsBased
+                  ? RankStatBlock(icon: Icons.repeat, label: 'Mejor serie', value: '${bestSet.reps} reps')
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: RankStatBlock(
+                            icon: Icons.fitness_center,
+                            label: 'Mejor serie',
+                            value: '${_fmt(bestSet.weightKg!)} kg × ${bestSet.reps}',
+                          ),
+                        ),
+                        Expanded(
+                          child: RankStatBlock(
+                            icon: Icons.show_chart,
+                            label: '1RM estimado',
+                            value: '${estimatedOneRepMax(bestSet.weightKg!, bestSet.reps!).round()} kg',
+                          ),
+                        ),
+                      ],
                     ),
-                    Expanded(
-                      child: RankStatBlock(
-                        icon: Icons.show_chart,
-                        label: '1RM estimado',
-                        value: '${estimatedOneRepMax(bestSet.weightKg!, bestSet.reps!).round()} kg',
-                      ),
-                    ),
-                  ],
-                ),
         ),
         if (next != null) ...[
           const SizedBox(height: AppSpacing.lg),
@@ -121,9 +129,11 @@ class _RankTab extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  next.reps != null
-                      ? 'Repeticiones que te harían subir: ${next.reps}'
-                      : 'Estimación de la serie que te haría subir: ${_fmt(next.weightKg!)} kg × ${bestSet.reps}',
+                  next.seconds != null
+                      ? 'Segundos que te harían subir: ${next.seconds}'
+                      : next.reps != null
+                          ? 'Repeticiones que te harían subir: ${next.reps}'
+                          : 'Estimación de la serie que te haría subir: ${_fmt(next.weightKg!)} kg × ${bestSet.reps}',
                   style:
                       theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),
@@ -139,15 +149,26 @@ class _RankTab extends ConsumerWidget {
       value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
 }
 
+// "45s" / "2 min" — matches the format used elsewhere for isometric/cardio
+// durations (session summary, live workout screen).
+String _fmtSeconds(int seconds) {
+  final minutes = seconds ~/ 60;
+  return minutes > 0 ? '$minutes min' : '${seconds}s';
+}
+
 class _HistoryTab extends ConsumerWidget {
-  const _HistoryTab({required this.exerciseId});
+  const _HistoryTab({required this.exerciseId, required this.exerciseName});
 
   final int exerciseId;
+  final String exerciseName;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final historyAsync = ref.watch(exerciseHistoryProvider(exerciseId));
+    final standard = exerciseStandards[exerciseName];
+    final isRepsBased = standard?.baselineReps != null;
+    final isDurationBased = standard?.baselineHoldSeconds != null;
 
     return historyAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -184,16 +205,25 @@ class _HistoryTab extends ConsumerWidget {
                             style: theme.textTheme.bodySmall
                                 ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
                       ),
-                      Expanded(
-                        child: Text('Kg',
-                            style: theme.textTheme.bodySmall
-                                ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                      ),
-                      Expanded(
-                        child: Text('Reps',
-                            style: theme.textTheme.bodySmall
-                                ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                      ),
+                      if (isDurationBased)
+                        Expanded(
+                          child: Text('Duración',
+                              style: theme.textTheme.bodySmall
+                                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                        )
+                      else ...[
+                        if (!isRepsBased)
+                          Expanded(
+                            child: Text('Kg',
+                                style: theme.textTheme.bodySmall
+                                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                          ),
+                        Expanded(
+                          child: Text('Reps',
+                              style: theme.textTheme.bodySmall
+                                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                        ),
+                      ],
                     ],
                   ),
                   for (final set in session.sets)
@@ -202,8 +232,12 @@ class _HistoryTab extends ConsumerWidget {
                       child: Row(
                         children: [
                           Expanded(child: Text('${set.setNumber}')),
-                          Expanded(child: Text(_fmt(set.weightKg!))),
-                          Expanded(child: Text('${set.reps}')),
+                          if (isDurationBased)
+                            Expanded(child: Text(_fmtSeconds(set.durationSeconds!)))
+                          else ...[
+                            if (!isRepsBased) Expanded(child: Text(_fmt(set.weightKg!))),
+                            Expanded(child: Text('${set.reps}')),
+                          ],
                         ],
                       ),
                     ),

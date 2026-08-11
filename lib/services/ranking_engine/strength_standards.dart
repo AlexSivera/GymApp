@@ -8,7 +8,9 @@
 // and scales with the person's own body weight. It's explicitly an estimate,
 // and the UI should always frame it as one.
 class ExerciseStandard {
-  const ExerciseStandard(this.ratio, {this.bodyweightBased = false}) : baselineReps = null;
+  const ExerciseStandard(this.ratio, {this.bodyweightBased = false})
+      : baselineReps = null,
+        baselineHoldSeconds = null;
 
   // Bodyweight, rep-based exercises (ab/core work with no meaningful added
   // weight — Crunch, Dead bug...) skip the weight-ratio formula entirely:
@@ -17,11 +19,19 @@ class ExerciseStandard {
   // average untrained lifter" idea as the weight-based baselines below.
   const ExerciseStandard.repsBased(this.baselineReps)
       : ratio = 0,
-        bodyweightBased = false;
+        bodyweightBased = false,
+        baselineHoldSeconds = null;
+
+  // Isometric holds (Plancha...) — no weight, no reps, just a duration.
+  // Ranked by hold time against a baseline, same idea again.
+  const ExerciseStandard.durationBased(this.baselineHoldSeconds)
+      : ratio = 0,
+        bodyweightBased = false,
+        baselineReps = null;
 
   // baseline 1RM ÷ reference body weight (83kg). Multiply by the current
   // user's body weight to get their personal baseline for this exercise.
-  // Unused (0) for repsBased standards.
+  // Unused (0) for repsBased/durationBased standards.
   final double ratio;
 
   // True for exercises where the load logged is *added* weight on top of
@@ -33,18 +43,19 @@ class ExerciseStandard {
   // of the ladder (Plata), same role `ratio * bodyweight` plays for weighted
   // exercises.
   final int? baselineReps;
+
+  // Non-null only for durationBased standards — the hold time (seconds)
+  // that anchors the middle of the ladder (Plata).
+  final int? baselineHoldSeconds;
 }
 
 const referenceBodyweightKg = 83.0;
 
 // Keyed by exercise name (matches exercise_seed_data.dart). Exercises not
-// in this map (custom exercises, or exercises with no meaningful *external*
-// weight signal — pure bodyweight core/glute/lumbar work like Crunch,
-// Flexiones, Puente de glúteos, Hiperextensiones lumbares, Glute ham raise...
-// where people don't log an added weight in practice) simply can't be
-// ranked yet; the Rangos screen skips them. Cardio and isometric (duration-
-// based) exercises never reach this map at all — they never carry
-// weightKg/reps in the first place.
+// in this map (custom exercises, or exercises with no baseline defined yet)
+// simply can't be ranked; the Rangos screen skips them. Cardio exercises are
+// deliberately never added here — there's no sensible "how much can you
+// lift" analogue for them, weight-, rep-, or duration-based.
 const exerciseStandards = <String, ExerciseStandard>{
   // Pecho
   'Press banca': ExerciseStandard(40 / referenceBodyweightKg),
@@ -205,10 +216,18 @@ const exerciseStandards = <String, ExerciseStandard>{
   'Giro ruso': ExerciseStandard.repsBased(20),
   'Dead bug': ExerciseStandard.repsBased(12),
 
-  // Other bodyweight-only exercises (chest/back/glutes/lumbar work, not
-  // abdomen) intentionally left unranked for now — same rep-based approach
-  // would work for them too (Flexiones, Flexiones con pies elevados,
-  // Glute ham raise, Puente de glúteos, Puente de glúteo a una pierna,
-  // Step-up con elevación de rodilla), Hiperextensiones lumbares less so
-  // (usually done to a target time/failure rather than a fixed rep goal).
+  // Other bodyweight, rep-based exercises (chest/back/glutes/lumbar work).
+  'Flexiones': ExerciseStandard.repsBased(20),
+  'Flexiones con pies elevados': ExerciseStandard.repsBased(12),
+  'Hiperextensiones lumbares': ExerciseStandard.repsBased(15),
+  'Glute ham raise': ExerciseStandard.repsBased(8),
+  'Puente de glúteos': ExerciseStandard.repsBased(20),
+  'Puente de glúteo a una pierna': ExerciseStandard.repsBased(12),
+  'Step-up con elevación de rodilla': ExerciseStandard.repsBased(12),
+
+  // Isometric holds — ranked by seconds held instead of reps or weight.
+  'Plancha': ExerciseStandard.durationBased(45),
+  'Plancha lateral': ExerciseStandard.durationBased(30),
+  'Ejercicio isométrico de cuello (frontal/posterior)': ExerciseStandard.durationBased(20),
+  'Ejercicio isométrico de cuello (lateral)': ExerciseStandard.durationBased(20),
 };

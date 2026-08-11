@@ -32,7 +32,7 @@ Future<List<RankAchievement>> computeNewRankAchievements(
   final loggedExerciseIds = <int>{};
   for (final sessionExercise in sessionExercises) {
     final sets = await db.sessionLoggingDao.watchSets(sessionExercise.id).first;
-    if (sets.any((s) => s.weightKg != null && s.reps != null)) {
+    if (sets.any((s) => (s.weightKg != null && s.reps != null) || s.durationSeconds != null)) {
       loggedExerciseIds.add(sessionExercise.exerciseId);
     }
   }
@@ -41,6 +41,7 @@ Future<List<RankAchievement>> computeNewRankAchievements(
   final allExercises = await db.exercisesDao.watchAll().first;
   final exercisesById = {for (final e in allExercises) e.id: e};
   final bestSets = await db.progressDao.watchBestSetByExercise().first;
+  final bestDurationSets = await db.progressDao.watchBestDurationSetByExercise().first;
   final latestBodyWeight = await db.bodyWeightDao.watchLatest().first;
   final bodyweightKg = latestBodyWeight?.weightKg ?? referenceBodyweightKg;
   final acknowledged = await db.rankingDao.watchAcknowledged().first;
@@ -52,16 +53,27 @@ Future<List<RankAchievement>> computeNewRankAchievements(
   for (final exerciseId in loggedExerciseIds) {
     final exercise = exercisesById[exerciseId];
     final standard = exerciseStandards[exercise?.name];
-    final bestSet = bestSets[exerciseId];
-    if (exercise == null || standard == null || bestSet == null) continue;
+    if (exercise == null || standard == null) continue;
 
+    final WorkoutSet? bestSet;
     final Rank rank;
-    if (standard.baselineReps != null) {
+    if (standard.baselineHoldSeconds != null) {
+      bestSet = bestDurationSets[exerciseId];
+      if (bestSet == null) continue;
+      rank = computeRank(
+        estimated1RM: bestSet.durationSeconds!.toDouble(),
+        baseline1RM: standard.baselineHoldSeconds!.toDouble(),
+      );
+    } else if (standard.baselineReps != null) {
+      bestSet = bestSets[exerciseId];
+      if (bestSet == null) continue;
       rank = computeRank(
         estimated1RM: bestSet.reps!.toDouble(),
         baseline1RM: standard.baselineReps!.toDouble(),
       );
     } else {
+      bestSet = bestSets[exerciseId];
+      if (bestSet == null) continue;
       final rawOneRm = estimatedOneRepMax(bestSet.weightKg!, bestSet.reps!);
       final effectiveOneRm = standard.bodyweightBased ? rawOneRm + bodyweightKg : rawOneRm;
       final baseline = standard.ratio * bodyweightKg;

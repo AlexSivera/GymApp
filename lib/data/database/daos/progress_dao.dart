@@ -79,6 +79,31 @@ class ProgressDao extends DatabaseAccessor<AppDatabase> with _$ProgressDaoMixin 
     return weight > 0 ? estimatedOneRepMax(weight, set.reps!) : set.reps!.toDouble();
   }
 
+  // Best-ever set per exercise by hold duration — the isometric-holds
+  // counterpart to watchBestSetByExercise above, for exercises (Plancha...)
+  // that only ever log durationSeconds, never weightKg/reps.
+  Stream<Map<int, WorkoutSet>> watchBestDurationSetByExercise() {
+    final query = select(workoutSets).join([
+      innerJoin(sessionExercises, sessionExercises.id.equalsExp(workoutSets.sessionExerciseId)),
+      innerJoin(workoutSessions, workoutSessions.id.equalsExp(sessionExercises.workoutSessionId)),
+    ])
+      ..where(workoutSessions.status.equalsValue(SessionStatus.completed) &
+          workoutSets.durationSeconds.isNotNull());
+
+    return query.watch().map((rows) {
+      final result = <int, WorkoutSet>{};
+      for (final row in rows) {
+        final set = row.readTable(workoutSets);
+        final exerciseId = row.readTable(sessionExercises).exerciseId;
+        final current = result[exerciseId];
+        if (current == null || set.durationSeconds! > current.durationSeconds!) {
+          result[exerciseId] = set;
+        }
+      }
+      return result;
+    });
+  }
+
   // Total volume (Σ weight × reps) across all exercises, [start] inclusive, [end] exclusive.
   Future<double> totalVolumeInRange(DateTime start, DateTime end) async {
     final byExercise = await volumeByExerciseInRange(start, end);
@@ -133,6 +158,10 @@ class ProgressDao extends DatabaseAccessor<AppDatabase> with _$ProgressDaoMixin 
   // always name that day "Día 1" internally even though the UI never shows
   // it (RoutineEditorScreen merges a single day into the routine itself), so
   // surfacing the day name here would leak that implementation detail back.
+  //
+  // No weightKg/reps filter here (unlike the queries above) — this is keyed
+  // to a single exercise, so its sets are consistently either weight-, rep-,
+  // or duration-based; the screen renders whichever fields are populated.
   Stream<List<ExerciseSessionLog>> watchHistoryForExercise(int exerciseId) {
     final query = select(workoutSets).join([
       innerJoin(sessionExercises, sessionExercises.id.equalsExp(workoutSets.sessionExerciseId)),
@@ -141,9 +170,7 @@ class ProgressDao extends DatabaseAccessor<AppDatabase> with _$ProgressDaoMixin 
       leftOuterJoin(routines, routines.id.equalsExp(routineDays.routineId)),
     ])
       ..where(sessionExercises.exerciseId.equals(exerciseId) &
-          workoutSessions.status.equalsValue(SessionStatus.completed) &
-          workoutSets.weightKg.isNotNull() &
-          workoutSets.reps.isNotNull())
+          workoutSessions.status.equalsValue(SessionStatus.completed))
       ..orderBy([OrderingTerm.desc(workoutSessions.date), OrderingTerm.asc(workoutSets.setNumber)]);
 
     return query.watch().map((rows) {
