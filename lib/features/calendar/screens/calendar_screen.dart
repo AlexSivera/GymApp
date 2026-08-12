@@ -18,9 +18,11 @@ import '../../routines/screens/routine_editor_screen.dart';
 import '../../routines/widgets/routine_creation_sheet.dart';
 import '../../routines/widgets/routine_day_picker_sheet.dart';
 import '../providers/calendar_providers.dart';
+import '../widgets/assign_days_menu_sheet.dart';
 import '../widgets/day_detail_sheet.dart';
 import '../widgets/quick_assign_sheet.dart';
 import '../widgets/reorganize_dialog.dart';
+import '../widgets/rotation_routine_picker_sheet.dart';
 
 // Calendar and Rutinas used to be separate tabs; they're merged here so
 // assigning a routine to a day and managing the routines themselves happen
@@ -142,46 +144,18 @@ class CalendarScreen extends ConsumerWidget {
                       selectedBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
                     ),
                   ),
-                  Row(
-                    children: [
-                      const SizedBox(width: 48),
-                      Expanded(
-                        child: Center(
-                          child: IconButton(
-                            tooltip:
-                                calendarFormat == CalendarFormat.week ? 'Ver mes completo' : 'Ver semana',
-                            onPressed: () => ref.read(calendarFormatProvider.notifier).state =
-                                calendarFormat == CalendarFormat.week
-                                    ? CalendarFormat.month
-                                    : CalendarFormat.week,
-                            icon: AnimatedRotation(
-                              duration: AppMotion.fast,
-                              curve: AppMotion.curve,
-                              turns: calendarFormat == CalendarFormat.week ? 0 : 0.5,
-                              child: const Icon(Icons.keyboard_arrow_down),
-                            ),
-                          ),
-                        ),
+                  Center(
+                    child: IconButton(
+                      tooltip: calendarFormat == CalendarFormat.week ? 'Ver mes completo' : 'Ver semana',
+                      onPressed: () => ref.read(calendarFormatProvider.notifier).state =
+                          calendarFormat == CalendarFormat.week ? CalendarFormat.month : CalendarFormat.week,
+                      icon: AnimatedRotation(
+                        duration: AppMotion.fast,
+                        curve: AppMotion.curve,
+                        turns: calendarFormat == CalendarFormat.week ? 0 : 0.5,
+                        child: const Icon(Icons.keyboard_arrow_down),
                       ),
-                      // Selecting several days to bulk-assign used to be
-                      // reachable only by long-pressing one — an invisible,
-                      // undiscoverable gesture. A labeled button (not just an
-                      // icon) makes the feature itself discoverable without
-                      // needing a separate tooltip; the long-press shortcut
-                      // still works exactly as before for people who find it.
-                      TextButton.icon(
-                        onPressed: () {
-                          if (selectionMode) {
-                            ref.read(calendarSelectionModeProvider.notifier).state = false;
-                            ref.read(calendarSelectedDaysProvider.notifier).state = {};
-                          } else {
-                            ref.read(calendarSelectionModeProvider.notifier).state = true;
-                          }
-                        },
-                        icon: Icon(selectionMode ? Icons.close : Icons.checklist, size: 18),
-                        label: Text(selectionMode ? 'Salir' : 'Seleccionar días'),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
@@ -193,9 +167,9 @@ class CalendarScreen extends ConsumerWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () => showQuickAssignSheet(context),
-                  icon: const Icon(Icons.bolt_outlined),
-                  label: const Text('Asignación rápida'),
+                  onPressed: () => _openAssignDaysMenu(context, ref),
+                  icon: const Icon(Icons.edit_calendar_outlined),
+                  label: const Text('Asignar días'),
                 ),
               ),
             ),
@@ -265,6 +239,21 @@ class CalendarScreen extends ConsumerWidget {
     }
     if (!context.mounted) return;
     showDayDetailSheet(context, date: day, existingSession: session);
+  }
+
+  Future<void> _openAssignDaysMenu(BuildContext context, WidgetRef ref) async {
+    final action = await showAssignDaysMenu(context);
+    if (action == null || !context.mounted) return;
+    switch (action) {
+      case AssignDaysAction.manual:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Toca un día del calendario para asignarle una rutina.')),
+        );
+      case AssignDaysAction.selectMultiple:
+        ref.read(calendarSelectionModeProvider.notifier).state = true;
+      case AssignDaysAction.quickAssign:
+        showQuickAssignSheet(context);
+    }
   }
 }
 
@@ -491,6 +480,11 @@ class _SelectionActionBar extends ConsumerWidget {
                 label: const Text('Asignar rutina'),
               ),
               OutlinedButton.icon(
+                onPressed: selectedDays.isEmpty ? null : () => _quickAssign(context, ref),
+                icon: const Icon(Icons.bolt_outlined),
+                label: const Text('Asignación rápida'),
+              ),
+              OutlinedButton.icon(
                 onPressed: selectedDays.isEmpty ? null : () => _markRest(context, ref),
                 icon: const Icon(Icons.nightlight_outlined),
                 label: const Text('Marcar descanso'),
@@ -521,6 +515,18 @@ class _SelectionActionBar extends ConsumerWidget {
     if (context.mounted) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Rutina asignada a $created días.')));
+    }
+  }
+
+  Future<void> _quickAssign(BuildContext context, WidgetRef ref) async {
+    final routineIds = await showRotationRoutinePicker(context);
+    if (routineIds == null || routineIds.isEmpty || !context.mounted) return;
+    final db = ref.read(appDatabaseProvider);
+    final created = await assignRoutineRotationToDates(db, routineIds: routineIds, dates: selectedDays);
+    _exit(ref);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Asignación rápida aplicada a $created días.')));
     }
   }
 

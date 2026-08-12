@@ -118,6 +118,47 @@ Future<int> assignRoutineDayToDates(
   return entries.length;
 }
 
+// Rotates through [routineIds]' days across an arbitrary (possibly
+// non-contiguous) set of dates — the multi-select equivalent of
+// bulkAssignRoutine's rotation, used when the calendar's "Asignación
+// rápida" is applied to an already-selected set of days instead of a date
+// range. Skips dates that already have a session.
+Future<int> assignRoutineRotationToDates(
+  AppDatabase db, {
+  required List<int> routineIds,
+  required Set<DateTime> dates,
+}) async {
+  if (dates.isEmpty || routineIds.isEmpty) return 0;
+  final days = <RoutineDay>[];
+  for (final routineId in routineIds) {
+    days.addAll(await db.routinesDao.watchDays(routineId).first);
+  }
+  if (days.isEmpty) return 0;
+
+  final sorted = dates.map((d) => DateTime(d.year, d.month, d.day)).toList()..sort();
+  final existing = await db.workoutSessionsDao
+      .watchSessionsInRange(sorted.first, sorted.last.add(const Duration(days: 1)))
+      .first;
+  final occupied = existing.map((s) => DateTime(s.date.year, s.date.month, s.date.day)).toSet();
+
+  final entries = <WorkoutSessionsCompanion>[];
+  var dayIndex = 0;
+  for (final date in sorted) {
+    if (occupied.contains(date)) continue;
+    final routineDay = days[dayIndex % days.length];
+    entries.add(WorkoutSessionsCompanion.insert(
+      date: date,
+      routineDayId: Value(routineDay.id),
+      status: const Value(SessionStatus.planned),
+    ));
+    dayIndex++;
+  }
+  if (entries.isNotEmpty) {
+    await db.workoutSessionsDao.createSessions(entries);
+  }
+  return entries.length;
+}
+
 // Marks an arbitrary set of dates as rest days. Skips dates that already
 // have a session.
 Future<int> markDatesAsRest(AppDatabase db, {required Set<DateTime> dates}) async {
