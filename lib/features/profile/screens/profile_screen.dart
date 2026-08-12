@@ -5,7 +5,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/weight_unit.dart';
 import '../../../core/utils/weight_unit_provider.dart';
 import '../../../core/widgets/app_card.dart';
-import '../../../core/widgets/stat_tile.dart';
+import '../../dashboard/providers/dashboard_providers.dart';
 import '../../insights/screens/insights_screen.dart';
 import '../providers/profile_providers.dart';
 import 'about_screen.dart';
@@ -21,100 +21,155 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bodyWeight = ref.watch(latestBodyWeightProvider);
-    final totalWorkouts = ref.watch(totalWorkoutsCompletedProvider);
+    final theme = Theme.of(context);
     final unit = ref.watch(weightUnitProvider);
+    final name = ref.watch(userSettingsProvider).valueOrNull?.name?.trim();
+
+    final bodyWeightLog = ref.watch(latestBodyWeightProvider).valueOrNull;
+    final totalWorkouts = ref.watch(totalWorkoutsCompletedProvider).valueOrNull;
+    final streak = ref.watch(workoutStreakProvider).valueOrNull;
+    final records = ref.watch(allPersonalRecordsProvider).valueOrNull;
+    final settings = ref.watch(userSettingsProvider).valueOrNull;
+    final insight = ref.watch(insightOfDayProvider).valueOrNull;
+
+    final bodyWeightText = bodyWeightLog == null ? null : formatWeight(bodyWeightLog.weightKg, unit);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Perfil')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xl),
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: bodyWeight.when(
-                  data: (log) => StatTile(
-                    icon: Icons.monitor_weight_outlined,
-                    label: 'Peso corporal',
-                    value: log == null ? '—' : formatWeight(log.weightKg, unit),
+          if (name != null && name.isNotEmpty) ...[
+            Text(
+              'Hola, $name',
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
+
+          // Resumen — a quick read of where things stand, not a set of
+          // destinations. Three plain numbers instead of two big icon cards,
+          // so it reads as a strip of facts rather than settings-menu tiles.
+          AppCard(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.sm),
+            child: Row(
+              children: [
+                Expanded(child: _SummaryMetric(value: bodyWeightText ?? '—', label: 'Peso')),
+                _SummaryDivider(),
+                Expanded(child: _SummaryMetric(value: totalWorkouts?.toString() ?? '—', label: 'Entrenos')),
+                _SummaryDivider(),
+                Expanded(
+                  child: _SummaryMetric(
+                    value: streak == null ? '—' : '$streak ${streak == 1 ? 'día' : 'días'}',
+                    label: 'Racha',
                   ),
-                  loading: () => const SizedBox(height: 96),
-                  error: (e, _) => const SizedBox.shrink(),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: totalWorkouts.when(
-                  data: (value) => StatTile(
-                    icon: Icons.fitness_center_outlined,
-                    label: 'Entrenamientos',
-                    value: '$value',
-                  ),
-                  loading: () => const SizedBox(height: 96),
-                  error: (e, _) => const SizedBox.shrink(),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.xl),
-          _ProfileSectionHeader('Entrenamiento'),
+
+          const SizedBox(height: AppSpacing.xxl),
+          _ProfileSectionHeader('Progreso'),
           _ProfileSection(tiles: [
             _ProfileTile(
               icon: Icons.monitor_weight_outlined,
-              label: 'Peso corporal',
+              title: 'Peso corporal',
+              subtitle: bodyWeightText,
               onTap: () => Navigator.of(context)
                   .push(MaterialPageRoute(builder: (_) => const BodyWeightScreen())),
             ),
             _ProfileTile(
-              icon: Icons.insights_outlined,
-              label: 'Insights',
-              onTap: () =>
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const InsightsScreen())),
-            ),
-            _ProfileTile(
               icon: Icons.emoji_events_outlined,
-              label: 'Récords personales',
+              title: 'Récords personales',
+              subtitle: records == null
+                  ? null
+                  : '${records.length} récord${records.length == 1 ? '' : 's'}',
               onTap: () => Navigator.of(context)
                   .push(MaterialPageRoute(builder: (_) => const PersonalRecordsScreen())),
             ),
             _ProfileTile(
+              icon: Icons.insights_outlined,
+              title: 'Insights',
+              subtitle: insight?.message,
+              onTap: () =>
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const InsightsScreen())),
+            ),
+            _ProfileTile(
               icon: Icons.flag_outlined,
-              label: 'Objetivos',
+              title: 'Objetivos',
+              subtitle: settings == null
+                  ? null
+                  : '${settings.weeklyTargetSessions} entrenos/semana',
               onTap: () =>
                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GoalsScreen())),
             ),
           ]),
-          const SizedBox(height: AppSpacing.xl),
+
+          const SizedBox(height: AppSpacing.xxl),
           _ProfileSectionHeader('Aplicación'),
           _ProfileSection(tiles: [
             _ProfileTile(
-              icon: Icons.settings_outlined,
-              label: 'Configuración',
+              title: 'Configuración',
               onTap: () =>
                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
             ),
             _ProfileTile(
-              icon: Icons.import_export,
-              label: 'Exportar datos',
+              title: 'Exportar datos',
               onTap: () => Navigator.of(context)
                   .push(MaterialPageRoute(builder: (_) => const ImportExportScreen())),
             ),
             _ProfileTile(
-              icon: Icons.backup_outlined,
-              label: 'Copias de seguridad',
+              title: 'Copias de seguridad',
               onTap: () =>
                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => const BackupsScreen())),
             ),
             _ProfileTile(
-              icon: Icons.info_outline,
-              label: 'Acerca de',
+              title: 'Acerca de',
               onTap: () =>
                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AboutScreen())),
             ),
           ]),
         ],
       ),
+    );
+  }
+}
+
+// A slim vertical hairline between summary metrics — deliberately not a full
+// bordered tile, so the three numbers read as one grouped fact strip.
+class _SummaryDivider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 32,
+      child: VerticalDivider(width: 1, thickness: 1, color: Theme.of(context).dividerTheme.color),
+    );
+  }
+}
+
+class _SummaryMetric extends StatelessWidget {
+  const _SummaryMetric({required this.value, required this.label});
+
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(value, style: theme.textTheme.headlineMedium, textAlign: TextAlign.center),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+        ),
+      ],
     );
   }
 }
@@ -128,7 +183,10 @@ class _ProfileSectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.xs, 0, AppSpacing.xs, AppSpacing.sm),
-      child: Text(label, style: Theme.of(context).textTheme.labelMedium),
+      child: Text(
+        label.toUpperCase(),
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(letterSpacing: 0.6),
+      ),
     );
   }
 }
@@ -148,7 +206,7 @@ class _ProfileSection extends StatelessWidget {
         children: [
           for (var i = 0; i < tiles.length; i++) ...[
             tiles[i],
-            if (i != tiles.length - 1) const Divider(height: 1, indent: 68),
+            if (i != tiles.length - 1) const Divider(height: 1),
           ],
         ],
       ),
@@ -156,27 +214,34 @@ class _ProfileSection extends StatelessWidget {
   }
 }
 
+// [icon]/[subtitle] are both optional so the two sections this feeds can
+// carry different visual weight from the same widget: Progreso rows get a
+// small muted icon plus a real-data subtitle when there's something to show;
+// Aplicación rows are plain title-and-chevron, deliberately lighter so the
+// whole screen doesn't read as one flat settings list.
 class _ProfileTile extends StatelessWidget {
-  const _ProfileTile({required this.icon, required this.label, required this.onTap});
+  const _ProfileTile({this.icon, required this.title, this.subtitle, required this.onTap});
 
-  final IconData icon;
-  final String label;
+  final IconData? icon;
+  final String title;
+  final String? subtitle;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return ListTile(
-      leading: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.primary.withValues(alpha: 0.14),
-          borderRadius: BorderRadius.circular(AppSpacing.sm),
-        ),
-        child: Icon(icon, size: 20, color: theme.colorScheme.primary),
-      ),
-      title: Text(label, style: theme.textTheme.bodyLarge),
+      leading: icon == null ? null : Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
+      minLeadingWidth: 0,
+      title: Text(title, style: theme.textTheme.bodyLarge),
+      subtitle: subtitle == null
+          ? null
+          : Text(
+              subtitle!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
       trailing: Icon(Icons.chevron_right, size: 20, color: theme.colorScheme.onSurfaceVariant),
       onTap: onTap,
     );
