@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-// A deliberately simple, original silhouette — not an anatomical
-// illustration. Big blocky regions (torso, shoulders, arms, legs) colored
-// per muscle group, front and back, in the same spirit as the reference
-// but built entirely from basic shapes instead of licensed muscle art.
+// An original, hand-drawn human silhouette (not traced from any anatomical
+// reference or licensed art) built entirely from vector curves. Front and
+// back view, split into filled regions that light up per muscle group —
+// same role as the old blocky-shapes version, just shaped like a body.
 class BodyDiagram extends StatelessWidget {
   const BodyDiagram({super.key, required this.colorsByMuscle, required this.emptyColor});
 
@@ -17,7 +17,7 @@ class BodyDiagram extends StatelessWidget {
       children: [
         Expanded(
           child: AspectRatio(
-            aspectRatio: 0.5,
+            aspectRatio: 0.46,
             child: CustomPaint(
               painter: _BodyPainter(isBack: false, colorsByMuscle: colorsByMuscle, emptyColor: emptyColor),
             ),
@@ -25,7 +25,7 @@ class BodyDiagram extends StatelessWidget {
         ),
         Expanded(
           child: AspectRatio(
-            aspectRatio: 0.5,
+            aspectRatio: 0.46,
             child: CustomPaint(
               painter: _BodyPainter(isBack: true, colorsByMuscle: colorsByMuscle, emptyColor: emptyColor),
             ),
@@ -47,67 +47,168 @@ class _BodyPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Virtual 200x400 canvas, scaled to fit whatever size we're given.
+    // Virtual 220x480 canvas, scaled to fit whatever size we're given.
     canvas.save();
-    final scale = size.width / 200;
+    final scale = size.width / 220;
     canvas.scale(scale, scale);
 
     final outline = Paint()
       ..color = Colors.white.withValues(alpha: 0.85)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+      ..strokeWidth = 2
+      ..strokeJoin = StrokeJoin.round;
 
-    void region(Rect rect, Color color, {double radius = 10}) {
-      final rrect = RRect.fromRectAndRadius(rect, Radius.circular(radius));
-      canvas.drawRRect(rrect, Paint()..color = color);
-      canvas.drawRRect(rrect, outline);
+    void fill(Path path, Color color) {
+      canvas.drawPath(path, Paint()..color = color);
+      canvas.drawPath(path, outline);
     }
 
-    void capsule(Rect rect, Color color) => region(rect, color, radius: rect.width / 2);
+    final neutral = emptyColor.withValues(alpha: 0.5);
 
-    // Head + neck — always neutral, not a trainable "muscle".
-    canvas.drawCircle(const Offset(100, 28), 22, Paint()..color = emptyColor.withValues(alpha: 0.5));
-    canvas.drawCircle(const Offset(100, 28), 22, outline);
-    region(const Rect.fromLTWH(90, 46, 20, 18), emptyColor.withValues(alpha: 0.5), radius: 6);
+    // ---- Head + neck (never a trainable "muscle") ----
+    final head = Path()..addOval(const Rect.fromLTWH(88, 8, 44, 50));
+    fill(head, neutral);
 
-    // Shoulders (both views).
-    region(const Rect.fromLTWH(28, 72, 36, 30), _colorFor('Hombros'));
-    region(const Rect.fromLTWH(136, 72, 36, 30), _colorFor('Hombros'));
+    final neck = Path()
+      ..moveTo(96, 50)
+      ..lineTo(124, 50)
+      ..cubicTo(127, 62, 131, 76, 136, 92)
+      ..lineTo(84, 92)
+      ..cubicTo(89, 76, 93, 62, 96, 50)
+      ..close();
+    fill(neck, neutral);
 
-    // Torso: front splits into Pecho (upper) / Abdomen (lower); back is a
-    // single Espalda region (no back-of-abs muscle tracked).
+    // ---- Shoulders (deltoid caps) — inner edge tucks well under the neck
+    // and torso, bottom tucks over the top of the upper arm, so no gap
+    // shows between pieces.
+    Path shoulderCap({required bool left}) {
+      final sign = left ? -1.0 : 1.0;
+      final innerX = 110 + sign * 14.0;
+      final path = Path()..moveTo(innerX, 68);
+      path.cubicTo(110 + sign * 34, 62, 110 + sign * 58, 68, 110 + sign * 64, 92);
+      path.cubicTo(110 + sign * 68, 110, 110 + sign * 58, 126, 110 + sign * 44, 132);
+      path.cubicTo(110 + sign * 36, 122, 110 + sign * 30, 108, 110 + sign * 24, 96);
+      path.cubicTo(110 + sign * 20, 88, innerX, 78, innerX, 68);
+      path.close();
+      return path;
+    }
+
+    fill(shoulderCap(left: true), _colorFor('Hombros'));
+    fill(shoulderCap(left: false), _colorFor('Hombros'));
+
+    // ---- Torso ----
     if (isBack) {
-      region(const Rect.fromLTWH(60, 68, 80, 150), _colorFor('Espalda'));
+      // Back: one lat-shaped region tapering from broad shoulders to a
+      // narrow waist (no separate "back abs" muscle tracked).
+      final back = Path()
+        ..moveTo(70, 78)
+        ..cubicTo(62, 100, 60, 128, 76, 158)
+        ..cubicTo(84, 182, 86, 206, 88, 226)
+        ..lineTo(132, 226)
+        ..cubicTo(134, 206, 136, 182, 144, 158)
+        ..cubicTo(160, 128, 158, 100, 150, 78)
+        ..cubicTo(136, 94, 122, 102, 110, 102)
+        ..cubicTo(98, 102, 84, 94, 70, 78)
+        ..close();
+      fill(back, _colorFor('Espalda'));
     } else {
-      region(const Rect.fromLTWH(60, 68, 80, 78), _colorFor('Pecho'));
-      region(const Rect.fromLTWH(60, 150, 80, 68), _colorFor('Abdomen'));
+      // Front: chest tapers into a narrower, separately-colored abdomen.
+      final chest = Path()
+        ..moveTo(72, 80)
+        ..cubicTo(64, 100, 64, 122, 76, 138)
+        ..cubicTo(88, 150, 100, 154, 110, 154)
+        ..cubicTo(120, 154, 132, 150, 144, 138)
+        ..cubicTo(156, 122, 156, 100, 148, 80)
+        ..cubicTo(134, 96, 122, 104, 110, 104)
+        ..cubicTo(98, 104, 86, 96, 72, 80)
+        ..close();
+      fill(chest, _colorFor('Pecho'));
+
+      final abdomen = Path()
+        ..moveTo(80, 140)
+        ..cubicTo(84, 150, 92, 155, 110, 156)
+        ..cubicTo(128, 155, 136, 150, 140, 140)
+        ..cubicTo(138, 164, 137, 190, 134, 216)
+        ..cubicTo(126, 225, 118, 230, 110, 230)
+        ..cubicTo(102, 230, 94, 225, 86, 216)
+        ..cubicTo(83, 190, 82, 164, 80, 140)
+        ..close();
+      fill(abdomen, _colorFor('Abdomen'));
     }
 
-    // Upper arms: Bíceps up front, Tríceps from the back.
+    // ---- Upper arms: biceps up front, triceps from the back ----
+    Path upperArm({required bool left}) {
+      final sign = left ? -1.0 : 1.0;
+      final path = Path()..moveTo(110 + sign * 40, 106);
+      path.cubicTo(110 + sign * 58, 116, 110 + sign * 68, 144, 110 + sign * 66, 170);
+      path.cubicTo(110 + sign * 65, 188, 110 + sign * 60, 204, 110 + sign * 54, 216);
+      path.cubicTo(110 + sign * 46, 210, 110 + sign * 40, 196, 110 + sign * 40, 176);
+      path.cubicTo(110 + sign * 40, 152, 110 + sign * 40, 128, 110 + sign * 34, 112);
+      path.close();
+      return path;
+    }
+
     final upperArmColor = _colorFor(isBack ? 'Tríceps' : 'Bíceps');
-    capsule(const Rect.fromLTWH(24, 98, 26, 80), upperArmColor);
-    capsule(const Rect.fromLTWH(150, 98, 26, 80), upperArmColor);
+    fill(upperArm(left: true), upperArmColor);
+    fill(upperArm(left: false), upperArmColor);
 
-    // Forearms aren't individually ranked (never a *primary* muscle in the
-    // exercise library) — always neutral.
-    final forearmColor = emptyColor.withValues(alpha: 0.5);
-    capsule(const Rect.fromLTWH(26, 180, 22, 62), forearmColor);
-    capsule(const Rect.fromLTWH(152, 180, 22, 62), forearmColor);
-
-    // Hips/glutes — only meaningfully shown from the back.
-    if (isBack) {
-      region(const Rect.fromLTWH(66, 214, 68, 34), _colorFor('Glúteos'));
+    // ---- Forearms: never a *primary* muscle in the exercise library ----
+    Path forearm({required bool left}) {
+      final sign = left ? -1.0 : 1.0;
+      final path = Path()..moveTo(110 + sign * 56, 206);
+      path.cubicTo(110 + sign * 62, 224, 110 + sign * 62, 246, 110 + sign * 56, 266);
+      path.cubicTo(110 + sign * 51, 272, 110 + sign * 45, 272, 110 + sign * 41, 266);
+      path.cubicTo(110 + sign * 38, 246, 110 + sign * 40, 224, 110 + sign * 44, 206);
+      path.close();
+      return path;
     }
 
-    // Thighs: Cuádriceps up front, Isquiotibiales from the back.
-    final thighColor = _colorFor(isBack ? 'Isquiotibiales' : 'Cuádriceps');
-    capsule(const Rect.fromLTWH(64, 244, 32, 88), thighColor);
-    capsule(const Rect.fromLTWH(104, 244, 32, 88), thighColor);
+    fill(forearm(left: true), neutral);
+    fill(forearm(left: false), neutral);
 
-    // Calves — shown on both views.
+    // ---- Hips / glutes — only meaningfully shown from the back ----
+    if (isBack) {
+      final glutes = Path()
+        ..moveTo(84, 226)
+        ..cubicTo(80, 244, 82, 260, 92, 270)
+        ..cubicTo(100, 276, 120, 276, 128, 270)
+        ..cubicTo(138, 260, 140, 244, 136, 226)
+        ..close();
+      fill(glutes, _colorFor('Glúteos'));
+    }
+
+    // ---- Thighs: quads up front, hamstrings from the back ----
+    Path thigh({required bool left}) {
+      final sign = left ? -1.0 : 1.0;
+      final topY = isBack ? 250.0 : 222.0;
+      final path = Path()..moveTo(110 + sign * 4, topY);
+      path.cubicTo(110 + sign * 26, topY + 6, 110 + sign * 34, topY + 30, 110 + sign * 32, topY + 62);
+      path.cubicTo(110 + sign * 31, topY + 82, 110 + sign * 27, topY + 100, 110 + sign * 22, topY + 112);
+      path.cubicTo(110 + sign * 14, topY + 104, 110 + sign * 8, topY + 90, 110 + sign * 6, topY + 66);
+      path.cubicTo(110 + sign * 5, topY + 40, 110 + sign * 4, topY + 18, 110 + sign * 3, topY + 4);
+      path.close();
+      return path;
+    }
+
+    final thighColor = _colorFor(isBack ? 'Isquiotibiales' : 'Cuádriceps');
+    fill(thigh(left: true), thighColor);
+    fill(thigh(left: false), thighColor);
+
+    // ---- Calves — shown on both views ----
+    Path calf({required bool left}) {
+      final sign = left ? -1.0 : 1.0;
+      final topY = isBack ? 352.0 : 324.0;
+      final path = Path()..moveTo(110 + sign * 20, topY);
+      path.cubicTo(110 + sign * 30, topY + 10, 110 + sign * 30, topY + 34, 110 + sign * 24, topY + 56);
+      path.cubicTo(110 + sign * 20, topY + 68, 110 + sign * 14, topY + 70, 110 + sign * 10, topY + 62);
+      path.cubicTo(110 + sign * 6, topY + 40, 110 + sign * 8, topY + 16, 110 + sign * 12, topY + 2);
+      path.close();
+      return path;
+    }
+
     final calfColor = _colorFor('Gemelos');
-    capsule(const Rect.fromLTWH(67, 336, 26, 56), calfColor);
-    capsule(const Rect.fromLTWH(107, 336, 26, 56), calfColor);
+    fill(calf(left: true), calfColor);
+    fill(calf(left: false), calfColor);
 
     canvas.restore();
   }
