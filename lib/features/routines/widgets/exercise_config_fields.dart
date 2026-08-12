@@ -40,6 +40,12 @@ class StatNumberField extends StatelessWidget {
             // fields once they hold a value and draws its own highlight
             // ring around the digits — the "weird white circle".
             autofillHints: const [],
+            // Android's text magnifier (the loupe that pops up while
+            // dragging the cursor) renders with a light/white bezel by
+            // default — a second, separate "white circle" on these
+            // otherwise-tiny numeric fields. Not useful here (there's only
+            // ever 1-3 digits to see), so it's turned off outright.
+            magnifierConfiguration: TextMagnifierConfiguration.disabled,
             style: theme.textTheme.titleLarge,
             decoration: InputDecoration(
               hintText: '—',
