@@ -244,6 +244,10 @@ class CalendarScreen extends ConsumerWidget {
   Future<void> _openAssignDaysMenu(BuildContext context, WidgetRef ref) async {
     final action = await showAssignDaysMenu(context);
     if (action == null || !context.mounted) return;
+    // Whichever option you pick, you'll want to see the whole month next —
+    // to tap a day, to select several, or just to check the result of a
+    // quick assign — so expand out of the collapsed week view first.
+    ref.read(calendarFormatProvider.notifier).state = CalendarFormat.month;
     switch (action) {
       case AssignDaysAction.manual:
         ScaffoldMessenger.of(context).showSnackBar(
