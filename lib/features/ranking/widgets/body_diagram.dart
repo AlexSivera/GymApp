@@ -63,6 +63,19 @@ class _BodyPainter extends CustomPainter {
       canvas.drawPath(path, outline);
     }
 
+    // Muscle-definition strokes (six-pack lines, pec split, lat wings...)
+    // drawn a shade darker than whatever color fills the region, so they
+    // read as anatomy regardless of the rank-tier color underneath.
+    Paint striation(Color base) {
+      final hsl = HSLColor.fromColor(base);
+      final darker = hsl.withLightness((hsl.lightness - 0.18).clamp(0.0, 1.0)).toColor();
+      return Paint()
+        ..color = darker.withValues(alpha: 0.55)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..strokeCap = StrokeCap.round;
+    }
+
     final neutral = emptyColor.withValues(alpha: 0.5);
 
     // ---- Head + neck (never a trainable "muscle") ----
@@ -93,8 +106,17 @@ class _BodyPainter extends CustomPainter {
       return path;
     }
 
-    fill(shoulderCap(left: true), _colorFor('Hombros'));
-    fill(shoulderCap(left: false), _colorFor('Hombros'));
+    final shoulderColor = _colorFor('Hombros');
+    fill(shoulderCap(left: true), shoulderColor);
+    fill(shoulderCap(left: false), shoulderColor);
+    for (final sign in [-1.0, 1.0]) {
+      canvas.drawPath(
+        Path()
+          ..moveTo(110 + sign * 26, 76)
+          ..quadraticBezierTo(110 + sign * 44, 92, 110 + sign * 40, 116),
+        striation(shoulderColor),
+      );
+    }
 
     // ---- Torso ----
     if (isBack) {
@@ -110,7 +132,21 @@ class _BodyPainter extends CustomPainter {
         ..cubicTo(136, 94, 122, 102, 110, 102)
         ..cubicTo(98, 102, 84, 94, 70, 78)
         ..close();
-      fill(back, _colorFor('Espalda'));
+      final backColor = _colorFor('Espalda');
+      fill(back, backColor);
+
+      // Spine line + a pair of "lat wing" sweeps, like a real back's V-taper.
+      final backStriation = striation(backColor);
+      canvas.drawPath(Path()..moveTo(110, 104)..lineTo(110, 222), backStriation);
+      for (final sign in [-1.0, 1.0]) {
+        canvas.drawPath(
+          Path()
+            ..moveTo(110 + sign * 8, 112)
+            ..quadraticBezierTo(110 + sign * 34, 140, 110 + sign * 30, 176)
+            ..quadraticBezierTo(110 + sign * 26, 200, 110 + sign * 14, 218),
+          backStriation,
+        );
+      }
     } else {
       // Front: chest tapers into a narrower, separately-colored abdomen.
       final chest = Path()
@@ -122,7 +158,20 @@ class _BodyPainter extends CustomPainter {
         ..cubicTo(134, 96, 122, 104, 110, 104)
         ..cubicTo(98, 104, 86, 96, 72, 80)
         ..close();
-      fill(chest, _colorFor('Pecho'));
+      final chestColor = _colorFor('Pecho');
+      fill(chest, chestColor);
+
+      // Pec split down the middle + one sweep per side for the pec's curve.
+      final chestStriation = striation(chestColor);
+      canvas.drawPath(Path()..moveTo(110, 96)..lineTo(110, 152), chestStriation);
+      for (final sign in [-1.0, 1.0]) {
+        canvas.drawPath(
+          Path()
+            ..moveTo(110 + sign * 8, 100)
+            ..quadraticBezierTo(110 + sign * 30, 112, 110 + sign * 34, 132),
+          chestStriation,
+        );
+      }
 
       final abdomen = Path()
         ..moveTo(80, 140)
@@ -133,7 +182,15 @@ class _BodyPainter extends CustomPainter {
         ..cubicTo(102, 230, 94, 225, 86, 216)
         ..cubicTo(83, 190, 82, 164, 80, 140)
         ..close();
-      fill(abdomen, _colorFor('Abdomen'));
+      final abdomenColor = _colorFor('Abdomen');
+      fill(abdomen, abdomenColor);
+
+      // A classic six-pack grid: one center line, three rungs.
+      final abStriation = striation(abdomenColor);
+      canvas.drawPath(Path()..moveTo(110, 148)..lineTo(110, 222), abStriation);
+      for (final y in [164.0, 184.0, 204.0]) {
+        canvas.drawPath(Path()..moveTo(94, y)..lineTo(126, y), abStriation);
+      }
     }
 
     // ---- Upper arms: biceps up front, triceps from the back ----
@@ -151,6 +208,15 @@ class _BodyPainter extends CustomPainter {
     final upperArmColor = _colorFor(isBack ? 'Tríceps' : 'Bíceps');
     fill(upperArm(left: true), upperArmColor);
     fill(upperArm(left: false), upperArmColor);
+    final upperArmStriation = striation(upperArmColor);
+    for (final sign in [-1.0, 1.0]) {
+      canvas.drawPath(
+        Path()
+          ..moveTo(110 + sign * 48, 128)
+          ..quadraticBezierTo(110 + sign * 58, 162, 110 + sign * 50, 202),
+        upperArmStriation,
+      );
+    }
 
     // ---- Forearms: never a *primary* muscle in the exercise library ----
     Path forearm({required bool left}) {
@@ -174,7 +240,9 @@ class _BodyPainter extends CustomPainter {
         ..cubicTo(100, 276, 120, 276, 128, 270)
         ..cubicTo(138, 260, 140, 244, 136, 226)
         ..close();
-      fill(glutes, _colorFor('Glúteos'));
+      final glutesColor = _colorFor('Glúteos');
+      fill(glutes, glutesColor);
+      canvas.drawPath(Path()..moveTo(110, 230)..lineTo(110, 268), striation(glutesColor));
     }
 
     // ---- Thighs: quads up front, hamstrings from the back ----
@@ -193,6 +261,16 @@ class _BodyPainter extends CustomPainter {
     final thighColor = _colorFor(isBack ? 'Isquiotibiales' : 'Cuádriceps');
     fill(thigh(left: true), thighColor);
     fill(thigh(left: false), thighColor);
+    final thighStriation = striation(thighColor);
+    final thighTopY = isBack ? 250.0 : 222.0;
+    for (final sign in [-1.0, 1.0]) {
+      canvas.drawPath(
+        Path()
+          ..moveTo(110 + sign * 10, thighTopY + 16)
+          ..quadraticBezierTo(110 + sign * 22, thighTopY + 60, 110 + sign * 16, thighTopY + 106),
+        thighStriation,
+      );
+    }
 
     // ---- Calves — shown on both views ----
     Path calf({required bool left}) {
@@ -209,6 +287,16 @@ class _BodyPainter extends CustomPainter {
     final calfColor = _colorFor('Gemelos');
     fill(calf(left: true), calfColor);
     fill(calf(left: false), calfColor);
+    final calfStriation = striation(calfColor);
+    final calfTopY = isBack ? 352.0 : 324.0;
+    for (final sign in [-1.0, 1.0]) {
+      canvas.drawPath(
+        Path()
+          ..moveTo(110 + sign * 18, calfTopY + 6)
+          ..quadraticBezierTo(110 + sign * 12, calfTopY + 34, 110 + sign * 16, calfTopY + 58),
+        calfStriation,
+      );
+    }
 
     canvas.restore();
   }
