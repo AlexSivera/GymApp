@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/widgets/error_retry_card.dart';
 import '../../../data/database/database_provider.dart';
 import '../../routines/providers/routines_providers.dart';
 import '../../../services/scheduling/bulk_assign.dart';
@@ -84,7 +85,10 @@ class _QuickAssignSheetState extends ConsumerState<QuickAssignSheet> {
             const SizedBox(height: AppSpacing.sm),
             routinesAsync.when(
               loading: () => const CircularProgressIndicator(),
-              error: (e, _) => Text('$e'),
+              error: (e, _) => ErrorRetryCard(
+                message: 'No se han podido cargar tus rutinas.',
+                onRetry: () => ref.invalidate(routinesListProvider),
+              ),
               data: (routines) {
                 if (routines.isEmpty) {
                   return Text(

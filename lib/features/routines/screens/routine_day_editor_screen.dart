@@ -4,7 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/utils/weight_unit.dart';
+import '../../../core/utils/weight_unit_provider.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/error_retry_view.dart';
 import '../../../core/widgets/exercise_thumbnail.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
@@ -109,7 +112,10 @@ class DayExercisesList extends ConsumerWidget {
 
     return exercisesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('$e')),
+      error: (e, _) => ErrorRetryView(
+        message: 'No se han podido cargar los ejercicios de este día.',
+        onRetry: () => ref.invalidate(dayExercisesProvider(routineDayId)),
+      ),
       data: (routineExercises) {
         if (routineExercises.isEmpty) {
           return Center(
@@ -172,6 +178,7 @@ class _RoutineExerciseRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isExpanded = ref.watch(expandedRoutineExerciseIdsProvider).contains(entry.id);
     final isStrength = exercise?.category == ExerciseCategory.strength;
+    final unit = ref.watch(weightUnitProvider);
 
     return AppCard(
       padding: EdgeInsets.zero,
@@ -180,7 +187,7 @@ class _RoutineExerciseRow extends ConsumerWidget {
           ListTile(
             leading: ExerciseThumbnail(imagePaths: imagePaths),
             title: Text(exerciseName),
-            subtitle: Text(_summarize(entry, isStrength: isStrength)),
+            subtitle: Text(_summarize(entry, isStrength: isStrength, unit: unit)),
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: () => ref.read(routinesDaoProvider).removeExerciseFromDay(entry.id),
@@ -210,18 +217,15 @@ class _RoutineExerciseRow extends ConsumerWidget {
     );
   }
 
-  String _summarize(RoutineExercise entry, {required bool isStrength}) {
+  String _summarize(RoutineExercise entry, {required bool isStrength, required WeightUnit unit}) {
     final parts = <String>[
       '${entry.targetSets} series',
       if (isStrength) '${entry.targetRepsMin}-${entry.targetRepsMax} reps',
-      if (entry.targetWeight != null) '${_fmt(entry.targetWeight!)} kg',
+      if (entry.targetWeight != null) formatWeight(entry.targetWeight!, unit),
       if (entry.restSeconds != null) 'descanso ${entry.restSeconds}s',
     ];
     return parts.join(' · ');
   }
-
-  String _fmt(double value) =>
-      value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
 }
 
 class _RoutineExerciseFields extends ConsumerStatefulWidget {
@@ -239,15 +243,20 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
   late final TextEditingController _repsMin;
   late final TextEditingController _repsMax;
   late final TextEditingController _weight;
+  late final TextEditingController _notes;
   late int? _restSeconds;
 
   @override
   void initState() {
     super.initState();
+    final unit = ref.read(weightUnitProvider);
     _sets = TextEditingController(text: '${widget.entry.targetSets}');
     _repsMin = TextEditingController(text: '${widget.entry.targetRepsMin}');
     _repsMax = TextEditingController(text: '${widget.entry.targetRepsMax}');
-    _weight = TextEditingController(text: widget.entry.targetWeight?.toString() ?? '');
+    _weight = TextEditingController(
+      text: widget.entry.targetWeight == null ? '' : formatWeightValue(widget.entry.targetWeight!, unit),
+    );
+    _notes = TextEditingController(text: widget.entry.notes ?? '');
     _restSeconds = widget.entry.restSeconds;
   }
 
@@ -257,15 +266,21 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
     _repsMin.dispose();
     _repsMax.dispose();
     _weight.dispose();
+    _notes.dispose();
     super.dispose();
   }
 
   Future<void> _persist() async {
+    final unit = ref.read(weightUnitProvider);
+    final typedWeight = double.tryParse(_weight.text.replaceAll(',', '.'));
+    final notes = _notes.text.trim();
     await ref.read(routinesDaoProvider).updateRoutineExercise(widget.entry.copyWith(
           targetSets: int.tryParse(_sets.text) ?? widget.entry.targetSets,
           targetRepsMin: int.tryParse(_repsMin.text) ?? widget.entry.targetRepsMin,
           targetRepsMax: int.tryParse(_repsMax.text) ?? widget.entry.targetRepsMax,
-          targetWeight: Value(double.tryParse(_weight.text.replaceAll(',', '.'))),
+          targetWeight:
+              Value(typedWeight == null ? null : displayUnitToKg(typedWeight, unit)),
+          notes: Value(notes.isEmpty ? null : notes),
           restSeconds: Value(_restSeconds),
         ));
   }
@@ -278,6 +293,7 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final unit = ref.watch(weightUnitProvider);
     final isStrength = widget.exercise?.category == ExerciseCategory.strength;
     final isBodyweight = widget.exercise?.equipment == 'Peso corporal';
 
@@ -306,7 +322,10 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                       child: StatNumberField(
-                          controller: _weight, label: 'Peso (kg)', decimal: true, onCommit: _persist)),
+                          controller: _weight,
+                          label: 'Peso (${weightUnitLabel(unit)})',
+                          decimal: true,
+                          onCommit: _persist)),
                 ],
               ],
             ],
@@ -316,6 +335,17 @@ class _RoutineExerciseFieldsState extends ConsumerState<_RoutineExerciseFields> 
               style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
           const SizedBox(height: AppSpacing.xs),
           RestSecondsChipsRow(selected: _restSeconds, onSelected: _selectRest),
+          const SizedBox(height: AppSpacing.md),
+          Text('Notas',
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          const SizedBox(height: AppSpacing.xs),
+          TextField(
+            controller: _notes,
+            maxLines: 2,
+            decoration: const InputDecoration(hintText: 'Ej. bajar el ritmo en la última serie'),
+            onTapOutside: (_) => _persist(),
+            onSubmitted: (_) => _persist(),
+          ),
         ],
       ),
     );

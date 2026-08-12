@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/utils/weight_unit.dart';
+import '../../../core/utils/weight_unit_provider.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
@@ -35,7 +37,10 @@ class _DayEditScreenState extends ConsumerState<DayEditScreen> {
             ? SessionStatus.completed
             : SessionStatus.planned);
     _notesController = TextEditingController(text: session?.notes ?? '');
-    _bodyWeightController = TextEditingController(text: session?.bodyWeightKg?.toString() ?? '');
+    final unit = ref.read(weightUnitProvider);
+    _bodyWeightController = TextEditingController(
+      text: session?.bodyWeightKg == null ? '' : formatWeightValue(session!.bodyWeightKg!, unit),
+    );
     _feeling = session?.feeling;
   }
 
@@ -50,7 +55,8 @@ class _DayEditScreenState extends ConsumerState<DayEditScreen> {
 
   Future<void> _save() async {
     final dao = ref.read(appDatabaseProvider).workoutSessionsDao;
-    final bodyWeight = double.tryParse(_bodyWeightController.text.replaceAll(',', '.'));
+    final typedWeight = double.tryParse(_bodyWeightController.text.replaceAll(',', '.'));
+    final bodyWeight = typedWeight == null ? null : displayUnitToKg(typedWeight, ref.read(weightUnitProvider));
     final notes = _notesController.text.trim();
 
     final existing = widget.existingSession;
@@ -77,6 +83,7 @@ class _DayEditScreenState extends ConsumerState<DayEditScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final unit = ref.watch(weightUnitProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(DateFormat('EEEE d MMMM', 'es').format(widget.date))),
@@ -131,7 +138,7 @@ class _DayEditScreenState extends ConsumerState<DayEditScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Peso corporal (kg)', style: theme.textTheme.titleMedium),
+                Text('Peso corporal (${weightUnitLabel(unit)})', style: theme.textTheme.titleMedium),
                 const SizedBox(height: AppSpacing.sm),
                 TextField(
                   controller: _bodyWeightController,

@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/utils/weight_unit.dart';
+import '../../../core/utils/weight_unit_provider.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/error_retry_view.dart';
 import '../../../data/database/app_database.dart';
 import '../providers/profile_providers.dart';
 
@@ -14,12 +17,16 @@ class PersonalRecordsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final recordsAsync = ref.watch(allPersonalRecordsProvider);
+    final unit = ref.watch(weightUnitProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Récords personales')),
       body: recordsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
+        error: (e, _) => ErrorRetryView(
+          message: 'No se han podido cargar tus récords.',
+          onRetry: () => ref.invalidate(allPersonalRecordsProvider),
+        ),
         data: (records) {
           if (records.isEmpty) {
             return Center(
@@ -62,7 +69,7 @@ class PersonalRecordsScreen extends ConsumerWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text(_valueLabel(entry.record), style: theme.textTheme.titleMedium),
+                          Text(_valueLabel(entry.record, unit), style: theme.textTheme.titleMedium),
                           Text(
                             DateFormat('d MMM y', 'es').format(entry.record.achievedAt),
                             style: theme.textTheme.bodySmall,
@@ -93,12 +100,12 @@ class PersonalRecordsScreen extends ConsumerWidget {
     }
   }
 
-  String _valueLabel(PersonalRecord record) {
+  String _valueLabel(PersonalRecord record, WeightUnit unit) {
     switch (record.type) {
       case PersonalRecordType.maxReps:
         return '${record.value.toStringAsFixed(0)} reps';
       default:
-        return '${record.value.toStringAsFixed(1)} kg';
+        return formatWeight(record.value, unit);
     }
   }
 }

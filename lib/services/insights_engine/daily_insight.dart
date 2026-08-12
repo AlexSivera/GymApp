@@ -1,3 +1,4 @@
+import '../../core/utils/weight_unit.dart';
 import '../../data/database/app_database.dart';
 import '../progression_engine/previous_performance.dart';
 import '../progression_engine/suggest_next_load.dart';
@@ -13,7 +14,7 @@ class DailyInsight {
 // The candidate list is built from the same signals the Insights screen
 // already computes, and the pick is deterministic per calendar day (seeded
 // by the date) so it doesn't flicker between opens of the app on the same day.
-Future<DailyInsight> computeDailyInsight(AppDatabase db, {DateTime? now}) async {
+Future<DailyInsight> computeDailyInsight(AppDatabase db, {DateTime? now, WeightUnit unit = WeightUnit.kg}) async {
   final today = now ?? DateTime.now();
   final candidates = <String>[];
 
@@ -29,7 +30,7 @@ Future<DailyInsight> computeDailyInsight(AppDatabase db, {DateTime? now}) async 
     candidates.add('Hace ${muscleGap.daysSince} días que no entrenas ${muscleGap.muscle}.');
   }
 
-  final loadTip = await _topExerciseLoadTip(db, today);
+  final loadTip = await _topExerciseLoadTip(db, today, unit);
   if (loadTip != null) candidates.add(loadTip);
 
   if (candidates.isEmpty) {
@@ -83,7 +84,7 @@ Future<_MuscleGap?> _mostNeglectedMuscle(AppDatabase db, DateTime today) async {
   return _MuscleGap(muscle: worstMuscle, daysSince: worstGap);
 }
 
-Future<String?> _topExerciseLoadTip(AppDatabase db, DateTime today) async {
+Future<String?> _topExerciseLoadTip(AppDatabase db, DateTime today, WeightUnit unit) async {
   final start = today.subtract(const Duration(days: 30));
   final volumeByExercise = await db.progressDao.volumeByExerciseInRange(start, today);
   if (volumeByExercise.isEmpty) return null;
@@ -108,8 +109,5 @@ Future<String?> _topExerciseLoadTip(AppDatabase db, DateTime today) async {
     targetRepsMax: maxRepsUsed,
   );
   if (suggestion.suggestedWeight == null) return null;
-  return 'En ${exercise.name} puedes probar con ${_fmt(suggestion.suggestedWeight!)} kg.';
+  return 'En ${exercise.name} puedes probar con ${formatWeight(suggestion.suggestedWeight!, unit)}.';
 }
-
-String _fmt(double value) =>
-    value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);

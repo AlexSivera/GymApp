@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/utils/weight_unit.dart';
+import '../../../core/utils/weight_unit_provider.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/error_retry_card.dart';
 import '../../../data/database/app_database.dart';
 import '../providers/progress_providers.dart';
 
@@ -18,6 +21,7 @@ class ExerciseProgressSummary extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final unit = ref.watch(weightUnitProvider);
     final historyAsync = ref.watch(oneRepMaxHistoryProvider(exerciseId));
     final recordsAsync = ref.watch(personalRecordsForExerciseProvider(exerciseId));
 
@@ -39,7 +43,7 @@ class ExerciseProgressSummary extends ConsumerWidget {
                             ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
                     const SizedBox(height: 4),
                     Text(
-                      bestWeight == null ? '—' : '${_fmt(bestWeight.value)} kg',
+                      bestWeight == null ? '—' : formatWeight(bestWeight.value, unit),
                       style: theme.textTheme.headlineMedium,
                     ),
                   ],
@@ -57,7 +61,7 @@ class ExerciseProgressSummary extends ConsumerWidget {
                             ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
                     const SizedBox(height: 4),
                     Text(
-                      bestOneRm == null ? '—' : '${_fmt(bestOneRm.value)} kg',
+                      bestOneRm == null ? '—' : formatWeight(bestOneRm.value, unit),
                       style: theme.textTheme.headlineMedium,
                     ),
                   ],
@@ -69,7 +73,10 @@ class ExerciseProgressSummary extends ConsumerWidget {
         const SizedBox(height: 16),
         historyAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Text('$e'),
+          error: (e, _) => ErrorRetryCard(
+            message: 'No se ha podido cargar la evolución de este ejercicio.',
+            onRetry: () => ref.invalidate(oneRepMaxHistoryProvider(exerciseId)),
+          ),
           data: (points) {
             if (points.length < 2) {
               return AppCard(
@@ -85,10 +92,12 @@ class ExerciseProgressSummary extends ConsumerWidget {
 
             final firstDate = points.first.date;
             final spots = [
-              for (final p in points) FlSpot(p.date.difference(firstDate).inDays.toDouble(), p.value)
+              for (final p in points)
+                FlSpot(p.date.difference(firstDate).inDays.toDouble(), kgToDisplayUnit(p.value, unit))
             ];
-            final minY = points.map((p) => p.value).reduce((a, b) => a < b ? a : b);
-            final maxY = points.map((p) => p.value).reduce((a, b) => a > b ? a : b);
+            final displayValues = points.map((p) => kgToDisplayUnit(p.value, unit));
+            final minY = displayValues.reduce((a, b) => a < b ? a : b);
+            final maxY = displayValues.reduce((a, b) => a > b ? a : b);
             final padding = (maxY - minY) * 0.15 + 1;
 
             return AppCard(
@@ -160,7 +169,4 @@ class ExerciseProgressSummary extends ConsumerWidget {
     if (matching.isEmpty) return null;
     return matching.reduce((a, b) => a.value > b.value ? a : b);
   }
-
-  String _fmt(double value) =>
-      value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
 }

@@ -11,6 +11,10 @@ final routinesListProvider = StreamProvider<List<Routine>>((ref) {
   return ref.watch(routinesDaoProvider).watchAllRoutines();
 });
 
+final archivedRoutinesListProvider = StreamProvider<List<Routine>>((ref) {
+  return ref.watch(routinesDaoProvider).watchArchivedRoutines();
+});
+
 final routineProvider = StreamProvider.family<Routine?, int>((ref, routineId) {
   return ref.watch(routinesDaoProvider).watchRoutine(routineId);
 });

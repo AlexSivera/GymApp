@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/error_retry_card.dart';
 import '../../../data/database/app_database.dart';
 import '../providers/routines_providers.dart';
 
@@ -39,7 +40,10 @@ class RoutineDayPickerSheet extends ConsumerWidget {
                   padding: EdgeInsets.all(AppSpacing.xl),
                   child: Center(child: CircularProgressIndicator()),
                 ),
-                error: (e, _) => Text('$e'),
+                error: (e, _) => ErrorRetryCard(
+                  message: 'No se han podido cargar tus rutinas.',
+                  onRetry: () => ref.invalidate(routinesListProvider),
+                ),
                 data: (routines) {
                   if (routines.isEmpty) {
                     return Column(
@@ -122,7 +126,22 @@ class _RoutinePickerCard extends ConsumerWidget {
           children: [
             daysAsync.when(
               loading: () => const SizedBox.shrink(),
-              error: (e, _) => Text('$e'),
+              error: (e, _) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text('No se han podido cargar los días.',
+                          style: theme.textTheme.bodyMedium
+                              ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                    ),
+                    TextButton(
+                      onPressed: () => ref.invalidate(routineDaysProvider(routine.id)),
+                      child: const Text('Reintentar'),
+                    ),
+                  ],
+                ),
+              ),
               data: (days) {
                 if (days.isEmpty) {
                   return Padding(

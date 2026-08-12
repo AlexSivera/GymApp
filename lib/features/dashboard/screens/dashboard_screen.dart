@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/widgets/error_retry_card.dart';
 import '../../../core/widgets/fade_slide_in.dart';
+import '../../../core/widgets/shimmer_box.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/calories_today_card.dart';
 import '../widgets/dashboard_header.dart';
@@ -39,8 +41,11 @@ class DashboardScreen extends ConsumerWidget {
               index: 1,
               child: todaysSession.when(
                 data: (session) => HeroTodayCard(session: session),
-                loading: () => const _CardPlaceholder(),
-                error: (e, _) => _CardError(message: '$e'),
+                loading: () => const ShimmerBox(height: 190),
+                error: (e, _) => ErrorRetryCard(
+                  message: 'No se ha podido cargar el entrenamiento de hoy.',
+                  onRetry: () => ref.invalidate(todaysSessionProvider),
+                ),
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -54,8 +59,11 @@ class DashboardScreen extends ConsumerWidget {
                       flex: 3,
                       child: streak.when(
                         data: (value) => StreakCard(streak: value),
-                        loading: () => const _CardPlaceholder(),
-                        error: (e, _) => _CardError(message: '$e'),
+                        loading: () => const ShimmerBox(height: 150),
+                        error: (e, _) => ErrorRetryCard(
+                          message: 'No se ha podido cargar la racha.',
+                          onRetry: () => ref.invalidate(workoutStreakProvider),
+                        ),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.md),
@@ -63,8 +71,11 @@ class DashboardScreen extends ConsumerWidget {
                       flex: 2,
                       child: caloriesToday.when(
                         data: (value) => CaloriesTodayCard(calories: value),
-                        loading: () => const _CardPlaceholder(),
-                        error: (e, _) => _CardError(message: '$e'),
+                        loading: () => const ShimmerBox(height: 150),
+                        error: (e, _) => ErrorRetryCard(
+                          message: 'No se han podido cargar las calorías.',
+                          onRetry: () => ref.invalidate(caloriesBurnedTodayProvider),
+                        ),
                       ),
                     ),
                   ],
@@ -78,8 +89,11 @@ class DashboardScreen extends ConsumerWidget {
               index: 4,
               child: weeklySummary.when(
                 data: (summary) => ProgressCard(summary: summary),
-                loading: () => const _CardPlaceholder(),
-                error: (e, _) => _CardError(message: '$e'),
+                loading: () => const ShimmerBox(height: 140),
+                error: (e, _) => ErrorRetryCard(
+                  message: 'No se ha podido cargar tu progreso.',
+                  onRetry: () => ref.invalidate(weeklySummaryProvider),
+                ),
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -87,8 +101,11 @@ class DashboardScreen extends ConsumerWidget {
               index: 5,
               child: recentActivity.when(
                 data: (sessions) => RecentActivityCard(sessions: sessions),
-                loading: () => const _CardPlaceholder(),
-                error: (e, _) => _CardError(message: '$e'),
+                loading: () => const ShimmerBox(height: 160),
+                error: (e, _) => ErrorRetryCard(
+                  message: 'No se ha podido cargar la actividad reciente.',
+                  onRetry: () => ref.invalidate(recentActivityProvider),
+                ),
               ),
             ),
             nextSession.whenOrNull(data: (session) {
@@ -104,36 +121,16 @@ class DashboardScreen extends ConsumerWidget {
               index: 7,
               child: insight.when(
                 data: (value) => InsightOfDayCard(message: value.message),
-                loading: () => const _CardPlaceholder(),
-                error: (e, _) => _CardError(message: '$e'),
+                loading: () => const ShimmerBox(height: 90),
+                error: (e, _) => ErrorRetryCard(
+                  message: 'No se ha podido cargar el consejo del día.',
+                  onRetry: () => ref.invalidate(insightOfDayProvider),
+                ),
               ),
             ),
           ],
         ),
       ),
     );
-  }
-}
-
-class _CardPlaceholder extends StatelessWidget {
-  const _CardPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const SizedBox(
-      height: 96,
-      child: Center(child: CircularProgressIndicator()),
-    );
-  }
-}
-
-class _CardError extends StatelessWidget {
-  const _CardError({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(message, style: TextStyle(color: Theme.of(context).colorScheme.error));
   }
 }

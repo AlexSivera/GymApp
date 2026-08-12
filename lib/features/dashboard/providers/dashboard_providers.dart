@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/streak.dart';
+import '../../../core/utils/weight_unit.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../services/calories_engine/estimate_calories_burned.dart';
@@ -80,7 +81,8 @@ final _recentCompletedSessionsProvider = StreamProvider<List<WorkoutSession>>((r
 });
 
 final insightOfDayProvider = FutureProvider<DailyInsight>((ref) {
-  return computeDailyInsight(ref.watch(appDatabaseProvider));
+  final unit = weightUnitFromSetting(ref.watch(userSettingsProvider).valueOrNull?.units);
+  return computeDailyInsight(ref.watch(appDatabaseProvider), unit: unit);
 });
 
 // Sums the estimated calorie burn of every workout completed today — someone

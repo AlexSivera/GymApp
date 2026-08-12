@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/utils/weight_unit.dart';
+import '../../../core/utils/weight_unit_provider.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/celebration_overlay.dart';
 import '../../../services/insights_engine/session_summary.dart';
 
-class SessionSummaryScreen extends StatelessWidget {
+class SessionSummaryScreen extends ConsumerWidget {
   const SessionSummaryScreen({super.key, required this.summary});
 
   final SessionSummary summary;
@@ -25,12 +29,14 @@ class SessionSummaryScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final unit = ref.watch(weightUnitProvider);
     final hasImprovements = summary.improvements.isNotEmpty;
     final hasPRs = summary.newPRs.isNotEmpty;
 
-    return PopScope(
+    return CelebrationOverlay(
+      child: PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
@@ -98,7 +104,7 @@ class SessionSummaryScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${summary.volumeThisSession.toStringAsFixed(0)} kg',
+                    formatWeight(summary.volumeThisSession, unit, decimals: 0),
                     style: theme.textTheme.headlineMedium,
                   ),
                   if (summary.volumeChangePercent != null) ...[
@@ -226,6 +232,7 @@ class SessionSummaryScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

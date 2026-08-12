@@ -8,6 +8,7 @@ import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/format_duration.dart';
+import '../../../core/utils/weight_unit_provider.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
@@ -55,8 +56,15 @@ class HeroTodayCard extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('👋 PRIMEROS PASOS',
-                  style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 0.6)),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.flag_rounded, size: 14, color: AppTheme.accent),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text('PRIMEROS PASOS',
+                      style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 0.6)),
+                ],
+              ),
               const SizedBox(height: AppSpacing.sm),
               Text('Crea tu primera rutina para empezar a entrenar.',
                   style: theme.textTheme.titleLarge),
@@ -266,7 +274,7 @@ class HeroTodayCard extends ConsumerWidget {
 
   Future<void> _viewSession(BuildContext context, WidgetRef ref, WorkoutSession session) async {
     final db = ref.read(appDatabaseProvider);
-    final summary = await computeSessionSummary(db, sessionId: session.id);
+    final summary = await computeSessionSummary(db, sessionId: session.id, unit: ref.read(weightUnitProvider));
     if (!context.mounted) return;
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => SessionSummaryScreen(summary: summary)));
   }

@@ -4,7 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/utils/weight_unit.dart';
+import '../../../core/utils/weight_unit_provider.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/error_retry_view.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
 import '../providers/profile_providers.dart';
@@ -16,6 +19,7 @@ class BodyWeightScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final historyAsync = ref.watch(bodyWeightHistoryProvider);
+    final unit = ref.watch(weightUnitProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Peso corporal')),
@@ -25,7 +29,10 @@ class BodyWeightScreen extends ConsumerWidget {
       ),
       body: historyAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
+        error: (e, _) => ErrorRetryView(
+          message: 'No se ha podido cargar tu historial de peso.',
+          onRetry: () => ref.invalidate(bodyWeightHistoryProvider),
+        ),
         data: (history) {
           if (history.isEmpty) {
             return Center(
@@ -39,7 +46,7 @@ class BodyWeightScreen extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.all(AppSpacing.lg),
             children: [
-              if (chronological.length >= 2) _WeightChart(entries: chronological),
+              if (chronological.length >= 2) _WeightChart(entries: chronological, unit: unit),
               const SizedBox(height: AppSpacing.lg),
               for (final log in history)
                 Padding(
@@ -52,7 +59,7 @@ class BodyWeightScreen extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('${log.weightKg} kg', style: theme.textTheme.titleMedium),
+                              Text(formatWeight(log.weightKg, unit), style: theme.textTheme.titleMedium),
                               Text(
                                 DateFormat('EEEE d MMMM', 'es').format(log.date),
                                 style: theme.textTheme.bodySmall,
@@ -76,6 +83,7 @@ class BodyWeightScreen extends ConsumerWidget {
   }
 
   Future<void> _addEntry(BuildContext context, WidgetRef ref) async {
+    final unit = ref.read(weightUnitProvider);
     final controller = TextEditingController();
     final weight = await showDialog<double>(
       context: context,
@@ -85,7 +93,10 @@ class BodyWeightScreen extends ConsumerWidget {
           controller: controller,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(hintText: 'Ej. 78.5', suffixText: 'kg'),
+          decoration: InputDecoration(
+            hintText: unit == WeightUnit.lb ? 'Ej. 173' : 'Ej. 78.5',
+            suffixText: weightUnitLabel(unit),
+          ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
@@ -100,25 +111,28 @@ class BodyWeightScreen extends ConsumerWidget {
     if (weight == null) return;
 
     await ref.read(appDatabaseProvider).bodyWeightDao.insertLog(
-          BodyWeightLogsCompanion.insert(date: DateTime.now(), weightKg: weight),
+          BodyWeightLogsCompanion.insert(date: DateTime.now(), weightKg: displayUnitToKg(weight, unit)),
         );
   }
 }
 
 class _WeightChart extends StatelessWidget {
-  const _WeightChart({required this.entries});
+  const _WeightChart({required this.entries, required this.unit});
 
   final List<BodyWeightLog> entries;
+  final WeightUnit unit;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final firstDate = entries.first.date;
     final spots = [
-      for (final e in entries) FlSpot(e.date.difference(firstDate).inDays.toDouble(), e.weightKg),
+      for (final e in entries)
+        FlSpot(e.date.difference(firstDate).inDays.toDouble(), kgToDisplayUnit(e.weightKg, unit)),
     ];
-    final minY = entries.map((e) => e.weightKg).reduce((a, b) => a < b ? a : b);
-    final maxY = entries.map((e) => e.weightKg).reduce((a, b) => a > b ? a : b);
+    final values = entries.map((e) => kgToDisplayUnit(e.weightKg, unit));
+    final minY = values.reduce((a, b) => a < b ? a : b);
+    final maxY = values.reduce((a, b) => a > b ? a : b);
     final padding = (maxY - minY) * 0.2 + 1;
 
     return AppCard(

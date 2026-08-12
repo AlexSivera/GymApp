@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/weight_unit_provider.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../router/workout_branch_navigator_key.dart';
@@ -188,7 +189,7 @@ class DayDetailSheet extends ConsumerWidget {
 
   Future<void> _openSummary(BuildContext context, WidgetRef ref, WorkoutSession session) async {
     final db = ref.read(appDatabaseProvider);
-    final summary = await computeSessionSummary(db, sessionId: session.id);
+    final summary = await computeSessionSummary(db, sessionId: session.id, unit: ref.read(weightUnitProvider));
     if (!context.mounted) return;
     Navigator.of(context).pop();
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => SessionSummaryScreen(summary: summary)));

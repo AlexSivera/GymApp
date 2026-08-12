@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/format_duration.dart';
+import '../../../core/utils/weight_unit_provider.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
@@ -103,7 +104,7 @@ class _ActivityRow extends ConsumerWidget {
 
   Future<void> _openSummary(BuildContext context, WidgetRef ref, WorkoutSession session) async {
     final db = ref.read(appDatabaseProvider);
-    final summary = await computeSessionSummary(db, sessionId: session.id);
+    final summary = await computeSessionSummary(db, sessionId: session.id, unit: ref.read(weightUnitProvider));
     if (!context.mounted) return;
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => SessionSummaryScreen(summary: summary)));
   }

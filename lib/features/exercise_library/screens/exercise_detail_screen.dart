@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/widgets/app_card.dart';
 import '../../../data/database/app_database.dart';
@@ -35,6 +36,17 @@ class ExerciseDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
           ],
+          if (exercise.videoUrl != null && exercise.videoUrl!.isNotEmpty) ...[
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _openVideo(context, exercise.videoUrl!),
+                icon: const Icon(Icons.play_circle_outline),
+                label: const Text('Ver vídeo del ejercicio'),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,6 +79,15 @@ class ExerciseDetailScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _openVideo(BuildContext context, String url) async {
+    final uri = Uri.tryParse(url);
+    final launched = uri != null && await canLaunchUrl(uri) && await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!launched && context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('No se ha podido abrir el vídeo.')));
+    }
   }
 }
 

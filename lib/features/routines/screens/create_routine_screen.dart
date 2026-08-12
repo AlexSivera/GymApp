@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/utils/weight_unit.dart';
+import '../../../core/utils/weight_unit_provider.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/exercise_thumbnail.dart';
 import '../../../data/database/app_database.dart';
@@ -34,6 +36,7 @@ class _StagedExercise {
   int repsMax = 12;
   double? weight;
   int? restSeconds = 90;
+  String? notes;
 }
 
 // Full-screen "create routine" flow — no name dialog: the title is an
@@ -138,6 +141,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
         targetRepsMax: exercise.repsMax,
         targetWeight: Value(exercise.weight),
         restSeconds: Value(exercise.restSeconds),
+        notes: Value(exercise.notes),
       ));
     }
 
@@ -226,7 +230,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
   }
 }
 
-class _StagedExerciseCard extends StatefulWidget {
+class _StagedExerciseCard extends ConsumerStatefulWidget {
   const _StagedExerciseCard({
     super.key,
     required this.exercise,
@@ -243,14 +247,15 @@ class _StagedExerciseCard extends StatefulWidget {
   final VoidCallback onRemove;
 
   @override
-  State<_StagedExerciseCard> createState() => _StagedExerciseCardState();
+  ConsumerState<_StagedExerciseCard> createState() => _StagedExerciseCardState();
 }
 
-class _StagedExerciseCardState extends State<_StagedExerciseCard> {
+class _StagedExerciseCardState extends ConsumerState<_StagedExerciseCard> {
   late final _sets = TextEditingController(text: '${widget.exercise.sets}');
   late final _repsMin = TextEditingController(text: '${widget.exercise.repsMin}');
   late final _repsMax = TextEditingController(text: '${widget.exercise.repsMax}');
   late final _weight = TextEditingController(text: widget.exercise.weight?.toString() ?? '');
+  late final _notes = TextEditingController(text: widget.exercise.notes ?? '');
 
   @override
   void dispose() {
@@ -258,12 +263,14 @@ class _StagedExerciseCardState extends State<_StagedExerciseCard> {
     _repsMin.dispose();
     _repsMax.dispose();
     _weight.dispose();
+    _notes.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final unit = ref.watch(weightUnitProvider);
     return AppCard(
       padding: EdgeInsets.zero,
       child: Column(
@@ -271,7 +278,7 @@ class _StagedExerciseCardState extends State<_StagedExerciseCard> {
           ListTile(
             leading: ExerciseThumbnail(imagePaths: widget.exercise.imagePaths),
             title: Text(widget.exercise.name),
-            subtitle: Text(_summary()),
+            subtitle: Text(_summary(unit)),
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline),
               onPressed: widget.onRemove,
@@ -282,14 +289,14 @@ class _StagedExerciseCardState extends State<_StagedExerciseCard> {
             duration: AppMotion.normal,
             curve: AppMotion.curve,
             alignment: Alignment.topCenter,
-            child: widget.isExpanded ? _fields(theme) : const SizedBox(width: double.infinity),
+            child: widget.isExpanded ? _fields(theme, unit) : const SizedBox(width: double.infinity),
           ),
         ],
       ),
     );
   }
 
-  Widget _fields(ThemeData theme) {
+  Widget _fields(ThemeData theme, WeightUnit unit) {
     final isStrength = widget.exercise.category == ExerciseCategory.strength;
     final isBodyweight = widget.exercise.equipment == 'Peso corporal';
 
@@ -335,9 +342,12 @@ class _StagedExerciseCardState extends State<_StagedExerciseCard> {
                   Expanded(
                     child: StatNumberField(
                       controller: _weight,
-                      label: 'Peso (kg)',
+                      label: 'Peso (${weightUnitLabel(unit)})',
                       decimal: true,
-                      onChanged: (v) => widget.exercise.weight = double.tryParse(v.replaceAll(',', '.')),
+                      onChanged: (v) {
+                        final typed = double.tryParse(v.replaceAll(',', '.'));
+                        widget.exercise.weight = typed == null ? null : displayUnitToKg(typed, unit);
+                      },
                     ),
                   ),
                 ],
@@ -355,22 +365,29 @@ class _StagedExerciseCardState extends State<_StagedExerciseCard> {
               widget.onChanged();
             },
           ),
+          const SizedBox(height: AppSpacing.md),
+          Text('Notas',
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          const SizedBox(height: AppSpacing.xs),
+          TextField(
+            controller: _notes,
+            maxLines: 2,
+            decoration: const InputDecoration(hintText: 'Ej. bajar el ritmo en la última serie'),
+            onChanged: (v) => widget.exercise.notes = v.trim().isEmpty ? null : v.trim(),
+          ),
         ],
       ),
     );
   }
 
-  String _summary() {
+  String _summary(WeightUnit unit) {
     final e = widget.exercise;
     final parts = <String>[
       '${e.sets} series',
       if (e.category == ExerciseCategory.strength) '${e.repsMin}-${e.repsMax} reps',
-      if (e.weight != null) '${_fmt(e.weight!)} kg',
+      if (e.weight != null) formatWeight(e.weight!, unit),
       if (e.restSeconds != null) 'descanso ${e.restSeconds}s',
     ];
     return parts.join(' · ');
   }
-
-  String _fmt(double value) =>
-      value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
 }

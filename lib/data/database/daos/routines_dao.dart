@@ -16,6 +16,13 @@ class RoutinesDao extends DatabaseAccessor<AppDatabase> with _$RoutinesDaoMixin 
         .watch();
   }
 
+  Stream<List<Routine>> watchArchivedRoutines() {
+    return (select(routines)
+          ..where((r) => r.isArchived.equals(true))
+          ..orderBy([(r) => OrderingTerm.desc(r.updatedAt)]))
+        .watch();
+  }
+
   Stream<Routine?> watchRoutine(int id) {
     return (select(routines)..where((r) => r.id.equals(id))).watchSingleOrNull();
   }
@@ -23,6 +30,9 @@ class RoutinesDao extends DatabaseAccessor<AppDatabase> with _$RoutinesDaoMixin 
   Future<int> createRoutine(RoutinesCompanion entry) => into(routines).insert(entry);
 
   Future<bool> updateRoutine(Routine routine) => update(routines).replace(routine);
+
+  Future<void> setArchived(int id, bool archived) => (update(routines)..where((r) => r.id.equals(id)))
+      .write(RoutinesCompanion(isArchived: Value(archived), updatedAt: Value(DateTime.now())));
 
   Future<int> deleteRoutine(int id) =>
       (delete(routines)..where((r) => r.id.equals(id))).go();

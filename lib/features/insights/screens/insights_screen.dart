@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/weight_unit.dart';
+import '../../../core/utils/weight_unit_provider.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/error_retry_card.dart';
 import '../providers/insights_providers.dart';
 
 class InsightsScreen extends ConsumerWidget {
@@ -10,6 +13,7 @@ class InsightsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final unit = ref.watch(weightUnitProvider);
     final weeklyAsync = ref.watch(weeklySummaryProvider);
     final stagnantAsync = ref.watch(stagnantExercisesProvider);
     final balanceAsync = ref.watch(muscleBalanceProvider);
@@ -35,7 +39,10 @@ class InsightsScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           weeklyAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Text('$e'),
+            error: (e, _) => ErrorRetryCard(
+              message: 'No se ha podido cargar el resumen semanal.',
+              onRetry: () => ref.invalidate(weeklySummaryProvider),
+            ),
             data: (summary) => AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,8 +56,8 @@ class InsightsScreen extends ConsumerWidget {
                   const SizedBox(height: 4),
                   Text(
                     summary.volumeChangePercent == null
-                        ? 'Volumen: ${summary.volumeThisWeek.toStringAsFixed(0)} kg'
-                        : 'Volumen: ${summary.volumeThisWeek.toStringAsFixed(0)} kg (${summary.volumeChangePercent! >= 0 ? '+' : ''}${summary.volumeChangePercent!.toStringAsFixed(0)}% vs semana pasada)',
+                        ? 'Volumen: ${formatWeight(summary.volumeThisWeek, unit, decimals: 0)}'
+                        : 'Volumen: ${formatWeight(summary.volumeThisWeek, unit, decimals: 0)} (${summary.volumeChangePercent! >= 0 ? '+' : ''}${summary.volumeChangePercent!.toStringAsFixed(0)}% vs semana pasada)',
                     style: theme.textTheme.bodyMedium
                         ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),
@@ -63,7 +70,10 @@ class InsightsScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           balanceAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Text('$e'),
+            error: (e, _) => ErrorRetryCard(
+              message: 'No se ha podido cargar el balance muscular.',
+              onRetry: () => ref.invalidate(muscleBalanceProvider),
+            ),
             data: (balance) {
               if (balance.isEmpty) {
                 return AppCard(
@@ -117,7 +127,10 @@ class InsightsScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           stagnantAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Text('$e'),
+            error: (e, _) => ErrorRetryCard(
+              message: 'No se han podido cargar los ejercicios estancados.',
+              onRetry: () => ref.invalidate(stagnantExercisesProvider),
+            ),
             data: (stagnant) => AppCard(
               child: stagnant.isEmpty
                   ? Text(

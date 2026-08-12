@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/utils/weight_unit.dart';
+import '../../../core/utils/weight_unit_provider.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/error_retry_view.dart';
 import '../../../services/progression_engine/estimated_one_rep_max.dart';
 import '../../../services/ranking_engine/strength_standards.dart';
 import '../../progress/providers/progress_providers.dart';
@@ -50,6 +53,7 @@ class _RankTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final unit = ref.watch(weightUnitProvider);
     final detail = ref.watch(exerciseRankDetailProvider(exerciseId));
 
     if (detail == null) {
@@ -97,14 +101,15 @@ class _RankTab extends ConsumerWidget {
                           child: RankStatBlock(
                             icon: Icons.fitness_center,
                             label: 'Mejor serie',
-                            value: '${_fmt(bestSet.weightKg!)} kg × ${bestSet.reps}',
+                            value: '${formatWeightValue(bestSet.weightKg!, unit)} ${weightUnitLabel(unit)} × ${bestSet.reps}',
                           ),
                         ),
                         Expanded(
                           child: RankStatBlock(
                             icon: Icons.show_chart,
                             label: '1RM estimado',
-                            value: '${estimatedOneRepMax(bestSet.weightKg!, bestSet.reps!).round()} kg',
+                            value: formatWeight(
+                                estimatedOneRepMax(bestSet.weightKg!, bestSet.reps!), unit, decimals: 0),
                           ),
                         ),
                       ],
@@ -133,7 +138,7 @@ class _RankTab extends ConsumerWidget {
                       ? 'Segundos que te harían subir: ${next.seconds}'
                       : next.reps != null
                           ? 'Repeticiones que te harían subir: ${next.reps}'
-                          : 'Estimación de la serie que te haría subir: ${_fmt(next.weightKg!)} kg × ${bestSet.reps}',
+                          : 'Estimación de la serie que te haría subir: ${formatWeightValue(next.weightKg!, unit)} ${weightUnitLabel(unit)} × ${bestSet.reps}',
                   style:
                       theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),
@@ -144,9 +149,6 @@ class _RankTab extends ConsumerWidget {
       ],
     );
   }
-
-  String _fmt(double value) =>
-      value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
 }
 
 // "45s" / "2 min" — matches the format used elsewhere for isometric/cardio
@@ -165,6 +167,7 @@ class _HistoryTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final unit = ref.watch(weightUnitProvider);
     final historyAsync = ref.watch(exerciseHistoryProvider(exerciseId));
     final standard = exerciseStandards[exerciseName];
     final isRepsBased = standard?.baselineReps != null;
@@ -172,7 +175,10 @@ class _HistoryTab extends ConsumerWidget {
 
     return historyAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('$e')),
+      error: (e, _) => ErrorRetryView(
+        message: 'No se ha podido cargar el historial.',
+        onRetry: () => ref.invalidate(exerciseHistoryProvider(exerciseId)),
+      ),
       data: (sessions) {
         if (sessions.isEmpty) {
           return Center(
@@ -214,7 +220,7 @@ class _HistoryTab extends ConsumerWidget {
                       else ...[
                         if (!isRepsBased)
                           Expanded(
-                            child: Text('Kg',
+                            child: Text(weightUnitLabel(unit).toUpperCase(),
                                 style: theme.textTheme.bodySmall
                                     ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
                           ),
@@ -235,7 +241,8 @@ class _HistoryTab extends ConsumerWidget {
                           if (isDurationBased)
                             Expanded(child: Text(_fmtSeconds(set.durationSeconds!)))
                           else ...[
-                            if (!isRepsBased) Expanded(child: Text(_fmt(set.weightKg!))),
+                            if (!isRepsBased)
+                              Expanded(child: Text(formatWeightValue(set.weightKg!, unit))),
                             Expanded(child: Text('${set.reps}')),
                           ],
                         ],
@@ -249,7 +256,4 @@ class _HistoryTab extends ConsumerWidget {
       },
     );
   }
-
-  String _fmt(double value) =>
-      value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
 }

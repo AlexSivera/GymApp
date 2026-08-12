@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/error_retry_card.dart';
+import '../../../core/widgets/error_retry_view.dart';
 import '../../../data/database/app_database.dart';
 import '../providers/routines_providers.dart';
 import 'routine_day_editor_screen.dart';
@@ -75,6 +77,17 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
     if (mounted) Navigator.of(context).pop();
   }
 
+  // Archiving keeps the routine and its history intact (unlike eliminar) —
+  // it just drops off the main "Tus rutinas" list, reachable again from
+  // "Rutinas archivadas" if you want to reuse or unarchive it later.
+  Future<void> _archiveRoutine() async {
+    await ref.read(routinesDaoProvider).setArchived(widget.routineId, true);
+    if (mounted) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Rutina archivada.')));
+    }
+  }
+
   Future<void> _addDay(int currentDayCount) async {
     final controller = TextEditingController();
     final name = await showDialog<String>(
@@ -118,7 +131,12 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
 
     return routineAsync.when(
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, _) => Scaffold(body: Center(child: Text('$e'))),
+      error: (e, _) => Scaffold(
+        body: ErrorRetryView(
+          message: 'No se ha podido cargar la rutina.',
+          onRetry: () => ref.invalidate(routineProvider(widget.routineId)),
+        ),
+      ),
       data: (routine) {
         if (routine == null) {
           return const Scaffold(body: Center(child: Text('Rutina no encontrada')));
@@ -142,6 +160,7 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
             onRenameRoutine: () => _renameRoutine(routine),
             onSaveDescription: () => _saveDescription(routine),
             onDeleteRoutine: _deleteRoutine,
+            onArchiveRoutine: _archiveRoutine,
           );
         }
 
@@ -152,6 +171,11 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
               IconButton(
                 onPressed: () => _renameRoutine(routine),
                 icon: const Icon(Icons.edit_outlined),
+              ),
+              IconButton(
+                onPressed: _archiveRoutine,
+                tooltip: 'Archivar rutina',
+                icon: const Icon(Icons.archive_outlined),
               ),
               IconButton(
                 onPressed: _deleteRoutine,
@@ -177,7 +201,10 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
               const SizedBox(height: 8),
               daysAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Text('$e'),
+                error: (e, _) => ErrorRetryCard(
+                  message: 'No se han podido cargar los días.',
+                  onRetry: () => ref.invalidate(routineDaysProvider(widget.routineId)),
+                ),
                 data: (days) {
                   if (days.isEmpty) {
                     return Text(
@@ -233,7 +260,7 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
   }
 }
 
-enum _RoutineMenuAction { rename, delete }
+enum _RoutineMenuAction { rename, archive, delete }
 
 // Merged view for the single-day case: the routine IS the day, so its
 // exercises show up directly instead of behind a "Días" list with one entry.
@@ -250,6 +277,7 @@ class _SingleDayRoutineView extends ConsumerWidget {
     required this.onRenameRoutine,
     required this.onSaveDescription,
     required this.onDeleteRoutine,
+    required this.onArchiveRoutine,
   });
 
   final Routine routine;
@@ -258,6 +286,7 @@ class _SingleDayRoutineView extends ConsumerWidget {
   final VoidCallback onRenameRoutine;
   final VoidCallback onSaveDescription;
   final VoidCallback onDeleteRoutine;
+  final VoidCallback onArchiveRoutine;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -278,12 +307,15 @@ class _SingleDayRoutineView extends ConsumerWidget {
               switch (action) {
                 case _RoutineMenuAction.rename:
                   onRenameRoutine();
+                case _RoutineMenuAction.archive:
+                  onArchiveRoutine();
                 case _RoutineMenuAction.delete:
                   onDeleteRoutine();
               }
             },
             itemBuilder: (context) => const [
               PopupMenuItem(value: _RoutineMenuAction.rename, child: Text('Renombrar rutina')),
+              PopupMenuItem(value: _RoutineMenuAction.archive, child: Text('Archivar rutina')),
               PopupMenuItem(value: _RoutineMenuAction.delete, child: Text('Eliminar rutina')),
             ],
           ),

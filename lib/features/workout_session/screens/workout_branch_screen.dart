@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/error_retry_view.dart';
 import '../providers/workout_session_providers.dart';
 import 'workout_session_screen.dart';
 
@@ -17,7 +18,12 @@ class WorkoutBranchScreen extends ConsumerWidget {
 
     return activeSession.when(
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, _) => Scaffold(body: Center(child: Text('$e'))),
+      error: (e, _) => Scaffold(
+        body: ErrorRetryView(
+          message: 'No se ha podido cargar el entrenamiento.',
+          onRetry: () => ref.invalidate(activeSessionProvider),
+        ),
+      ),
       data: (session) {
         if (session == null) {
           // Only reachable for a brief instant while a session is being

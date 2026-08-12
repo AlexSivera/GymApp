@@ -7,11 +7,13 @@ import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/error_retry_card.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../services/scheduling/bulk_assign.dart';
 import '../../exercise_library/screens/exercise_library_screen.dart';
 import '../../routines/providers/routines_providers.dart';
+import '../../routines/screens/archived_routines_screen.dart';
 import '../../routines/screens/create_routine_screen.dart';
 import '../../routines/screens/routine_editor_screen.dart';
 import '../../routines/widgets/routine_day_picker_sheet.dart';
@@ -161,12 +163,13 @@ class CalendarScreen extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      // Selecting several days to bulk-assign was only reachable
-                      // by long-pressing one — an invisible, undiscoverable
-                      // gesture. This gives it a visible entry point too; the
-                      // long-press shortcut still works exactly as before.
-                      IconButton(
-                        tooltip: selectionMode ? 'Salir de selección múltiple' : 'Seleccionar varios días',
+                      // Selecting several days to bulk-assign used to be
+                      // reachable only by long-pressing one — an invisible,
+                      // undiscoverable gesture. A labeled button (not just an
+                      // icon) makes the feature itself discoverable without
+                      // needing a separate tooltip; the long-press shortcut
+                      // still works exactly as before for people who find it.
+                      TextButton.icon(
                         onPressed: () {
                           if (selectionMode) {
                             ref.read(calendarSelectionModeProvider.notifier).state = false;
@@ -175,7 +178,8 @@ class CalendarScreen extends ConsumerWidget {
                             ref.read(calendarSelectionModeProvider.notifier).state = true;
                           }
                         },
-                        icon: Icon(selectionMode ? Icons.close : Icons.checklist),
+                        icon: Icon(selectionMode ? Icons.close : Icons.checklist, size: 18),
+                        label: Text(selectionMode ? 'Salir' : 'Seleccionar días'),
                       ),
                     ],
                   ),
@@ -197,7 +201,17 @@ class CalendarScreen extends ConsumerWidget {
             ),
           Padding(
             padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.sm),
-            child: Text('Tus rutinas', style: theme.textTheme.titleMedium),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Tus rutinas', style: theme.textTheme.titleMedium),
+                TextButton(
+                  onPressed: () => Navigator.of(context)
+                      .push(MaterialPageRoute(builder: (_) => const ArchivedRoutinesScreen())),
+                  child: const Text('Archivadas'),
+                ),
+              ],
+            ),
           ),
           routinesAsync.when(
             loading: () => const Padding(
@@ -206,7 +220,10 @@ class CalendarScreen extends ConsumerWidget {
             ),
             error: (e, _) => Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: Text('$e'),
+              child: ErrorRetryCard(
+                message: 'No se han podido cargar tus rutinas.',
+                onRetry: () => ref.invalidate(routinesListProvider),
+              ),
             ),
             data: (routines) {
               if (routines.isEmpty) {
@@ -385,12 +402,18 @@ class _DayCell extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: fill?.withValues(alpha: 0.22) ?? AppTheme.statusEmpty.withValues(alpha: 0.5),
+                // Bulk selection gets a solid accent fill + neutral border so
+                // it reads unmistakably differently from "today", which used
+                // to share the same accent hue for its ring and could be
+                // confused with a selected day at a glance.
+                color: isSelectedForBulk
+                    ? AppTheme.accent.withValues(alpha: 0.32)
+                    : fill?.withValues(alpha: 0.22) ?? AppTheme.statusEmpty.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
-                border: isToday
-                    ? Border.all(color: AppTheme.statusToday, width: 2)
-                    : isSelectedForBulk
-                        ? Border.all(color: theme.colorScheme.primary, width: 2)
+                border: isSelectedForBulk
+                    ? Border.all(color: theme.colorScheme.onSurface, width: 2)
+                    : isToday
+                        ? Border.all(color: AppTheme.statusToday, width: 2)
                         : null,
               ),
               alignment: Alignment.center,

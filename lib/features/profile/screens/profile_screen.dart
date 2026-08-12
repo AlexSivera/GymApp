@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/utils/weight_unit.dart';
+import '../../../core/utils/weight_unit_provider.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/stat_tile.dart';
 import '../../insights/screens/insights_screen.dart';
@@ -21,6 +23,7 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final bodyWeight = ref.watch(latestBodyWeightProvider);
     final totalWorkouts = ref.watch(totalWorkoutsCompletedProvider);
+    final unit = ref.watch(weightUnitProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Perfil')),
@@ -34,7 +37,7 @@ class ProfileScreen extends ConsumerWidget {
                   data: (log) => StatTile(
                     icon: Icons.monitor_weight_outlined,
                     label: 'Peso corporal',
-                    value: log == null ? '—' : '${log.weightKg} kg',
+                    value: log == null ? '—' : formatWeight(log.weightKg, unit),
                   ),
                   loading: () => const SizedBox(height: 96),
                   error: (e, _) => const SizedBox.shrink(),
@@ -93,7 +96,7 @@ class ProfileScreen extends ConsumerWidget {
             ),
             _ProfileTile(
               icon: Icons.import_export,
-              label: 'Importar / Exportar datos',
+              label: 'Exportar datos',
               onTap: () => Navigator.of(context)
                   .push(MaterialPageRoute(builder: (_) => const ImportExportScreen())),
             ),

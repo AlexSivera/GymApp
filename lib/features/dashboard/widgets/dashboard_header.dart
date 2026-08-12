@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_theme.dart';
 import '../providers/dashboard_providers.dart';
 
 // Date always renders — it's the one fact guaranteed to exist. The greeting
@@ -27,7 +28,14 @@ class DashboardHeader extends ConsumerWidget {
         ),
         if (name != null && name.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.xs),
-          Text('Hola, $name 👋', style: theme.textTheme.headlineMedium),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(child: Text('Hola, $name', style: theme.textTheme.headlineMedium)),
+              const SizedBox(width: AppSpacing.sm),
+              Icon(Icons.waving_hand_rounded, color: AppTheme.accent, size: 22),
+            ],
+          ),
         ],
       ],
     );

@@ -1,3 +1,4 @@
+import '../../core/utils/weight_unit.dart';
 import '../../data/database/app_database.dart';
 import '../calories_engine/estimate_calories_burned.dart';
 import '../progression_engine/previous_performance.dart';
@@ -36,7 +37,7 @@ class SessionSummary {
   final double caloriesBurned;
 }
 
-String _fmtWeight(double value) =>
+String _fmtNumber(double value) =>
     value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
 
 // "12 min" / "45s" / "5 km" / "12 min · 5 km" — whichever of duration/distance
@@ -52,14 +53,18 @@ String _fmtDuration(WorkoutSet set) {
   final distance = set.distanceMeters;
   if (distance != null) {
     final km = distance / 1000;
-    parts.add(km >= 1 ? '${_fmtWeight(km)} km' : '${distance.round()} m');
+    parts.add(km >= 1 ? '${_fmtNumber(km)} km' : '${distance.round()} m');
   }
   return parts.isEmpty ? '—' : parts.join(' · ');
 }
 
 // Compares a just-completed session against prior history to surface
 // what improved — meant to be shown right after finishing a workout.
-Future<SessionSummary> computeSessionSummary(AppDatabase db, {required int sessionId}) async {
+Future<SessionSummary> computeSessionSummary(
+  AppDatabase db, {
+  required int sessionId,
+  WeightUnit unit = WeightUnit.kg,
+}) async {
   final session = await db.workoutSessionsDao.watchById(sessionId).first;
   final sessionExercises = await db.sessionLoggingDao.watchSessionExercises(sessionId).first;
   final allExercises = await db.exercisesDao.watchAll().first;
@@ -92,7 +97,7 @@ Future<SessionSummary> computeSessionSummary(AppDatabase db, {required int sessi
     final exerciseName = exercisesById[sessionExercise.exerciseId]?.name ?? 'Ejercicio';
     exerciseLogs.add(ExerciseLog(
       exerciseName: exerciseName,
-      setsSummary: validSets.map((s) => '${_fmtWeight(s.weightKg!)}kg×${s.reps}').join(', '),
+      setsSummary: validSets.map((s) => '${formatWeightValue(s.weightKg!, unit)}${weightUnitLabel(unit)}×${s.reps}').join(', '),
     ));
 
     final previousSets = await getPreviousSetsForExercise(
@@ -108,7 +113,7 @@ Future<SessionSummary> computeSessionSummary(AppDatabase db, {required int sessi
       if (currentBest > prevBest) {
         improvements.add(ExerciseImprovement(
           exerciseName: exerciseName,
-          message: '+${(currentBest - prevBest).toStringAsFixed(1)} kg',
+          message: '+${formatWeight(currentBest - prevBest, unit)}',
         ));
       }
     }

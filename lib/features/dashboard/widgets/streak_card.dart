@@ -27,7 +27,7 @@ class StreakCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('🔥', style: theme.textTheme.titleMedium),
+              Icon(Icons.local_fire_department_rounded, size: 18, color: color),
               const SizedBox(width: AppSpacing.xs),
               Text(
                 'RACHA',

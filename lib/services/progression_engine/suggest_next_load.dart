@@ -1,3 +1,4 @@
+import '../../core/utils/weight_unit.dart';
 import '../../data/database/app_database.dart';
 
 class LoadSuggestion {
@@ -18,6 +19,7 @@ LoadSuggestion suggestNextLoad({
   required int targetRepsMin,
   required int targetRepsMax,
   double weightIncrement = 2.5,
+  WeightUnit unit = WeightUnit.kg,
 }) {
   final validSets =
       previousSets.where((s) => s.weightKg != null && s.reps != null && !s.isWarmup).toList();
@@ -33,21 +35,18 @@ LoadSuggestion suggestNextLoad({
   if (allAtTop) {
     final next = lastWeight + weightIncrement;
     return LoadSuggestion(
-      message: 'Completaste el rango superior. Prueba con ${_fmt(next)} kg.',
+      message: 'Completaste el rango superior. Prueba con ${formatWeight(next, unit)}.',
       suggestedWeight: next,
     );
   }
   if (anyBelowMin) {
     return LoadSuggestion(
-      message: 'Mantén ${_fmt(lastWeight)} kg hasta consolidar más repeticiones.',
+      message: 'Mantén ${formatWeight(lastWeight, unit)} hasta consolidar más repeticiones.',
       suggestedWeight: lastWeight,
     );
   }
   return LoadSuggestion(
-    message: 'Vas bien con ${_fmt(lastWeight)} kg. Intenta sumar alguna repetición más.',
+    message: 'Vas bien con ${formatWeight(lastWeight, unit)}. Intenta sumar alguna repetición más.',
     suggestedWeight: lastWeight,
   );
 }
-
-String _fmt(double value) =>
-    value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);

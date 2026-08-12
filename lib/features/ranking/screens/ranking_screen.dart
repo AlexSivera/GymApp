@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/muscle_groups.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/exercise_thumbnail.dart';
 import '../../../services/ranking_engine/rank_tier.dart';
@@ -67,27 +69,77 @@ class RankingScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          AppCard(child: BodyDiagram(colorsByMuscle: colorsByMuscle, emptyColor: emptyColor)),
-          const SizedBox(height: AppSpacing.xl),
-          Text('Rankings musculares', style: theme.textTheme.titleLarge),
-          for (final entry in grouped.entries) ...[
-            Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.xs),
-              child: Text(entry.key,
-                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-            ),
-            AppCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  for (var i = 0; i < entry.value.length; i++) ...[
-                    _MuscleRow(muscle: entry.value[i], rank: muscleRanks[entry.value[i]]),
-                    if (i != entry.value.length - 1) const Divider(height: 1, indent: 68),
-                  ],
-                ],
+          if (predicted == null)
+            const _RankingEmptyState()
+          else ...[
+            AppCard(child: BodyDiagram(colorsByMuscle: colorsByMuscle, emptyColor: emptyColor)),
+            const SizedBox(height: AppSpacing.xl),
+            Text('Rankings musculares', style: theme.textTheme.titleLarge),
+            for (final entry in grouped.entries) ...[
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.xs),
+                child: Text(entry.key,
+                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               ),
-            ),
+              AppCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    for (var i = 0; i < entry.value.length; i++) ...[
+                      _MuscleRow(muscle: entry.value[i], rank: muscleRanks[entry.value[i]]),
+                      if (i != entry.value.length - 1) const Divider(height: 1, indent: 68),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ],
+        ],
+      ),
+    );
+  }
+}
+
+// Shown instead of the (otherwise all-grey) body diagram and muscle list
+// until the user has completed a single workout — without this, a brand-new
+// install just shows an empty silhouette with no explanation of what "Rangos"
+// even is or how to unlock it.
+class _RankingEmptyState extends StatelessWidget {
+  const _RankingEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      child: Column(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: AppTheme.accent.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.military_tech_rounded, color: AppTheme.accent, size: 32),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text('Aquí verás tu progreso por músculo', style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'Cada ejercicio que completes te acerca a un rango, de Hierro a Maestro. '
+            'Termina tu primer entrenamiento para desbloquear el primero.',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => context.go('/calendar'),
+              child: const Text('Ir a mis rutinas'),
+            ),
+          ),
         ],
       ),
     );

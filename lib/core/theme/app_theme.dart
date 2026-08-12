@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'app_spacing.dart';
 
@@ -34,36 +35,43 @@ class AppTheme {
     const textColor = Color(0xFFF4F5F6);
     const mutedTextColor = Color(0xFF9CA3AB);
 
+    // Display face: Outfit — a geometric sans with a confident, sporty
+    // character for numbers and headings. Body face: Plus Jakarta Sans — warm
+    // and highly legible at small sizes for stat-dense screens. The pairing
+    // is what gives the app its own identity instead of the platform default.
+    TextStyle display(TextStyle style) => GoogleFonts.outfit(textStyle: style);
+    TextStyle body(TextStyle style) => GoogleFonts.plusJakartaSans(textStyle: style);
+
     final textTheme = TextTheme(
       // Hero numbers / big CTAs.
-      displaySmall: const TextStyle(
+      displaySmall: display(const TextStyle(
         fontSize: 34,
         fontWeight: FontWeight.w700,
         letterSpacing: -0.5,
         color: textColor,
         height: 1.1,
-      ),
-      headlineMedium: const TextStyle(
+      )),
+      headlineMedium: display(const TextStyle(
         fontSize: 24,
         fontWeight: FontWeight.w700,
         letterSpacing: -0.3,
         color: textColor,
-      ),
-      titleLarge: const TextStyle(
+      )),
+      titleLarge: display(const TextStyle(
         fontSize: 19,
         fontWeight: FontWeight.w600,
         color: textColor,
-      ),
-      titleMedium: const TextStyle(
+      )),
+      titleMedium: display(const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w600,
         color: textColor,
-      ),
-      bodyLarge: const TextStyle(fontSize: 16, color: textColor, height: 1.35),
-      bodyMedium: const TextStyle(fontSize: 14, color: textColor, height: 1.35),
-      bodySmall: TextStyle(fontSize: 13, color: mutedTextColor, height: 1.3),
-      labelLarge: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textColor),
-      labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: mutedTextColor),
+      )),
+      bodyLarge: body(const TextStyle(fontSize: 16, color: textColor, height: 1.35)),
+      bodyMedium: body(const TextStyle(fontSize: 14, color: textColor, height: 1.35)),
+      bodySmall: body(TextStyle(fontSize: 13, color: mutedTextColor, height: 1.3)),
+      labelLarge: body(const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textColor)),
+      labelMedium: body(TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: mutedTextColor)),
     );
 
     return ThemeData(
@@ -78,16 +86,16 @@ class AppTheme {
       ),
       textTheme: textTheme,
       splashFactory: InkSparkle.splashFactory,
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: background,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
-        titleTextStyle: TextStyle(
+        titleTextStyle: display(const TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w700,
           color: textColor,
-        ),
+        )),
       ),
       cardTheme: CardThemeData(
         color: surface,
@@ -115,7 +123,7 @@ class AppTheme {
           backgroundColor: accent,
           foregroundColor: const Color(0xFF06201C),
           disabledBackgroundColor: surfaceRaised,
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          textStyle: display(const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
           elevation: 0,

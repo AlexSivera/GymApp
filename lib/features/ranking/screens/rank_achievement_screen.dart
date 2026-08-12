@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/utils/weight_unit.dart';
+import '../../../core/utils/weight_unit_provider.dart';
+import '../../../core/widgets/celebration_overlay.dart';
 import '../../../core/widgets/exercise_thumbnail.dart';
 import '../../../services/progression_engine/estimated_one_rep_max.dart';
 import '../../../services/ranking_engine/compute_new_rank_achievements.dart';
@@ -13,16 +17,16 @@ import '../widgets/rank_stat_block.dart';
 // a new rank (first-time classification or a tier climb). Unlike the old
 // manual classification queue, there's no "Saltar" here — these ranks are
 // already earned and already persisted, this screen just shows them off.
-class RankAchievementScreen extends StatefulWidget {
+class RankAchievementScreen extends ConsumerStatefulWidget {
   const RankAchievementScreen({super.key, required this.achievements});
 
   final List<RankAchievement> achievements;
 
   @override
-  State<RankAchievementScreen> createState() => _RankAchievementScreenState();
+  ConsumerState<RankAchievementScreen> createState() => _RankAchievementScreenState();
 }
 
-class _RankAchievementScreenState extends State<RankAchievementScreen> {
+class _RankAchievementScreenState extends ConsumerState<RankAchievementScreen> {
   int _index = 0;
 
   void _next() {
@@ -36,13 +40,15 @@ class _RankAchievementScreenState extends State<RankAchievementScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final unit = ref.watch(weightUnitProvider);
     final achievement = widget.achievements[_index];
     final rank = achievement.rank;
     final rankColor = rankTierColors[rank.tier]!;
     final previousRank = achievement.previousRank;
     final total = widget.achievements.length;
 
-    return Scaffold(
+    return CelebrationOverlay(
+      child: Scaffold(
       appBar: AppBar(title: Text(total > 1 ? '${_index + 1} de $total' : 'Nuevo rango')),
       body: SafeArea(
         child: Padding(
@@ -67,8 +73,15 @@ class _RankAchievementScreenState extends State<RankAchievementScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(previousRank == null ? '🎉 Nuevo rango' : '🎉 ¡Subiste de rango!',
-                            style: theme.textTheme.titleMedium),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.emoji_events_rounded, color: rankColor, size: 20),
+                            const SizedBox(width: AppSpacing.xs),
+                            Text(previousRank == null ? 'Nuevo rango' : '¡Subiste de rango!',
+                                style: theme.textTheme.titleMedium),
+                          ],
+                        ),
                         const SizedBox(height: AppSpacing.lg),
                         ExerciseThumbnail(imagePaths: achievement.exercise.imagePaths, size: 96),
                         const SizedBox(height: AppSpacing.md),
@@ -107,15 +120,18 @@ class _RankAchievementScreenState extends State<RankAchievementScreen> {
                                   icon: Icons.fitness_center,
                                   label: 'Mejor serie',
                                   value:
-                                      '${_fmt(achievement.bestSet.weightKg!)} kg × ${achievement.bestSet.reps}',
+                                      '${formatWeightValue(achievement.bestSet.weightKg!, unit)} ${weightUnitLabel(unit)} × ${achievement.bestSet.reps}',
                                 ),
                               ),
                               Expanded(
                                 child: RankStatBlock(
                                   icon: Icons.show_chart,
                                   label: '1RM estimado',
-                                  value:
-                                      '${estimatedOneRepMax(achievement.bestSet.weightKg!, achievement.bestSet.reps!).round()} kg',
+                                  value: formatWeight(
+                                      estimatedOneRepMax(
+                                          achievement.bestSet.weightKg!, achievement.bestSet.reps!),
+                                      unit,
+                                      decimals: 0),
                                 ),
                               ),
                             ],
@@ -136,11 +152,9 @@ class _RankAchievementScreenState extends State<RankAchievementScreen> {
           ),
         ),
       ),
+      ),
     );
   }
-
-  String _fmt(double value) =>
-      value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
 }
 
 // "45s" / "2 min" — matches the format used elsewhere for isometric/cardio
