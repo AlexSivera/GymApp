@@ -8,6 +8,7 @@ mixin _$RoutinesDaoMixin on DatabaseAccessor<AppDatabase> {
   $RoutineDaysTable get routineDays => attachedDatabase.routineDays;
   $RoutineExercisesTable get routineExercises =>
       attachedDatabase.routineExercises;
+  $ExercisesTable get exercises => attachedDatabase.exercises;
   RoutinesDaoManager get managers => RoutinesDaoManager(this);
 }
 
@@ -23,4 +24,6 @@ class RoutinesDaoManager {
         _db.attachedDatabase,
         _db.routineExercises,
       );
+  $$ExercisesTableTableManager get exercises =>
+      $$ExercisesTableTableManager(_db.attachedDatabase, _db.exercises);
 }

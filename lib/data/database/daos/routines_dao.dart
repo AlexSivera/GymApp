@@ -1,11 +1,12 @@
 import 'package:drift/drift.dart';
 
 import '../app_database.dart';
+import '../tables/exercises_table.dart';
 import '../tables/routines_table.dart';
 
 part 'routines_dao.g.dart';
 
-@DriftAccessor(tables: [Routines, RoutineDays, RoutineExercises])
+@DriftAccessor(tables: [Routines, RoutineDays, RoutineExercises, Exercises])
 class RoutinesDao extends DatabaseAccessor<AppDatabase> with _$RoutinesDaoMixin {
   RoutinesDao(super.db);
 
@@ -55,6 +56,24 @@ class RoutinesDao extends DatabaseAccessor<AppDatabase> with _$RoutinesDaoMixin 
       ..join([innerJoin(routineDays, routineDays.id.equalsExp(routineExercises.routineDayId))])
       ..where(routineDays.routineId.equals(routineId));
     return query.watch().map((rows) => rows.length);
+  }
+
+  // Union of primary muscles across every exercise in the routine (all
+  // days) — used by the Planificar routine cards to show what a routine
+  // trains instead of a stale "updated on" date.
+  Stream<List<String>> watchPrimaryMusclesInRoutine(int routineId) {
+    final query = select(routineExercises).join([
+      innerJoin(routineDays, routineDays.id.equalsExp(routineExercises.routineDayId)),
+      innerJoin(exercises, exercises.id.equalsExp(routineExercises.exerciseId)),
+    ])
+      ..where(routineDays.routineId.equals(routineId));
+    return query.watch().map((rows) {
+      final muscles = <String>{};
+      for (final row in rows) {
+        muscles.addAll(row.readTable(exercises).primaryMuscles);
+      }
+      return muscles.toList();
+    });
   }
 
   Stream<RoutineDay?> watchDayById(int id) {

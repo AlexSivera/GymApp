@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../../../core/constants/muscle_groups.dart';
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_theme.dart';
@@ -296,6 +296,8 @@ class _RoutineCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final exerciseCount = ref.watch(routineExerciseCountProvider(routine.id)).valueOrNull;
+    final muscles = ref.watch(routineMusclesProvider(routine.id)).valueOrNull;
+    final orderedMuscles = muscles == null ? null : orderedAvailableMuscles(muscles);
 
     return AppCard(
       child: InkWell(
@@ -322,7 +324,11 @@ class _RoutineCard extends ConsumerWidget {
                   Text(routine.name, style: theme.textTheme.titleMedium),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    '${exerciseCount ?? '—'} ejercicios · actualizada ${DateFormat('d MMM', 'es').format(routine.updatedAt)}',
+                    orderedMuscles == null || orderedMuscles.isEmpty
+                        ? '${exerciseCount ?? '—'} ejercicios'
+                        : '${exerciseCount ?? '—'} ejercicios · ${orderedMuscles.join(', ')}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodySmall,
                   ),
                 ],

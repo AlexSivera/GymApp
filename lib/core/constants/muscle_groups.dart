@@ -32,6 +32,19 @@ const _muscleIcons = {
 
 IconData iconForMuscle(String muscle) => _muscleIcons[muscle] ?? Icons.fitness_center;
 
+// Same muscles as [groupedAvailableMuscles], flattened into one list in
+// canonical body-region order — used for compact "which muscles does this
+// train" summaries (e.g. the Planificar routine cards).
+List<String> orderedAvailableMuscles(Iterable<String> available) {
+  final remaining = available.toSet();
+  final ordered = <String>[];
+  for (final group in muscleGroups.values) {
+    ordered.addAll(group.where(remaining.remove));
+  }
+  ordered.addAll(remaining.toList()..sort());
+  return ordered;
+}
+
 // Same grouping as above, but only the muscles actually present in
 // [available], with any unrecognized ones appended under "Otros".
 Map<String, List<String>> groupedAvailableMuscles(List<String> available) {

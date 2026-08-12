@@ -35,6 +35,10 @@ final routineExerciseCountProvider = StreamProvider.family<int, int>((ref, routi
   return ref.watch(routinesDaoProvider).watchExerciseCountInRoutine(routineId);
 });
 
+final routineMusclesProvider = StreamProvider.family<List<String>, int>((ref, routineId) {
+  return ref.watch(routinesDaoProvider).watchPrimaryMusclesInRoutine(routineId);
+});
+
 // Which RoutineExercise rows are expanded inline in a routine day's list —
 // several can be open at once (e.g. all newly-added exercises after a
 // multi-select add).
