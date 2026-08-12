@@ -1296,4 +1296,30 @@ const exerciseSeedData = <ExerciseSeed>[
     instructions: 'De pie sujetando las palancas de la máquina, eleva los hombros hacia las orejas y baja controlado.',
     imageAsset: 'assets/exercises/encogimientos_maquina.jpg',
   ),
+
+  // Huecos detectados al comparar con free-exercise-db (a petición del usuario)
+  ExerciseSeed(
+    name: 'Máquina de elevaciones laterales',
+    primaryMuscles: ['Hombros'],
+    secondaryMuscles: [],
+    equipment: 'Máquina',
+    instructions: 'Sentado en la máquina con los brazos apoyados en las almohadillas, eleva los brazos hacia los lados hasta la altura de los hombros.',
+    imageAsset: 'assets/exercises/maquina_elevaciones_laterales.jpg',
+  ),
+  ExerciseSeed(
+    name: 'Máquina de press inclinado',
+    primaryMuscles: ['Pecho'],
+    secondaryMuscles: ['Hombros', 'Tríceps'],
+    equipment: 'Máquina',
+    instructions: 'Sentado en la máquina con el respaldo inclinado, empuja las palancas hacia arriba y adelante hasta extender los brazos.',
+    imageAsset: 'assets/exercises/maquina_press_inclinado.jpg',
+  ),
+  ExerciseSeed(
+    name: 'Pull over en polea',
+    primaryMuscles: ['Pecho'],
+    secondaryMuscles: ['Espalda', 'Hombros', 'Tríceps'],
+    equipment: 'Polea',
+    instructions: 'De pie o sentado de espaldas a la polea alta, con los brazos casi rectos, tira de la barra en arco desde detrás de la cabeza hasta los muslos.',
+    imageAsset: 'assets/exercises/pullover_polea.jpg',
+  ),
 ];

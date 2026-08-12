@@ -74,6 +74,8 @@ const exerciseStandards = <String, ExerciseStandard>{
   'Press de pecho inclinado en polea': ExerciseStandard(16 / referenceBodyweightKg),
   'Press banca en máquina Smith': ExerciseStandard(42 / referenceBodyweightKg),
   'Press banca inclinado en máquina Smith': ExerciseStandard(35 / referenceBodyweightKg),
+  'Máquina de press inclinado': ExerciseStandard(35 / referenceBodyweightKg),
+  'Pull over en polea': ExerciseStandard(15 / referenceBodyweightKg),
 
   // Espalda
   'Dominadas': ExerciseStandard(0.9, bodyweightBased: true),
@@ -120,6 +122,7 @@ const exerciseStandards = <String, ExerciseStandard>{
   'Push press con barra': ExerciseStandard(45 / referenceBodyweightKg),
   'Thruster con kettlebell': ExerciseStandard(20 / referenceBodyweightKg),
   'Press militar en máquina Smith': ExerciseStandard(28 / referenceBodyweightKg),
+  'Máquina de elevaciones laterales': ExerciseStandard(6 / referenceBodyweightKg),
 
   // Bíceps
   'Curl con barra': ExerciseStandard(18 / referenceBodyweightKg),
