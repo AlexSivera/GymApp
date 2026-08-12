@@ -54,4 +54,39 @@ class NotificationService {
     if (!_initialized) return;
     await _plugin.cancel(_restTimerNotificationId);
   }
+
+  // Generic one-shot reminder, reused for both the "hoy toca entrenar" and
+  // "racha en riesgo" proactive nudges — [id] keeps them independently
+  // cancelable/reschedulable. Same inexact/idle-tolerant scheduling as the
+  // rest timer: a day's-notice reminder doesn't need to-the-second precision.
+  static Future<void> scheduleReminder({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime fireAt,
+  }) async {
+    if (!_initialized) return;
+    await _plugin.zonedSchedule(
+      id,
+      title,
+      body,
+      tz.TZDateTime.from(fireAt, tz.local),
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'reminders',
+          'Recordatorios',
+          channelDescription: 'Avisos de entrenamiento planificado y racha en riesgo.',
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+    );
+  }
+
+  static Future<void> cancelReminder(int id) async {
+    if (!_initialized) return;
+    await _plugin.cancel(id);
+  }
 }

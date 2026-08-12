@@ -5,6 +5,8 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/error_retry_card.dart';
 import '../../../core/widgets/fade_slide_in.dart';
 import '../../../core/widgets/shimmer_box.dart';
+import '../../../data/database/database_provider.dart';
+import '../../../services/notifications/reminder_scheduler.dart';
 import '../providers/dashboard_providers.dart';
 import '../widgets/calories_today_card.dart';
 import '../widgets/dashboard_header.dart';
@@ -21,6 +23,16 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Today's session status (planned/completed/skipped) and the streak both
+    // feed the "hoy toca entrenar" / "racha en riesgo" reminders — re-checking
+    // whenever either changes means finishing a workout silences today's
+    // reminder immediately instead of it firing anyway later.
+    ref.listen(todaysSessionProvider, (_, _) {
+      refreshDailyReminders(ref.read(appDatabaseProvider));
+    });
+    ref.listen(workoutStreakProvider, (_, _) {
+      refreshDailyReminders(ref.read(appDatabaseProvider));
+    });
     final todaysSession = ref.watch(todaysSessionProvider);
     final recentActivity = ref.watch(recentActivityProvider);
     final nextSession = ref.watch(nextPlannedSessionProvider);

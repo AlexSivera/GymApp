@@ -57,7 +57,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -87,6 +87,13 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(exercises, exercises.category);
             await m.addColumn(workoutSets, workoutSets.durationSeconds);
             await m.addColumn(workoutSets, workoutSets.distanceMeters);
+          }
+          if (from < 7) {
+            await m.addColumn(userSettings, userSettings.remindersEnabled);
+          }
+          if (from < 8) {
+            await m.addColumn(routineExercises, routineExercises.supersetGroup);
+            await m.addColumn(sessionExercises, sessionExercises.supersetGroup);
           }
         },
         beforeOpen: (details) async {

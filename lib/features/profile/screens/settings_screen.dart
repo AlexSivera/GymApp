@@ -6,6 +6,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
+import '../../../services/notifications/reminder_scheduler.dart';
 import '../../dashboard/providers/dashboard_providers.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -18,6 +19,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late final TextEditingController _nameController;
   String _units = 'kg';
+  bool _remindersEnabled = true;
   bool _initialized = false;
 
   @override
@@ -33,10 +35,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _save() async {
-    await ref.read(appDatabaseProvider).userSettingsDao.updateSettings(UserSettingsCompanion(
+    final db = ref.read(appDatabaseProvider);
+    await db.userSettingsDao.updateSettings(UserSettingsCompanion(
           units: Value(_units),
           name: Value(_nameController.text.trim().isEmpty ? null : _nameController.text.trim()),
+          remindersEnabled: Value(_remindersEnabled),
         ));
+    await refreshDailyReminders(db);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preferencias guardadas.')));
     }
@@ -50,6 +55,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (settings != null && !_initialized) {
       _units = settings.units;
       _nameController.text = settings.name ?? '';
+      _remindersEnabled = settings.remindersEnabled;
       _initialized = true;
     }
 
@@ -78,6 +84,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   onSelectionChanged: (selection) => setState(() => _units = selection.first),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          AppCard(
+            child: SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Recordatorios'),
+              subtitle: const Text('Avisarme si hoy toca entrenar o si mi racha está en riesgo'),
+              value: _remindersEnabled,
+              onChanged: (value) => setState(() => _remindersEnabled = value),
             ),
           ),
           const SizedBox(height: AppSpacing.xl),

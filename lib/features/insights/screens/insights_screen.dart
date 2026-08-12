@@ -6,6 +6,7 @@ import '../../../core/utils/weight_unit_provider.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/error_retry_card.dart';
 import '../providers/insights_providers.dart';
+import '../widgets/progress_history_charts.dart';
 
 class InsightsScreen extends ConsumerWidget {
   const InsightsScreen({super.key});
@@ -17,6 +18,7 @@ class InsightsScreen extends ConsumerWidget {
     final weeklyAsync = ref.watch(weeklySummaryProvider);
     final stagnantAsync = ref.watch(stagnantExercisesProvider);
     final balanceAsync = ref.watch(muscleBalanceProvider);
+    final historyAsync = ref.watch(progressHistoryProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -28,6 +30,7 @@ class InsightsScreen extends ConsumerWidget {
               ref.invalidate(weeklySummaryProvider);
               ref.invalidate(stagnantExercisesProvider);
               ref.invalidate(muscleBalanceProvider);
+              ref.invalidate(progressHistoryProvider);
             },
           ),
         ],
@@ -64,6 +67,47 @@ class InsightsScreen extends ConsumerWidget {
                 ],
               ),
             ),
+          ),
+          const SizedBox(height: 20),
+          Text('Volumen semanal (últimas 8 semanas)', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          historyAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => ErrorRetryCard(
+              message: 'No se ha podido cargar el historial de volumen.',
+              onRetry: () => ref.invalidate(progressHistoryProvider),
+            ),
+            data: (history) => history.hasAnyData
+                ? VolumeHistoryChart(history: history, unit: unit)
+                : AppCard(
+                    child: Text(
+                      'Todavía no hay suficientes entrenamientos para ver una tendencia.',
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                  ),
+          ),
+          const SizedBox(height: 20),
+          Text('Frecuencia de entrenamiento', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          historyAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => ErrorRetryCard(
+              message: 'No se ha podido cargar la frecuencia de entrenamiento.',
+              onRetry: () => ref.invalidate(progressHistoryProvider),
+            ),
+            data: (history) => FrequencyHistoryChart(history: history),
+          ),
+          const SizedBox(height: 20),
+          Text('Evolución por grupo muscular', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          historyAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => ErrorRetryCard(
+              message: 'No se ha podido cargar la evolución muscular.',
+              onRetry: () => ref.invalidate(progressHistoryProvider),
+            ),
+            data: (history) => MuscleTrendChart(history: history),
           ),
           const SizedBox(height: 20),
           Text('Balance muscular (últimos 30 días)', style: theme.textTheme.titleMedium),

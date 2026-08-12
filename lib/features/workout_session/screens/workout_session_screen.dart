@@ -12,9 +12,11 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/error_retry_view.dart';
 import '../../../core/widgets/exercise_thumbnail.dart';
+import '../../../core/utils/superset_grouping.dart';
 import '../../../core/utils/weight_unit.dart';
 import '../../../core/utils/weight_unit_provider.dart';
 import '../../../data/database/app_database.dart';
+import '../../../data/database/daos/session_logging_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../services/insights_engine/session_summary.dart';
 import '../../../services/progression_engine/check_and_record_prs.dart';
@@ -84,6 +86,7 @@ class WorkoutSessionScreen extends ConsumerWidget {
                     e.status == SessionExerciseStatus.skipped)
                 .length;
             final allDone = sessionExercises.isNotEmpty && completedCount == sessionExercises.length;
+            final supersetLabels = supersetGroupLabels(sessionExercises, (e) => e.supersetGroup);
 
             return Scaffold(
               appBar: AppBar(
@@ -164,6 +167,9 @@ class WorkoutSessionScreen extends ConsumerWidget {
                             itemBuilder: (context, index) {
                               final sessionExercise = sessionExercises[index];
                               final exercise = exercisesById[sessionExercise.exerciseId];
+                              final groupLabel = sessionExercise.supersetGroup == null
+                                  ? null
+                                  : supersetLabels[sessionExercise.supersetGroup];
                               return Padding(
                                 key: ValueKey(sessionExercise.id),
                                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -174,6 +180,7 @@ class WorkoutSessionScreen extends ConsumerWidget {
                                   imagePaths: exercise?.imagePaths ?? const [],
                                   category: exercise?.category ?? ExerciseCategory.strength,
                                   targets: targetsByExercise[sessionExercise.exerciseId],
+                                  groupLabel: groupLabel,
                                 ),
                               );
                             },
@@ -351,6 +358,7 @@ class _ExerciseRow extends ConsumerWidget {
     required this.imagePaths,
     required this.category,
     required this.targets,
+    required this.groupLabel,
   });
 
   final int sessionId;
@@ -359,9 +367,11 @@ class _ExerciseRow extends ConsumerWidget {
   final List<String> imagePaths;
   final ExerciseCategory category;
   final _ExerciseTargets? targets;
+  final String? groupLabel;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final sets = ref.watch(setsForExerciseProvider(sessionExercise.id)).valueOrNull ?? const [];
     final isExpanded = ref.watch(expandedSessionExerciseIdProvider) == sessionExercise.id;
     final unit = ref.watch(weightUnitProvider);
@@ -370,6 +380,13 @@ class _ExerciseRow extends ConsumerWidget {
       padding: EdgeInsets.zero,
       child: Column(
         children: [
+          if (groupLabel != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+              child: Text('SUPERSERIE $groupLabel',
+                  style: theme.textTheme.labelMedium
+                      ?.copyWith(color: theme.colorScheme.primary, letterSpacing: 0.5)),
+            ),
           ListTile(
             leading: ExerciseThumbnail(imagePaths: imagePaths),
             title: Text(exerciseName),
@@ -650,7 +667,8 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
     _SetResult result,
   ) async {
     final setId = set.id;
-    await ref.read(sessionLoggingDaoProvider).updateSet(set.copyWith(
+    final dao = ref.read(sessionLoggingDaoProvider);
+    await dao.updateSet(set.copyWith(
           weightKg: Value(result.weight),
           reps: Value(result.reps),
           durationSeconds: Value(result.durationSeconds),
@@ -661,7 +679,15 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
         ));
 
     HapticFeedback.lightImpact();
-    ref.read(restTimerControllerProvider.notifier).start(restSeconds);
+    final nextInSuperset = await _nextSupersetPartnerNeedingThisRound(ref, dao);
+    if (nextInSuperset != null) {
+      // Part of a superset/circuit and a partner hasn't done this round yet
+      // — move straight to it instead of starting the rest timer, which only
+      // fires once every exercise in the group has caught up.
+      ref.read(expandedSessionExerciseIdProvider.notifier).state = nextInSuperset.id;
+    } else {
+      ref.read(restTimerControllerProvider.notifier).start(restSeconds);
+    }
     await _syncExerciseStatus(ref);
 
     if (result.weight != null && result.reps != null) {
@@ -684,6 +710,33 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
         ));
       }
     }
+  }
+
+  // Null if this exercise isn't in a superset, or every partner already has
+  // at least as many completed sets as this exercise now does (i.e. this was
+  // the last one to finish the current round, so it's time to actually
+  // rest). Otherwise, the partner earliest in the day's order that still
+  // needs this round.
+  Future<SessionExercise?> _nextSupersetPartnerNeedingThisRound(
+    WidgetRef ref,
+    SessionLoggingDao dao,
+  ) async {
+    final group = sessionExercise.supersetGroup;
+    if (group == null) return null;
+
+    final thisCompletedCount =
+        (await dao.getSets(sessionExercise.id)).where((s) => s.isCompleted).length;
+    final siblings = ref.read(sessionExercisesProvider(sessionId)).valueOrNull ?? const [];
+    final partners = siblings
+        .where((s) => s.supersetGroup == group && s.id != sessionExercise.id)
+        .toList()
+      ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
+
+    for (final partner in partners) {
+      final partnerCompletedCount = (await dao.getSets(partner.id)).where((s) => s.isCompleted).length;
+      if (partnerCompletedCount < thisCompletedCount) return partner;
+    }
+    return null;
   }
 
   Future<void> _syncExerciseStatus(WidgetRef ref) async {

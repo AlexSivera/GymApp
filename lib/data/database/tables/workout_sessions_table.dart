@@ -28,6 +28,9 @@ class SessionExercises extends Table {
   IntColumn get status => intEnum<SessionExerciseStatus>()
       .withDefault(Constant(SessionExerciseStatus.pending.index))();
   TextColumn get notes => text().nullable()();
+  // Copied from RoutineExercise.supersetGroup when the session is created —
+  // see that column's comment for what it means.
+  IntColumn get supersetGroup => integer().nullable()();
 }
 
 // Named "WorkoutSets" (not "Sets") to avoid colliding with dart:core's Set

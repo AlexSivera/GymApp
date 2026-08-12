@@ -116,6 +116,57 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
         ));
   }
 
+  // A routine created via "Crear rutina" starts as a single day named "Día 1"
+  // internally — a placeholder that routineDaySessionTitleProvider hides for
+  // as long as the routine has only one day. The moment a second day exists,
+  // that fallback stops applying and both days show their real names, so
+  // this asks for a name for the existing day *before* it becomes visible,
+  // then for the new day's name — turning a flat routine into a real
+  // multi-day one (Empuje/Tirón/Pierna, Torso/Pierna...) without ever
+  // leaking "Día 1" onto a screen.
+  Future<void> _convertToMultiDay(RoutineDay currentDay) async {
+    final currentDayName = await _promptDayName(
+      title: 'Nombra el día actual',
+      hint: 'Ej. Empuje',
+    );
+    if (currentDayName == null || currentDayName.isEmpty) return;
+    if (!mounted) return;
+    await ref.read(routinesDaoProvider).updateDay(currentDay.copyWith(name: currentDayName));
+
+    final newDayName = await _promptDayName(
+      title: 'Nombra el nuevo día',
+      hint: 'Ej. Tirón',
+    );
+    if (newDayName == null || newDayName.isEmpty) return;
+    await ref.read(routinesDaoProvider).createDay(RoutineDaysCompanion.insert(
+          routineId: widget.routineId,
+          name: newDayName,
+          dayOrder: 1,
+        ));
+  }
+
+  Future<String?> _promptDayName({required String title, required String hint}) {
+    final controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: InputDecoration(hintText: hint),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+            child: const Text('Continuar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _reorderDays(List<RoutineDay> current, int oldIndex, int newIndex) async {
     final list = [...current];
     final item = list.removeAt(oldIndex);
@@ -161,6 +212,7 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
             onSaveDescription: () => _saveDescription(routine),
             onDeleteRoutine: _deleteRoutine,
             onArchiveRoutine: _archiveRoutine,
+            onAddDay: () => _convertToMultiDay(days.first),
           );
         }
 
@@ -260,7 +312,7 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
   }
 }
 
-enum _RoutineMenuAction { rename, archive, delete }
+enum _RoutineMenuAction { rename, addDay, archive, delete }
 
 // Merged view for the single-day case: the routine IS the day, so its
 // exercises show up directly instead of behind a "Días" list with one entry.
@@ -278,6 +330,7 @@ class _SingleDayRoutineView extends ConsumerWidget {
     required this.onSaveDescription,
     required this.onDeleteRoutine,
     required this.onArchiveRoutine,
+    required this.onAddDay,
   });
 
   final Routine routine;
@@ -287,6 +340,7 @@ class _SingleDayRoutineView extends ConsumerWidget {
   final VoidCallback onSaveDescription;
   final VoidCallback onDeleteRoutine;
   final VoidCallback onArchiveRoutine;
+  final VoidCallback onAddDay;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -307,6 +361,8 @@ class _SingleDayRoutineView extends ConsumerWidget {
               switch (action) {
                 case _RoutineMenuAction.rename:
                   onRenameRoutine();
+                case _RoutineMenuAction.addDay:
+                  onAddDay();
                 case _RoutineMenuAction.archive:
                   onArchiveRoutine();
                 case _RoutineMenuAction.delete:
@@ -315,6 +371,7 @@ class _SingleDayRoutineView extends ConsumerWidget {
             },
             itemBuilder: (context) => const [
               PopupMenuItem(value: _RoutineMenuAction.rename, child: Text('Renombrar rutina')),
+              PopupMenuItem(value: _RoutineMenuAction.addDay, child: Text('Añadir otro día')),
               PopupMenuItem(value: _RoutineMenuAction.archive, child: Text('Archivar rutina')),
               PopupMenuItem(value: _RoutineMenuAction.delete, child: Text('Eliminar rutina')),
             ],

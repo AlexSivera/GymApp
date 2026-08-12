@@ -32,4 +32,9 @@ class RoutineExercises extends Table {
   IntColumn get targetRir => integer().nullable()();
   IntColumn get restSeconds => integer().nullable()();
   TextColumn get notes => text().nullable()();
+  // Exercises sharing the same (non-null) value are a superset/circuit — done
+  // back to back with no rest in between, rest only after the last one in the
+  // group. Reuses another RoutineExercise's own id as the group id rather
+  // than a separate counter table, since ids are already unique.
+  IntColumn get supersetGroup => integer().nullable()();
 }

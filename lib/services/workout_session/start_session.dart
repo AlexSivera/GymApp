@@ -26,6 +26,7 @@ Future<int> startSessionFromRoutineDay(
         workoutSessionId: sessionId,
         exerciseId: entry.exerciseId,
         orderIndex: entry.orderIndex,
+        supersetGroup: Value(entry.supersetGroup),
       ));
     }
 
@@ -52,6 +53,7 @@ Future<int> startPlannedSession(AppDatabase db, {required WorkoutSession session
           workoutSessionId: session.id,
           exerciseId: entry.exerciseId,
           orderIndex: entry.orderIndex,
+          supersetGroup: Value(entry.supersetGroup),
         ));
       }
     }

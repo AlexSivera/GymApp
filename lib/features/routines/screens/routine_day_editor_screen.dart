@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/utils/superset_grouping.dart';
 import '../../../core/utils/weight_unit.dart';
 import '../../../core/utils/weight_unit_provider.dart';
 import '../../../core/widgets/app_card.dart';
@@ -125,6 +126,7 @@ class DayExercisesList extends ConsumerWidget {
             ),
           );
         }
+        final groupLabels = supersetGroupLabels(routineExercises, (e) => e.supersetGroup);
         return ReorderableListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: routineExercises.length,
@@ -132,6 +134,7 @@ class DayExercisesList extends ConsumerWidget {
           itemBuilder: (context, index) {
             final entry = routineExercises[index];
             final exercise = exercisesById[entry.exerciseId];
+            final nextEntry = index + 1 < routineExercises.length ? routineExercises[index + 1] : null;
             return Padding(
               key: ValueKey(entry.id),
               padding: const EdgeInsets.only(bottom: 8),
@@ -140,6 +143,8 @@ class DayExercisesList extends ConsumerWidget {
                 exerciseName: exercise?.name ?? 'Ejercicio eliminado',
                 imagePaths: exercise?.imagePaths ?? const [],
                 exercise: exercise,
+                groupLabel: entry.supersetGroup == null ? null : groupLabels[entry.supersetGroup],
+                nextEntry: nextEntry,
               ),
             );
           },
@@ -167,15 +172,49 @@ class _RoutineExerciseRow extends ConsumerWidget {
     required this.exerciseName,
     required this.imagePaths,
     required this.exercise,
+    required this.groupLabel,
+    required this.nextEntry,
   });
 
   final RoutineExercise entry;
   final String exerciseName;
   final List<String> imagePaths;
   final Exercise? exercise;
+  // Non-null only when this exercise shares a superset group with at least
+  // one other exercise in the day — "Superserie A", "Superserie B"...
+  final String? groupLabel;
+  final RoutineExercise? nextEntry;
+
+  bool get _linkedWithNext =>
+      nextEntry != null && entry.supersetGroup != null && entry.supersetGroup == nextEntry!.supersetGroup;
+
+  // Tapping the link icon either joins this exercise and the next one into
+  // the same superset group (reusing whichever of the two already has a
+  // group, or this exercise's own id as a fresh one), or — if they're
+  // already linked — just removes this exercise from the group. A flat
+  // group id per exercise (rather than explicit pairwise links) is what
+  // supersetGroup stores, so unlinking a middle exercise out of a 3+ group
+  // can leave its former neighbors still grouped with each other; simple
+  // enough for the common two-exercise superset, which is most of real usage.
+  Future<void> _toggleLink(WidgetRef ref) async {
+    final dao = ref.read(routinesDaoProvider);
+    final next = nextEntry;
+    if (next == null) return;
+
+    if (_linkedWithNext) {
+      await dao.updateRoutineExercise(entry.copyWith(supersetGroup: const Value(null)));
+      return;
+    }
+    final group = entry.supersetGroup ?? next.supersetGroup ?? entry.id;
+    await dao.updateRoutineExercise(entry.copyWith(supersetGroup: Value(group)));
+    if (next.supersetGroup != group) {
+      await dao.updateRoutineExercise(next.copyWith(supersetGroup: Value(group)));
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final isExpanded = ref.watch(expandedRoutineExerciseIdsProvider).contains(entry.id);
     final isStrength = exercise?.category == ExerciseCategory.strength;
     final unit = ref.watch(weightUnitProvider);
@@ -184,6 +223,13 @@ class _RoutineExerciseRow extends ConsumerWidget {
       padding: EdgeInsets.zero,
       child: Column(
         children: [
+          if (groupLabel != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+              child: Text('SUPERSERIE $groupLabel',
+                  style: theme.textTheme.labelMedium
+                      ?.copyWith(color: theme.colorScheme.primary, letterSpacing: 0.5)),
+            ),
           ListTile(
             leading: ExerciseThumbnail(imagePaths: imagePaths),
             title: Text(exerciseName),
@@ -200,6 +246,18 @@ class _RoutineExerciseRow extends ConsumerWidget {
                   : ({...current, entry.id});
             },
           ),
+          if (nextEntry != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: () => _toggleLink(ref),
+                  icon: Icon(_linkedWithNext ? Icons.link_off : Icons.link, size: 18),
+                  label: Text(_linkedWithNext ? 'Separar del siguiente' : 'Vincular con el siguiente'),
+                ),
+              ),
+            ),
           AnimatedSize(
             duration: AppMotion.normal,
             curve: AppMotion.curve,

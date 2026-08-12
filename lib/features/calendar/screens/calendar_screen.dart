@@ -14,8 +14,8 @@ import '../../../services/scheduling/bulk_assign.dart';
 import '../../exercise_library/screens/exercise_library_screen.dart';
 import '../../routines/providers/routines_providers.dart';
 import '../../routines/screens/archived_routines_screen.dart';
-import '../../routines/screens/create_routine_screen.dart';
 import '../../routines/screens/routine_editor_screen.dart';
+import '../../routines/widgets/routine_creation_sheet.dart';
 import '../../routines/widgets/routine_day_picker_sheet.dart';
 import '../providers/calendar_providers.dart';
 import '../widgets/day_detail_sheet.dart';
@@ -87,7 +87,7 @@ class CalendarScreen extends ConsumerWidget {
       floatingActionButton: selectionMode
           ? null
           : FloatingActionButton(
-              onPressed: () => _createRoutine(context),
+              onPressed: () => showRoutineCreationSheet(context, ref),
               child: const Icon(Icons.add),
             ),
       bottomNavigationBar: selectionMode ? _SelectionActionBar(selectedDays: selectedDays) : null,
@@ -229,7 +229,7 @@ class CalendarScreen extends ConsumerWidget {
               if (routines.isEmpty) {
                 return Padding(
                   padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xl),
-                  child: _EmptyRoutines(onCreate: () => _createRoutine(context)),
+                  child: _EmptyRoutines(onCreate: () => showRoutineCreationSheet(context, ref)),
                 );
               }
               return Padding(
@@ -248,12 +248,6 @@ class CalendarScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
-
-  void _createRoutine(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const CreateRoutineScreen()),
     );
   }
 
