@@ -1,5 +1,4 @@
 import '../../data/database/app_database.dart';
-import '../progression_engine/estimated_one_rep_max.dart';
 import 'compute_rank.dart';
 import 'rank_tier.dart';
 import 'strength_standards.dart';
@@ -74,8 +73,7 @@ Future<List<RankAchievement>> computeNewRankAchievements(
     } else {
       bestSet = bestSets[exerciseId];
       if (bestSet == null) continue;
-      final rawOneRm = estimatedOneRepMax(bestSet.weightKg!, bestSet.reps!);
-      final effectiveOneRm = standard.bodyweightBased ? rawOneRm + bodyweightKg : rawOneRm;
+      final effectiveOneRm = effectiveOneRepMax(standard, bestSet.weightKg!, bestSet.reps!, bodyweightKg);
       final baseline = standard.ratio * bodyweightKg;
       rank = computeRank(estimated1RM: effectiveOneRm, baseline1RM: baseline);
     }

@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
-import '../../../services/progression_engine/estimated_one_rep_max.dart';
 import '../../../services/ranking_engine/compute_rank.dart';
 import '../../../services/ranking_engine/rank_tier.dart';
 import '../../../services/ranking_engine/strength_standards.dart';
@@ -75,10 +74,7 @@ final rankableExercisesProvider = Provider<List<ExerciseRankInfo>>((ref) {
     } else {
       bestSet = bestSets[exercise.id];
       if (bestSet == null) continue;
-      final rawOneRm = estimatedOneRepMax(bestSet.weightKg!, bestSet.reps!);
-      // Approximation, not a re-derivation of Epley with bodyweight folded in
-      // — good enough for an estimate, and keeps the DAO query simple.
-      final effectiveOneRm = standard.bodyweightBased ? rawOneRm + bodyweight : rawOneRm;
+      final effectiveOneRm = effectiveOneRepMax(standard, bestSet.weightKg!, bestSet.reps!, bodyweight);
       final baseline = standard.ratio * bodyweight;
       rank = computeRank(estimated1RM: effectiveOneRm, baseline1RM: baseline);
     }
@@ -188,9 +184,11 @@ final exerciseRankDetailProvider = Provider.family<ExerciseRankDetail?, int>((re
   final bodyweight = ref.watch(currentBodyweightProvider).valueOrNull ?? referenceBodyweightKg;
   final baseline = standard.ratio * bodyweight;
   final targetOneRm = nextRatio * baseline;
-  final targetRawOneRm = standard.bodyweightBased ? targetOneRm - bodyweight : targetOneRm;
   final reps = info.bestSet.reps!;
-  final targetWeight = reps <= 1 ? targetRawOneRm : targetRawOneRm / (1 + reps / 30.0);
+  // Same Epley-on-total-load model as effectiveOneRepMax: solve for the load
+  // first (undoing the rep multiplier), *then* strip bodyweight back out.
+  final targetLoad = reps <= 1 ? targetOneRm : targetOneRm / (1 + reps / 30.0);
+  final targetWeight = standard.bodyweightBased ? targetLoad - bodyweight : targetLoad;
   final nextRank = computeRank(estimated1RM: targetOneRm * 1.0001, baseline1RM: baseline);
 
   return ExerciseRankDetail(

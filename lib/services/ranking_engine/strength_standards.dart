@@ -1,3 +1,5 @@
+import '../progression_engine/estimated_one_rep_max.dart';
+
 // Baseline strength estimates that power the Rangos feature.
 //
 // These are NOT real population statistics — GymApp has no access to other
@@ -51,6 +53,18 @@ class ExerciseStandard {
 
 const referenceBodyweightKg = 83.0;
 
+// For bodyweightBased exercises (dips, pull-ups...), the Epley formula must
+// run on the *total* load (bodyweight + added weight), not on the added
+// weight alone with bodyweight tacked on afterwards — Epley of 0kg added is
+// 0 regardless of reps, so "estimatedOneRepMax(added, reps) + bodyweight"
+// gave a strict 10-rep bodyweight-only set the exact same rank as a
+// barely-completed 1-rep one. Running Epley on the combined load fixes
+// that: more reps at bodyweight alone now genuinely raises the estimate.
+double effectiveOneRepMax(ExerciseStandard standard, double weightKg, int reps, double bodyweightKg) {
+  final loadKg = standard.bodyweightBased ? weightKg + bodyweightKg : weightKg;
+  return estimatedOneRepMax(loadKg, reps);
+}
+
 // Keyed by exercise name (matches exercise_seed_data.dart). Exercises not
 // in this map (custom exercises, or exercises with no baseline defined yet)
 // simply can't be ranked; the Rangos screen skips them. Cardio exercises are
@@ -62,7 +76,9 @@ const exerciseStandards = <String, ExerciseStandard>{
   'Press banca inclinado': ExerciseStandard(33 / referenceBodyweightKg),
   'Press banca con mancuernas': ExerciseStandard(18 / referenceBodyweightKg),
   'Aperturas con mancuernas': ExerciseStandard(9 / referenceBodyweightKg),
-  'Fondos en paralelas': ExerciseStandard(0.75, bodyweightBased: true),
+  // Same reasoning as Dominadas above — dips structurally allow more added
+  // weight than pull-ups, so this sits a bit above Dominadas' ratio.
+  'Fondos en paralelas': ExerciseStandard(0.65, bodyweightBased: true),
   'Cruces en polea': ExerciseStandard(10 / referenceBodyweightKg),
   'Contractor de pecho (máquina)': ExerciseStandard(12 / referenceBodyweightKg),
   'Press de pecho en polea': ExerciseStandard(20 / referenceBodyweightKg),
@@ -78,7 +94,14 @@ const exerciseStandards = <String, ExerciseStandard>{
   'Pull over en polea': ExerciseStandard(15 / referenceBodyweightKg),
 
   // Espalda
-  'Dominadas': ExerciseStandard(0.9, bodyweightBased: true),
+  // Ratio kept well under 1 on purpose: bodyweightBased exercises rank the
+  // *total* load (bodyweight + added weight) against tierStart multipliers
+  // that go up to 2.85x at Maestro — a ratio near 1 (like a plain "you can
+  // do a bodyweight rep" baseline) blows up into an unachievable added
+  // weight at the top of the ladder (0.9 put Maestro at +130kg added, well
+  // past any known natural weighted pull-up). 0.6 puts Maestro at a very
+  // strong but attainable ~+45-60kg added for a dedicated multi-year lifter.
+  'Dominadas': ExerciseStandard(0.6, bodyweightBased: true),
   'Remo con barra': ExerciseStandard(40 / referenceBodyweightKg),
   'Remo con mancuerna': ExerciseStandard(20 / referenceBodyweightKg),
   'Jalón al pecho': ExerciseStandard(55 / referenceBodyweightKg),
@@ -141,7 +164,8 @@ const exerciseStandards = <String, ExerciseStandard>{
   // Tríceps
   'Press francés': ExerciseStandard(18 / referenceBodyweightKg),
   'Extensión de tríceps en polea': ExerciseStandard(25 / referenceBodyweightKg),
-  'Fondos para tríceps': ExerciseStandard(0.7, bodyweightBased: true),
+  // Same reasoning as Dominadas above.
+  'Fondos para tríceps': ExerciseStandard(0.62, bodyweightBased: true),
   'Patada de tríceps': ExerciseStandard(4 / referenceBodyweightKg),
   'Press cerrado con mancuernas': ExerciseStandard(14 / referenceBodyweightKg),
   'Extensión de tríceps en máquina': ExerciseStandard(25 / referenceBodyweightKg),
