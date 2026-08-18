@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 
 // Gives the streak the "achievement" presence the old 2x2 stat grid didn't:
@@ -15,7 +15,7 @@ class StreakCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const color = AppTheme.statusPlanned;
+    final color = AppColors.of(context).statusPlanned;
     final filledPips = streak.clamp(0, 7);
 
     return AppCard(

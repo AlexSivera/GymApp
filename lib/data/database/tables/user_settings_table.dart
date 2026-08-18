@@ -11,4 +11,5 @@ class UserSettings extends Table {
   DateTimeColumn get birthDate => dateTime().nullable()();
   BoolColumn get onboardingCompleted => boolean().withDefault(const Constant(false))();
   BoolColumn get remindersEnabled => boolean().withDefault(const Constant(true))();
+  TextColumn get themeMode => text().withDefault(const Constant('dark'))();
 }

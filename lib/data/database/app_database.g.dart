@@ -4798,6 +4798,18 @@ class $UserSettingsTable extends UserSettings
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _themeModeMeta = const VerificationMeta(
+    'themeMode',
+  );
+  @override
+  late final GeneratedColumn<String> themeMode = GeneratedColumn<String>(
+    'theme_mode',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('dark'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -4809,6 +4821,7 @@ class $UserSettingsTable extends UserSettings
     birthDate,
     onboardingCompleted,
     remindersEnabled,
+    themeMode,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4882,6 +4895,12 @@ class $UserSettingsTable extends UserSettings
         ),
       );
     }
+    if (data.containsKey('theme_mode')) {
+      context.handle(
+        _themeModeMeta,
+        themeMode.isAcceptableOrUnknown(data['theme_mode']!, _themeModeMeta),
+      );
+    }
     return context;
   }
 
@@ -4927,6 +4946,10 @@ class $UserSettingsTable extends UserSettings
         DriftSqlType.bool,
         data['${effectivePrefix}reminders_enabled'],
       )!,
+      themeMode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}theme_mode'],
+      )!,
     );
   }
 
@@ -4946,6 +4969,7 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
   final DateTime? birthDate;
   final bool onboardingCompleted;
   final bool remindersEnabled;
+  final String themeMode;
   const UserSetting({
     required this.id,
     required this.units,
@@ -4956,6 +4980,7 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
     this.birthDate,
     required this.onboardingCompleted,
     required this.remindersEnabled,
+    required this.themeMode,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -4977,6 +5002,7 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
     }
     map['onboarding_completed'] = Variable<bool>(onboardingCompleted);
     map['reminders_enabled'] = Variable<bool>(remindersEnabled);
+    map['theme_mode'] = Variable<String>(themeMode);
     return map;
   }
 
@@ -4997,6 +5023,7 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
           : Value(birthDate),
       onboardingCompleted: Value(onboardingCompleted),
       remindersEnabled: Value(remindersEnabled),
+      themeMode: Value(themeMode),
     );
   }
 
@@ -5019,6 +5046,7 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
         json['onboardingCompleted'],
       ),
       remindersEnabled: serializer.fromJson<bool>(json['remindersEnabled']),
+      themeMode: serializer.fromJson<String>(json['themeMode']),
     );
   }
   @override
@@ -5034,6 +5062,7 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
       'birthDate': serializer.toJson<DateTime?>(birthDate),
       'onboardingCompleted': serializer.toJson<bool>(onboardingCompleted),
       'remindersEnabled': serializer.toJson<bool>(remindersEnabled),
+      'themeMode': serializer.toJson<String>(themeMode),
     };
   }
 
@@ -5047,6 +5076,7 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
     Value<DateTime?> birthDate = const Value.absent(),
     bool? onboardingCompleted,
     bool? remindersEnabled,
+    String? themeMode,
   }) => UserSetting(
     id: id ?? this.id,
     units: units ?? this.units,
@@ -5057,6 +5087,7 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
     birthDate: birthDate.present ? birthDate.value : this.birthDate,
     onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
     remindersEnabled: remindersEnabled ?? this.remindersEnabled,
+    themeMode: themeMode ?? this.themeMode,
   );
   UserSetting copyWithCompanion(UserSettingsCompanion data) {
     return UserSetting(
@@ -5075,6 +5106,7 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
       remindersEnabled: data.remindersEnabled.present
           ? data.remindersEnabled.value
           : this.remindersEnabled,
+      themeMode: data.themeMode.present ? data.themeMode.value : this.themeMode,
     );
   }
 
@@ -5089,7 +5121,8 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
           ..write('gender: $gender, ')
           ..write('birthDate: $birthDate, ')
           ..write('onboardingCompleted: $onboardingCompleted, ')
-          ..write('remindersEnabled: $remindersEnabled')
+          ..write('remindersEnabled: $remindersEnabled, ')
+          ..write('themeMode: $themeMode')
           ..write(')'))
         .toString();
   }
@@ -5105,6 +5138,7 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
     birthDate,
     onboardingCompleted,
     remindersEnabled,
+    themeMode,
   );
   @override
   bool operator ==(Object other) =>
@@ -5118,7 +5152,8 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
           other.gender == this.gender &&
           other.birthDate == this.birthDate &&
           other.onboardingCompleted == this.onboardingCompleted &&
-          other.remindersEnabled == this.remindersEnabled);
+          other.remindersEnabled == this.remindersEnabled &&
+          other.themeMode == this.themeMode);
 }
 
 class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
@@ -5131,6 +5166,7 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
   final Value<DateTime?> birthDate;
   final Value<bool> onboardingCompleted;
   final Value<bool> remindersEnabled;
+  final Value<String> themeMode;
   const UserSettingsCompanion({
     this.id = const Value.absent(),
     this.units = const Value.absent(),
@@ -5141,6 +5177,7 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
     this.birthDate = const Value.absent(),
     this.onboardingCompleted = const Value.absent(),
     this.remindersEnabled = const Value.absent(),
+    this.themeMode = const Value.absent(),
   });
   UserSettingsCompanion.insert({
     this.id = const Value.absent(),
@@ -5152,6 +5189,7 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
     this.birthDate = const Value.absent(),
     this.onboardingCompleted = const Value.absent(),
     this.remindersEnabled = const Value.absent(),
+    this.themeMode = const Value.absent(),
   });
   static Insertable<UserSetting> custom({
     Expression<int>? id,
@@ -5163,6 +5201,7 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
     Expression<DateTime>? birthDate,
     Expression<bool>? onboardingCompleted,
     Expression<bool>? remindersEnabled,
+    Expression<String>? themeMode,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -5176,6 +5215,7 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
       if (onboardingCompleted != null)
         'onboarding_completed': onboardingCompleted,
       if (remindersEnabled != null) 'reminders_enabled': remindersEnabled,
+      if (themeMode != null) 'theme_mode': themeMode,
     });
   }
 
@@ -5189,6 +5229,7 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
     Value<DateTime?>? birthDate,
     Value<bool>? onboardingCompleted,
     Value<bool>? remindersEnabled,
+    Value<String>? themeMode,
   }) {
     return UserSettingsCompanion(
       id: id ?? this.id,
@@ -5200,6 +5241,7 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
       birthDate: birthDate ?? this.birthDate,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
       remindersEnabled: remindersEnabled ?? this.remindersEnabled,
+      themeMode: themeMode ?? this.themeMode,
     );
   }
 
@@ -5233,6 +5275,9 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
     if (remindersEnabled.present) {
       map['reminders_enabled'] = Variable<bool>(remindersEnabled.value);
     }
+    if (themeMode.present) {
+      map['theme_mode'] = Variable<String>(themeMode.value);
+    }
     return map;
   }
 
@@ -5247,7 +5292,8 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
           ..write('gender: $gender, ')
           ..write('birthDate: $birthDate, ')
           ..write('onboardingCompleted: $onboardingCompleted, ')
-          ..write('remindersEnabled: $remindersEnabled')
+          ..write('remindersEnabled: $remindersEnabled, ')
+          ..write('themeMode: $themeMode')
           ..write(')'))
         .toString();
   }
@@ -8015,6 +8061,7 @@ typedef $$UserSettingsTableCreateCompanionBuilder =
       Value<DateTime?> birthDate,
       Value<bool> onboardingCompleted,
       Value<bool> remindersEnabled,
+      Value<String> themeMode,
     });
 typedef $$UserSettingsTableUpdateCompanionBuilder =
     UserSettingsCompanion Function({
@@ -8027,6 +8074,7 @@ typedef $$UserSettingsTableUpdateCompanionBuilder =
       Value<DateTime?> birthDate,
       Value<bool> onboardingCompleted,
       Value<bool> remindersEnabled,
+      Value<String> themeMode,
     });
 
 class $$UserSettingsTableFilterComposer
@@ -8080,6 +8128,11 @@ class $$UserSettingsTableFilterComposer
 
   ColumnFilters<bool> get remindersEnabled => $composableBuilder(
     column: $table.remindersEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get themeMode => $composableBuilder(
+    column: $table.themeMode,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -8137,6 +8190,11 @@ class $$UserSettingsTableOrderingComposer
     column: $table.remindersEnabled,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get themeMode => $composableBuilder(
+    column: $table.themeMode,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UserSettingsTableAnnotationComposer
@@ -8180,6 +8238,9 @@ class $$UserSettingsTableAnnotationComposer
     column: $table.remindersEnabled,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get themeMode =>
+      $composableBuilder(column: $table.themeMode, builder: (column) => column);
 }
 
 class $$UserSettingsTableTableManager
@@ -8222,6 +8283,7 @@ class $$UserSettingsTableTableManager
                 Value<DateTime?> birthDate = const Value.absent(),
                 Value<bool> onboardingCompleted = const Value.absent(),
                 Value<bool> remindersEnabled = const Value.absent(),
+                Value<String> themeMode = const Value.absent(),
               }) => UserSettingsCompanion(
                 id: id,
                 units: units,
@@ -8232,6 +8294,7 @@ class $$UserSettingsTableTableManager
                 birthDate: birthDate,
                 onboardingCompleted: onboardingCompleted,
                 remindersEnabled: remindersEnabled,
+                themeMode: themeMode,
               ),
           createCompanionCallback:
               ({
@@ -8244,6 +8307,7 @@ class $$UserSettingsTableTableManager
                 Value<DateTime?> birthDate = const Value.absent(),
                 Value<bool> onboardingCompleted = const Value.absent(),
                 Value<bool> remindersEnabled = const Value.absent(),
+                Value<String> themeMode = const Value.absent(),
               }) => UserSettingsCompanion.insert(
                 id: id,
                 units: units,
@@ -8254,6 +8318,7 @@ class $$UserSettingsTableTableManager
                 birthDate: birthDate,
                 onboardingCompleted: onboardingCompleted,
                 remindersEnabled: remindersEnabled,
+                themeMode: themeMode,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

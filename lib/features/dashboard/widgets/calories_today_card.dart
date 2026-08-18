@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 
 class CaloriesTodayCard extends StatelessWidget {
@@ -12,7 +12,7 @@ class CaloriesTodayCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const color = AppTheme.statusSkipped;
+    final color = AppColors.of(context).statusSkipped;
     final hasData = calories > 0;
 
     return AppCard(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../providers/dashboard_providers.dart';
 
@@ -75,7 +75,8 @@ class _DayDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accent = AppTheme.statusCompleted;
+    final colors = AppColors.of(context);
+    final accent = colors.statusCompleted;
 
     return Column(
       children: [
@@ -90,7 +91,7 @@ class _DayDot extends StatelessWidget {
                   ? accent
                   : isToday
                       ? theme.colorScheme.primary
-                      : AppTheme.border,
+                      : colors.border,
               width: isToday && !done ? 2 : 1,
             ),
           ),

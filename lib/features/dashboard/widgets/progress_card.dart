@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../services/insights_engine/weekly_summary.dart';
 
@@ -15,7 +15,8 @@ class ProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const color = AppTheme.statusRest;
+    final colors = AppColors.of(context);
+    final color = colors.statusRest;
     final changePercent = summary.volumeChangePercent;
 
     return AppCard(
@@ -59,7 +60,7 @@ class ProgressCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
-                const Icon(Icons.emoji_events_outlined, color: AppTheme.accent, size: 18),
+                Icon(Icons.emoji_events_outlined, color: colors.accent, size: 18),
                 const SizedBox(width: AppSpacing.xs),
                 Text(
                   '${summary.prsThisWeek} ${summary.prsThisWeek == 1 ? 'récord nuevo' : 'récords nuevos'} esta semana',

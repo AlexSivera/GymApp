@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../../core/constants/muscle_groups.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/error_retry_card.dart';
 import '../../../data/database/app_database.dart';
@@ -357,18 +357,18 @@ class _DayCell extends StatelessWidget {
   final bool isToday;
   final bool isSelectedForBulk;
 
-  Color? get _fillColor {
+  Color? _fillColor(AppColors colors) {
     switch (status) {
       case SessionStatus.completed:
-        return AppTheme.statusCompleted;
+        return colors.statusCompleted;
       case SessionStatus.planned:
-        return AppTheme.statusPlanned;
+        return colors.statusPlanned;
       case SessionStatus.skipped:
-        return AppTheme.statusSkipped;
+        return colors.statusSkipped;
       case SessionStatus.rest:
-        return AppTheme.statusRest;
+        return colors.statusRest;
       case SessionStatus.inProgress:
-        return AppTheme.statusToday;
+        return colors.statusToday;
       case null:
         return null;
     }
@@ -377,7 +377,8 @@ class _DayCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final fill = _fillColor;
+    final colors = AppColors.of(context);
+    final fill = _fillColor(colors);
 
     // FittedBox absorbs both a long routine name and larger system font
     // scales by shrinking the whole cell instead of overflowing the fixed
@@ -400,13 +401,13 @@ class _DayCell extends StatelessWidget {
                 // to share the same accent hue for its ring and could be
                 // confused with a selected day at a glance.
                 color: isSelectedForBulk
-                    ? AppTheme.accent.withValues(alpha: 0.32)
-                    : fill?.withValues(alpha: 0.22) ?? AppTheme.statusEmpty.withValues(alpha: 0.5),
+                    ? colors.accent.withValues(alpha: 0.32)
+                    : fill?.withValues(alpha: 0.22) ?? colors.statusEmpty.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
                 border: isSelectedForBulk
                     ? Border.all(color: theme.colorScheme.onSurface, width: 2)
                     : isToday
-                        ? Border.all(color: AppTheme.statusToday, width: 2)
+                        ? Border.all(color: colors.statusToday, width: 2)
                         : null,
               ),
               alignment: Alignment.center,
@@ -460,7 +461,7 @@ class _SelectionActionBar extends ConsumerWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        border: const Border(top: BorderSide(color: AppTheme.border)),
+        border: Border(top: BorderSide(color: AppColors.of(context).border)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

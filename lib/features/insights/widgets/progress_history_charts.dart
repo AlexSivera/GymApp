@@ -2,7 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/weight_unit.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../services/insights_engine/progress_history.dart';
@@ -30,6 +30,7 @@ class VolumeHistoryChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final values = [for (final v in history.volume) kgToDisplayUnit(v.volume, unit)];
     final maxY = values.fold<double>(0, (a, b) => b > a ? b : a);
 
@@ -58,10 +59,10 @@ class VolumeHistoryChart extends StatelessWidget {
               LineChartBarData(
                 spots: [for (var i = 0; i < values.length; i++) FlSpot(i.toDouble(), values[i])],
                 isCurved: true,
-                color: AppTheme.accent,
+                color: colors.accent,
                 barWidth: 3,
                 dotData: const FlDotData(show: true),
-                belowBarData: BarAreaData(show: true, color: AppTheme.accent.withValues(alpha: 0.15)),
+                belowBarData: BarAreaData(show: true, color: colors.accent.withValues(alpha: 0.15)),
               ),
             ],
           ),
@@ -78,6 +79,7 @@ class FrequencyHistoryChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final maxSessions = history.frequency.fold<int>(0, (a, b) => b.sessions > a ? b.sessions : a);
 
     return AppCard(
@@ -105,7 +107,7 @@ class FrequencyHistoryChart extends StatelessWidget {
                 BarChartGroupData(x: i, barRods: [
                   BarChartRodData(
                     toY: history.frequency[i].sessions.toDouble(),
-                    color: AppTheme.statusCompleted,
+                    color: colors.statusCompleted,
                     width: 14,
                     borderRadius: BorderRadius.circular(4),
                   ),
@@ -118,12 +120,12 @@ class FrequencyHistoryChart extends StatelessWidget {
   }
 }
 
-const _muscleTrendColors = [
-  AppTheme.accent,
-  AppTheme.statusPlanned,
-  AppTheme.statusRest,
-  AppTheme.statusSkipped,
-];
+List<Color> _muscleTrendColors(AppColors colors) => [
+      colors.accent,
+      colors.statusPlanned,
+      colors.statusRest,
+      colors.statusSkipped,
+    ];
 
 class MuscleTrendChart extends StatelessWidget {
   const MuscleTrendChart({super.key, required this.history});
@@ -133,6 +135,7 @@ class MuscleTrendChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final trendColors = _muscleTrendColors(AppColors.of(context));
     if (history.muscleTrends.isEmpty) {
       return AppCard(
         child: Text(
@@ -177,7 +180,7 @@ class MuscleTrendChart extends StatelessWidget {
                           FlSpot(i.toDouble(), history.muscleTrends[t].weeklyVolumes[i]),
                       ],
                       isCurved: true,
-                      color: _muscleTrendColors[t % _muscleTrendColors.length],
+                      color: trendColors[t % trendColors.length],
                       barWidth: 2.5,
                       dotData: const FlDotData(show: false),
                     ),
@@ -198,7 +201,7 @@ class MuscleTrendChart extends StatelessWidget {
                       width: 10,
                       height: 10,
                       decoration: BoxDecoration(
-                        color: _muscleTrendColors[t % _muscleTrendColors.length],
+                        color: trendColors[t % trendColors.length],
                         shape: BoxShape.circle,
                       ),
                     ),

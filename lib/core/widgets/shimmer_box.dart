@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
-import '../theme/app_theme.dart';
 
 // A gently animated rounded rectangle standing in for a card while its data
 // loads — sized to roughly match the real content so the page doesn't pop or
@@ -34,17 +34,18 @@ class _ShimmerBoxState extends State<ShimmerBox> with SingleTickerProviderStateM
       animation: _controller,
       builder: (context, _) {
         final t = _controller.value;
+        final colors = AppColors.of(context);
         return ClipRRect(
           borderRadius: widget.borderRadius ?? BorderRadius.circular(AppRadius.md),
           child: Container(
             height: widget.height,
             width: double.infinity,
             decoration: BoxDecoration(
-              border: Border.all(color: AppTheme.border),
+              border: Border.all(color: colors.border),
               gradient: LinearGradient(
                 begin: Alignment(-1 + 3 * t, 0),
                 end: Alignment(1 + 3 * t, 0),
-                colors: const [AppTheme.surface, AppTheme.surfaceRaised, AppTheme.surface],
+                colors: [colors.surface, colors.surfaceRaised, colors.surface],
                 stops: const [0.35, 0.5, 0.65],
               ),
             ),

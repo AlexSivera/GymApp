@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/format_duration.dart';
 import '../../../core/utils/weight_unit_provider.dart';
 import '../../../core/widgets/app_card.dart';
@@ -44,6 +44,7 @@ class HeroTodayCard extends ConsumerWidget {
 
   Widget _buildContent(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final colors = AppColors.of(context);
     final session = this.session;
 
     if (session == null || session.status == SessionStatus.rest) {
@@ -59,7 +60,7 @@ class HeroTodayCard extends ConsumerWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.flag_rounded, size: 14, color: AppTheme.accent),
+                  Icon(Icons.flag_rounded, size: 14, color: colors.accent),
                   const SizedBox(width: AppSpacing.xs),
                   Text('PRIMEROS PASOS',
                       style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 0.6)),
@@ -83,8 +84,8 @@ class HeroTodayCard extends ConsumerWidget {
 
       final isRest = session?.status == SessionStatus.rest;
       return AppCard(
-        color: isRest ? AppTheme.statusRest.withValues(alpha: 0.08) : null,
-        borderColor: isRest ? AppTheme.statusRest.withValues(alpha: 0.35) : null,
+        color: isRest ? colors.statusRest.withValues(alpha: 0.08) : null,
+        borderColor: isRest ? colors.statusRest.withValues(alpha: 0.35) : null,
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,7 +114,7 @@ class HeroTodayCard extends ConsumerWidget {
 
     if (session.status == SessionStatus.completed || session.status == SessionStatus.skipped) {
       final isCompleted = session.status == SessionStatus.completed;
-      final stateColor = isCompleted ? AppTheme.statusCompleted : AppTheme.statusSkipped;
+      final stateColor = isCompleted ? colors.statusCompleted : colors.statusSkipped;
       final dayName = ref.watch(routineDaySessionTitleProvider(session.routineDayId)) ?? 'Entrenamiento libre';
       final exerciseCount = ref.watch(sessionExerciseCountProvider(session.id)).valueOrNull;
       final duration = session.durationSeconds;
@@ -193,8 +194,8 @@ class HeroTodayCard extends ConsumerWidget {
     final muscleSummary = _muscleSummary(dayExercises, exercisesById);
 
     return AppCard(
-      color: AppTheme.accent.withValues(alpha: 0.08),
-      borderColor: AppTheme.accent.withValues(alpha: 0.35),
+      color: colors.accent.withValues(alpha: 0.08),
+      borderColor: colors.accent.withValues(alpha: 0.35),
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,7 +204,7 @@ class HeroTodayCard extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('TU ENTRENAMIENTO DE HOY',
-                  style: theme.textTheme.labelMedium?.copyWith(color: AppTheme.accent, letterSpacing: 0.6)),
+                  style: theme.textTheme.labelMedium?.copyWith(color: colors.accent, letterSpacing: 0.6)),
               if (session.status == SessionStatus.planned)
                 TextButton(
                   onPressed: () => _pickRoutine(context, ref, existingSession: session),
@@ -325,15 +326,16 @@ class _Pill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = AppColors.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
       decoration: BoxDecoration(
-        color: AppTheme.accent.withValues(alpha: 0.14),
+        color: colors.accent.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(AppRadius.pill),
       ),
       child: Text(
         text,
-        style: theme.textTheme.labelLarge?.copyWith(color: AppTheme.accent),
+        style: theme.textTheme.labelLarge?.copyWith(color: colors.accent),
       ),
     );
   }

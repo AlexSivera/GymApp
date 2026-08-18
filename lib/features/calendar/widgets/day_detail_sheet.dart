@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/weight_unit_provider.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
@@ -84,7 +84,8 @@ class DayDetailSheet extends ConsumerWidget {
             Container(
               width: 8,
               height: 8,
-              decoration: BoxDecoration(color: _statusColor(session.status), shape: BoxShape.circle),
+              decoration:
+                  BoxDecoration(color: _statusColor(AppColors.of(context), session.status), shape: BoxShape.circle),
             ),
             const SizedBox(width: AppSpacing.xs),
             Text(_statusLabel(session.status), style: theme.textTheme.bodyMedium),
@@ -299,18 +300,18 @@ class DayDetailSheet extends ConsumerWidget {
     if (context.mounted) Navigator.of(context).pop();
   }
 
-  Color _statusColor(SessionStatus status) {
+  Color _statusColor(AppColors colors, SessionStatus status) {
     switch (status) {
       case SessionStatus.planned:
-        return AppTheme.statusPlanned;
+        return colors.statusPlanned;
       case SessionStatus.inProgress:
-        return AppTheme.statusToday;
+        return colors.statusToday;
       case SessionStatus.completed:
-        return AppTheme.statusCompleted;
+        return colors.statusCompleted;
       case SessionStatus.skipped:
-        return AppTheme.statusSkipped;
+        return colors.statusSkipped;
       case SessionStatus.rest:
-        return AppTheme.statusRest;
+        return colors.statusRest;
     }
   }
 

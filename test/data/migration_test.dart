@@ -605,4 +605,91 @@ void main() {
     expect(routineExercise.targetSets, 3, reason: 'pre-existing row survives the upgrade');
     expect(routineExercise.supersetGroup, isNull, reason: 'new column defaults to null');
   });
+
+  test('v8 -> v9 migration adds theme_mode', () async {
+    final tempDir = Directory.systemTemp.createTempSync('gymapp_migration_test_v8');
+    final dbPath = p.join(tempDir.path, 'v8.sqlite');
+    addTearDown(() => tempDir.deleteSync(recursive: true));
+
+    // Minimal v8 shape: user_settings without theme_mode yet.
+    final seed = sqlite3.sqlite3.open(dbPath);
+    seed.execute('''
+      CREATE TABLE user_settings (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        units TEXT NOT NULL DEFAULT 'kg',
+        name TEXT,
+        goals TEXT,
+        weekly_target_sessions INTEGER NOT NULL DEFAULT 4,
+        gender TEXT,
+        birth_date INTEGER,
+        onboarding_completed INTEGER NOT NULL DEFAULT 0,
+        reminders_enabled INTEGER NOT NULL DEFAULT 1
+      );
+      CREATE TABLE exercises (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        primary_muscles TEXT NOT NULL DEFAULT '[]',
+        secondary_muscles TEXT NOT NULL DEFAULT '[]',
+        equipment TEXT,
+        category INTEGER NOT NULL DEFAULT 0,
+        image_paths TEXT NOT NULL DEFAULT '[]',
+        video_url TEXT,
+        instructions TEXT,
+        is_custom INTEGER NOT NULL DEFAULT 0,
+        external_id TEXT,
+        created_at INTEGER NOT NULL DEFAULT 0
+      );
+      CREATE TABLE workout_sessions (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        date INTEGER NOT NULL,
+        status INTEGER NOT NULL DEFAULT 0
+      );
+      CREATE TABLE session_exercises (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        workout_session_id INTEGER NOT NULL,
+        exercise_id INTEGER NOT NULL,
+        order_index INTEGER NOT NULL,
+        status INTEGER NOT NULL DEFAULT 0,
+        notes TEXT,
+        superset_group INTEGER
+      );
+      CREATE TABLE workout_sets (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        session_exercise_id INTEGER NOT NULL,
+        set_number INTEGER NOT NULL,
+        weight_kg REAL,
+        reps INTEGER,
+        rir REAL,
+        duration_seconds INTEGER,
+        distance_meters REAL,
+        is_warmup INTEGER NOT NULL DEFAULT 0,
+        is_completed INTEGER NOT NULL DEFAULT 0,
+        completed_at INTEGER
+      );
+      CREATE TABLE routine_exercises (
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        routine_day_id INTEGER NOT NULL,
+        exercise_id INTEGER NOT NULL,
+        order_index INTEGER NOT NULL,
+        target_sets INTEGER NOT NULL,
+        target_reps_min INTEGER NOT NULL,
+        target_reps_max INTEGER NOT NULL,
+        target_weight REAL,
+        target_rir INTEGER,
+        rest_seconds INTEGER,
+        notes TEXT,
+        superset_group INTEGER
+      );
+      INSERT INTO user_settings (id, units, name, goals) VALUES (1, 'kg', 'Alex', NULL);
+      PRAGMA user_version = 8;
+    ''');
+    seed.dispose();
+
+    final db = AppDatabase.forTesting(NativeDatabase(File(dbPath)));
+    addTearDown(db.close);
+
+    final settings = await (db.select(db.userSettings)..where((s) => s.id.equals(1))).getSingle();
+    expect(settings.name, 'Alex', reason: 'pre-existing row survives the upgrade');
+    expect(settings.themeMode, 'dark', reason: 'new column gets its default');
+  });
 }

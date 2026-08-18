@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/muscle_groups.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/exercise_thumbnail.dart';
 import '../../../services/ranking_engine/rank_tier.dart';
@@ -110,6 +110,7 @@ class _RankingEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = AppColors.of(context);
     return AppCard(
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
@@ -118,10 +119,10 @@ class _RankingEmptyState extends StatelessWidget {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: AppTheme.accent.withValues(alpha: 0.12),
+              color: colors.accent.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.military_tech_rounded, color: AppTheme.accent, size: 32),
+            child: Icon(Icons.military_tech_rounded, color: colors.accent, size: 32),
           ),
           const SizedBox(height: AppSpacing.lg),
           Text('Aquí verás tu progreso por músculo', style: theme.textTheme.titleLarge, textAlign: TextAlign.center),

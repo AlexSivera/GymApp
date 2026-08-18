@@ -6,9 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/error_retry_view.dart';
 import '../../../core/widgets/exercise_thumbnail.dart';
@@ -136,8 +136,8 @@ class WorkoutSessionScreen extends ConsumerWidget {
                       child: AppCard(
                         child: Row(
                           children: [
-                            const Icon(Icons.check_circle_rounded,
-                                color: AppTheme.statusCompleted, size: 26),
+                            Icon(Icons.check_circle_rounded,
+                                color: AppColors.of(context).statusCompleted, size: 26),
                             const SizedBox(width: AppSpacing.md),
                             Expanded(
                               child: Text('¡Entrenamiento completado!',
@@ -481,16 +481,17 @@ class _StatusIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     final Widget icon;
     switch (status) {
       case SessionExerciseStatus.pending:
-        icon = const Icon(Icons.circle_outlined, size: 20, color: AppTheme.statusEmpty);
+        icon = Icon(Icons.circle_outlined, size: 20, color: colors.statusEmpty);
       case SessionExerciseStatus.inProgress:
-        icon = const Icon(Icons.circle, size: 12, color: AppTheme.statusPlanned);
+        icon = Icon(Icons.circle, size: 12, color: colors.statusPlanned);
       case SessionExerciseStatus.completed:
-        icon = const Icon(Icons.check_circle, size: 20, color: AppTheme.statusCompleted);
+        icon = Icon(Icons.check_circle, size: 20, color: colors.statusCompleted);
       case SessionExerciseStatus.skipped:
-        icon = const Icon(Icons.remove_circle, size: 20, color: AppTheme.statusSkipped);
+        icon = Icon(Icons.remove_circle, size: 20, color: colors.statusSkipped);
     }
     return AnimatedSwitcher(
       duration: AppMotion.fast,
@@ -699,12 +700,12 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
         reps: result.reps!,
       );
       if (achieved.isNotEmpty && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Row(
             children: [
-              Icon(Icons.emoji_events_rounded, color: AppTheme.statusPlanned, size: 20),
-              SizedBox(width: AppSpacing.sm),
-              Text('¡Nuevo récord personal!'),
+              Icon(Icons.emoji_events_rounded, color: AppColors.of(context).statusPlanned, size: 20),
+              const SizedBox(width: AppSpacing.sm),
+              const Text('¡Nuevo récord personal!'),
             ],
           ),
         ));
@@ -1244,7 +1245,7 @@ class _CompactSetRow extends ConsumerWidget {
           Icon(
             set.isCompleted ? Icons.check_circle : Icons.circle_outlined,
             size: 16,
-            color: set.isCompleted ? AppTheme.statusCompleted : mutedColor,
+            color: set.isCompleted ? AppColors.of(context).statusCompleted : mutedColor,
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(

@@ -1,7 +1,7 @@
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 
-import '../theme/app_theme.dart';
+import '../theme/app_colors.dart';
 
 // Fires a short confetti burst from the top of the screen once, right when
 // this widget mounts (unless the user has "reduce motion" on). Wraps `child`
@@ -41,6 +41,7 @@ class _CelebrationOverlayState extends State<CelebrationOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Stack(
       children: [
         widget.child,
@@ -57,11 +58,11 @@ class _CelebrationOverlayState extends State<CelebrationOverlay> {
                 minBlastForce: 8,
                 gravity: 0.35,
                 shouldLoop: false,
-                colors: const [
-                  AppTheme.accent,
-                  AppTheme.statusCompleted,
-                  AppTheme.statusPlanned,
-                  AppTheme.statusRest,
+                colors: [
+                  colors.accent,
+                  colors.statusCompleted,
+                  colors.statusPlanned,
+                  colors.statusRest,
                 ],
               ),
             ),
