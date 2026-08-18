@@ -9,7 +9,6 @@ import '../../dashboard/providers/dashboard_providers.dart';
 import '../../insights/screens/insights_screen.dart';
 import '../providers/profile_providers.dart';
 import 'about_screen.dart';
-import 'backups_screen.dart';
 import 'body_weight_screen.dart';
 import 'goals_screen.dart';
 import 'import_export_screen.dart';
@@ -114,14 +113,9 @@ class ProfileScreen extends ConsumerWidget {
                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
             ),
             _ProfileTile(
-              title: 'Exportar datos',
+              title: 'Copia de seguridad',
               onTap: () => Navigator.of(context)
                   .push(MaterialPageRoute(builder: (_) => const ImportExportScreen())),
-            ),
-            _ProfileTile(
-              title: 'Copias de seguridad',
-              onTap: () =>
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const BackupsScreen())),
             ),
             _ProfileTile(
               title: 'Acerca de',

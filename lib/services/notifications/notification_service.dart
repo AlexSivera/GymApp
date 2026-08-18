@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
@@ -17,6 +18,10 @@ class NotificationService {
 
   static Future<void> init() async {
     if (_initialized) return;
+    // flutter_local_notifications has no web implementation — every other
+    // method in this class already no-ops while _initialized is false, so
+    // skipping init() here is enough to make the whole service inert on web.
+    if (kIsWeb) return;
     tz_data.initializeTimeZones();
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');

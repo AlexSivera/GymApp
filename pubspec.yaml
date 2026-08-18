@@ -40,11 +40,16 @@ dependencies:
   # Estado de la app
   flutter_riverpod: ^2.6.1
 
-  # Base de datos local (SQLite)
+  # Base de datos local (SQLite): sqlite3_flutter_libs para nativo,
+  # drift_flutter selecciona ese backend o el de wasm (web) según la
+  # plataforma, desde la misma llamada.
   drift: ^2.22.1
   sqlite3_flutter_libs: ^0.5.28
-  path_provider: ^2.1.5
-  path: ^1.9.1
+  drift_flutter: ^0.2.8
+
+  # Exportar/importar copias de seguridad como archivo (funciona igual en
+  # nativo y web)
+  file_picker: ^12.0.0
 
   # Navegación
   go_router: ^14.8.1
@@ -87,6 +92,10 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.4.8
 
+  # Solo usado por test/data/migration_test.dart para construir rutas de
+  # bases de datos temporales
+  path: ^1.9.1
+
 # Icono de la app (se genera con: dart run flutter_launcher_icons)
 flutter_launcher_icons:
   android: true
@@ -95,6 +104,11 @@ flutter_launcher_icons:
   min_sdk_android: 21
   adaptive_icon_background: "#1E1B18"
   adaptive_icon_foreground: "assets/branding/logo.png"
+  web:
+    generate: true
+    image_path: "assets/branding/logo.png"
+    background_color: "#1E1B18"
+    theme_color: "#1E1B18"
 
 # Pantalla de carga con el logo (se genera con: dart run flutter_native_splash:create)
 flutter_native_splash:
