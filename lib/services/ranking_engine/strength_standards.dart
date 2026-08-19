@@ -265,8 +265,7 @@ const exerciseStandards = <String, ExerciseStandard>{
   'Inclinación lateral con mancuerna': ExerciseStandard(12 / referenceBodyweightKg),
   'Rotación de tronco con mancuerna': ExerciseStandard(15 / referenceBodyweightKg),
   'Crunch sentado en máquina': ExerciseStandard(20 / referenceBodyweightKg),
-  'Pallof press en polea': ExerciseStandard(15 / referenceBodyweightKg),
-  'Leñador en polea (wood chop)': ExerciseStandard(20 / referenceBodyweightKg),
+  'Pallof press con banda': ExerciseStandard(15 / referenceBodyweightKg),
 
   // Abdomen (bodyweight classics, rep-based)
   'Crunch': ExerciseStandard.repsBased(20),
