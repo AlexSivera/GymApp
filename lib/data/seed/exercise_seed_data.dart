@@ -251,6 +251,23 @@ const exerciseSeedData = <ExerciseSeed>[
     imageAsset: 'assets/exercises/vsVoPHt.gif',
   ),
 
+  ExerciseSeed(
+    name: 'Press banca inclinado en máquina Smith',
+    primaryMuscles: ['Pecho'],
+    secondaryMuscles: ['Tríceps', 'Hombros'],
+    equipment: 'Máquina Smith',
+    instructions: 'En banco inclinado bajo la máquina Smith, baja la barra a la parte alta del pecho y empuja hacia arriba.',
+    imageAsset: 'assets/exercises/5v7KYld.gif',
+  ),
+  ExerciseSeed(
+    name: 'Press banca agarre invertido en máquina Smith',
+    primaryMuscles: ['Pecho'],
+    secondaryMuscles: ['Tríceps', 'Hombros'],
+    equipment: 'Máquina Smith',
+    instructions: 'Tumbado bajo la máquina Smith con agarre en supinación, baja la barra al pecho y empuja hacia arriba.',
+    imageAsset: 'assets/exercises/zK8Fu1W.gif',
+  ),
+
   // ==================== ESPALDA ====================
   ExerciseSeed(
     name: 'Dominadas',
@@ -535,6 +552,23 @@ const exerciseSeedData = <ExerciseSeed>[
     imageAsset: 'assets/exercises/oROuvrX.gif',
   ),
 
+  ExerciseSeed(
+    name: 'Remo inclinado agarre invertido en máquina Smith',
+    primaryMuscles: ['Espalda'],
+    secondaryMuscles: ['Bíceps', 'Antebrazos'],
+    equipment: 'Máquina Smith',
+    instructions: 'Inclinado hacia adelante con agarre en supinación, tira de la barra Smith hacia el pecho.',
+    imageAsset: 'assets/exercises/aaxA3cm.gif',
+  ),
+  ExerciseSeed(
+    name: 'Remo a una mano en máquina Smith',
+    primaryMuscles: ['Espalda'],
+    secondaryMuscles: ['Bíceps', 'Antebrazos'],
+    equipment: 'Máquina Smith',
+    instructions: 'Inclinado hacia adelante, tira de la barra Smith hacia la cintura con un solo brazo y repite con el otro.',
+    imageAsset: 'assets/exercises/Q4DSJPC.gif',
+  ),
+
   // ==================== HOMBROS ====================
   ExerciseSeed(
     name: 'Elevaciones laterales',
@@ -714,6 +748,31 @@ const exerciseSeedData = <ExerciseSeed>[
     imageAsset: 'assets/exercises/myfUsKf.gif',
   ),
 
+  ExerciseSeed(
+    name: 'Remo posterior de hombro en máquina Smith',
+    primaryMuscles: ['Hombros'],
+    secondaryMuscles: ['Espalda'],
+    equipment: 'Máquina Smith',
+    instructions: 'Inclinado hacia adelante, tira de la barra Smith hacia el pecho llevando los codos hacia atrás y arriba.',
+    imageAsset: 'assets/exercises/nFUwqG6.gif',
+  ),
+  ExerciseSeed(
+    name: 'Remo al mentón en máquina Smith',
+    primaryMuscles: ['Hombros'],
+    secondaryMuscles: ['Antebrazos'],
+    equipment: 'Máquina Smith',
+    instructions: 'De pie, tira de la barra Smith hacia arriba pegada al cuerpo hasta la altura de la barbilla.',
+    imageAsset: 'assets/exercises/1DN3iz4.gif',
+  ),
+  ExerciseSeed(
+    name: 'Press militar de pie en máquina Smith',
+    primaryMuscles: ['Hombros'],
+    secondaryMuscles: ['Tríceps'],
+    equipment: 'Máquina Smith',
+    instructions: 'De pie bajo la máquina Smith, empuja la barra hacia arriba desde los hombros.',
+    imageAsset: 'assets/exercises/jjUPrze.gif',
+  ),
+
   // ==================== BÍCEPS ====================
   ExerciseSeed(
     name: 'Curl con mancuernas',
@@ -827,6 +886,15 @@ const exerciseSeedData = <ExerciseSeed>[
     equipment: 'Máquina de palanca',
     instructions: 'Igual que el curl en banco Scott de la máquina, pero con agarre en pronación.',
     imageAsset: 'assets/exercises/kj3hy6W.gif',
+  ),
+
+  ExerciseSeed(
+    name: 'Curl de bíceps en máquina Smith',
+    primaryMuscles: ['Bíceps'],
+    secondaryMuscles: ['Antebrazos'],
+    equipment: 'Máquina Smith',
+    instructions: 'De pie bajo la máquina Smith, flexiona los codos llevando la barra hacia los hombros.',
+    imageAsset: 'assets/exercises/zILLZ98.gif',
   ),
 
   // ==================== TRÍCEPS ====================
@@ -968,6 +1036,15 @@ const exerciseSeedData = <ExerciseSeed>[
     imageAsset: 'assets/exercises/BRImeP8.gif',
   ),
 
+  ExerciseSeed(
+    name: 'Extensión de tríceps inclinada en máquina Smith',
+    primaryMuscles: ['Tríceps'],
+    secondaryMuscles: [],
+    equipment: 'Máquina Smith',
+    instructions: 'Apoyado en banco inclinado bajo la máquina Smith, extiende los codos empujando la barra hacia arriba.',
+    imageAsset: 'assets/exercises/o8aOcrz.gif',
+  ),
+
   // ==================== ANTEBRAZOS ====================
   ExerciseSeed(
     name: 'Curl de muñeca prono con barra',
@@ -1041,6 +1118,15 @@ const exerciseSeedData = <ExerciseSeed>[
     equipment: 'Máquina de palanca',
     instructions: 'Sentado en la máquina, cierra las manos apretando las asas contra la resistencia.',
     imageAsset: 'assets/exercises/mKwcrHn.gif',
+  ),
+
+  ExerciseSeed(
+    name: 'Curl de muñeca invertido de pie en máquina Smith',
+    primaryMuscles: ['Antebrazos'],
+    secondaryMuscles: [],
+    equipment: 'Máquina Smith',
+    instructions: 'De pie con las palmas hacia abajo, flexiona las muñecas levantando la barra Smith.',
+    imageAsset: 'assets/exercises/hfmQ0Tz.gif',
   ),
 
   // ==================== CUÁDRICEPS ====================
@@ -1187,6 +1273,39 @@ const exerciseSeedData = <ExerciseSeed>[
     equipment: 'Máquina Smith',
     instructions: 'Con el pie trasero elevado y la barra Smith en la espalda, baja flexionando la pierna delantera.',
     imageAsset: 'assets/exercises/wWFspEi.gif',
+  ),
+
+  ExerciseSeed(
+    name: 'Sentadilla sumo en máquina Smith',
+    primaryMuscles: ['Cuádriceps'],
+    secondaryMuscles: ['Glúteos', 'Isquiotibiales'],
+    equipment: 'Máquina Smith',
+    instructions: 'Con la barra Smith en la espalda y las piernas muy separadas, baja en sentadilla con las puntas hacia afuera.',
+    imageAsset: 'assets/exercises/dzz6BiV.gif',
+  ),
+  ExerciseSeed(
+    name: 'Hack squat en máquina Smith',
+    primaryMuscles: ['Cuádriceps'],
+    secondaryMuscles: ['Glúteos'],
+    equipment: 'Máquina Smith',
+    instructions: 'Con la barra Smith sobre los trapecios y los pies algo adelantados, baja en sentadilla manteniendo el torso recto.',
+    imageAsset: 'assets/exercises/ZuPXtCK.gif',
+  ),
+  ExerciseSeed(
+    name: 'Hack squat en máquina de prensa',
+    primaryMuscles: ['Cuádriceps'],
+    secondaryMuscles: ['Glúteos'],
+    equipment: 'Máquina de prensa',
+    instructions: 'De pie en la máquina con la espalda apoyada, baja en sentadilla y vuelve a subir empujando con los talones.',
+    imageAsset: 'assets/exercises/Qa55kX1.gif',
+  ),
+  ExerciseSeed(
+    name: 'Sentadilla tumbada en máquina de prensa',
+    primaryMuscles: ['Cuádriceps'],
+    secondaryMuscles: ['Glúteos'],
+    equipment: 'Máquina de prensa',
+    instructions: 'Tumbado boca arriba en la máquina, extiende las piernas empujando la plataforma y vuelve a flexionar.',
+    imageAsset: 'assets/exercises/9n2149Z.gif',
   ),
 
   // ==================== ISQUIOTIBIALES ====================
@@ -1460,6 +1579,23 @@ const exerciseSeedData = <ExerciseSeed>[
     imageAsset: 'assets/exercises/XsCcxCC.gif',
   ),
 
+  ExerciseSeed(
+    name: 'Elevación de cadera en máquina Smith',
+    primaryMuscles: ['Glúteos'],
+    secondaryMuscles: ['Isquiotibiales'],
+    equipment: 'Máquina Smith',
+    instructions: 'Con la espalda apoyada en el suelo y la barra Smith sobre la cadera, empuja hacia arriba con los talones.',
+    imageAsset: 'assets/exercises/CqhoytW.gif',
+  ),
+  ExerciseSeed(
+    name: 'Prensa de piernas separadas en máquina de prensa',
+    primaryMuscles: ['Glúteos'],
+    secondaryMuscles: ['Cuádriceps', 'Isquiotibiales'],
+    equipment: 'Máquina de prensa',
+    instructions: 'Sentado en la prensa con los pies muy separados, empuja la plataforma extendiendo las piernas.',
+    imageAsset: 'assets/exercises/tj41Nu6.gif',
+  ),
+
   // ==================== GEMELOS ====================
   ExerciseSeed(
     name: 'Elevación de gemelos',
@@ -1590,6 +1726,39 @@ const exerciseSeedData = <ExerciseSeed>[
     equipment: 'Máquina de palanca',
     instructions: 'Sentado con las rodillas bajo la almohadilla, empuja la plataforma extendiendo los tobillos.',
     imageAsset: 'assets/exercises/Ie9UGty.gif',
+  ),
+
+  ExerciseSeed(
+    name: 'Elevación de tibiales en máquina Smith',
+    primaryMuscles: ['Gemelos'],
+    secondaryMuscles: [],
+    equipment: 'Máquina Smith',
+    instructions: 'Con las puntas de los pies sobre un step y sujeto a la barra Smith, eleva los talones lo más alto posible.',
+    imageAsset: 'assets/exercises/Lsqrgh4.gif',
+  ),
+  ExerciseSeed(
+    name: 'Elevación de gemelos sentado a una pierna en máquina Smith',
+    primaryMuscles: ['Gemelos'],
+    secondaryMuscles: [],
+    equipment: 'Máquina Smith',
+    instructions: 'Sentado con un pie en el reposapiés, eleva el talón de esa pierna y repite con la otra.',
+    imageAsset: 'assets/exercises/0S75mYG.gif',
+  ),
+  ExerciseSeed(
+    name: 'Elevación de gemelos inclinada en máquina de prensa',
+    primaryMuscles: ['Gemelos'],
+    secondaryMuscles: [],
+    equipment: 'Máquina de prensa',
+    instructions: 'Con las puntas de los pies en la plataforma y los talones al aire, empuja solo con la punta de los pies.',
+    imageAsset: 'assets/exercises/XDOiFns.gif',
+  ),
+  ExerciseSeed(
+    name: 'Prensa de gemelos tumbado en máquina de prensa',
+    primaryMuscles: ['Gemelos'],
+    secondaryMuscles: [],
+    equipment: 'Máquina de prensa',
+    instructions: 'Sentado en la máquina con los talones fuera de la plataforma, empuja extendiendo los tobillos.',
+    imageAsset: 'assets/exercises/g376LuL.gif',
   ),
 
   // ==================== ABDOMEN ====================
