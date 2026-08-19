@@ -33,4 +33,12 @@ class ExercisesDao extends DatabaseAccessor<AppDatabase> with _$ExercisesDaoMixi
   Future<int> insert(ExercisesCompanion entry) {
     return into(exercises).insert(entry);
   }
+
+  // Refreshes a bundled (non-custom) exercise's fields in place, matched by
+  // name — used to bring seed rows created by an older data source up to
+  // date without touching their id (which routines/sessions reference) or
+  // any user-created custom exercise of the same name.
+  Future<void> updateSeedFields(String name, ExercisesCompanion data) {
+    return (update(exercises)..where((e) => e.name.equals(name) & e.isCustom.equals(false))).write(data);
+  }
 }

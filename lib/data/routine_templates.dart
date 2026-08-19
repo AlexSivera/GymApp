@@ -70,7 +70,8 @@ const routineTemplates = [
         RoutineTemplateExercise(exerciseName: 'Dominadas', sets: 4, repsMin: 6, repsMax: 10),
         RoutineTemplateExercise(exerciseName: 'Remo con barra', sets: 3, repsMin: 8, repsMax: 12),
         RoutineTemplateExercise(exerciseName: 'Jalón al pecho', sets: 3, repsMin: 10, repsMax: 12),
-        RoutineTemplateExercise(exerciseName: 'Face pull', sets: 3, repsMin: 12, repsMax: 15),
+        RoutineTemplateExercise(
+            exerciseName: 'Aperturas posteriores cruzadas en polea', sets: 3, repsMin: 12, repsMax: 15),
         RoutineTemplateExercise(exerciseName: 'Curl con barra', sets: 3, repsMin: 10, repsMax: 15),
       ]),
       RoutineTemplateDay(name: 'Pierna', exercises: [
