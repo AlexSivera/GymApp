@@ -226,6 +226,31 @@ const exerciseSeedData = <ExerciseSeed>[
     imageAsset: 'assets/exercises/v3xmPAR.gif',
   ),
 
+  ExerciseSeed(
+    name: 'Press de pecho convergente en máquina de palanca',
+    primaryMuscles: ['Pecho'],
+    secondaryMuscles: ['Tríceps'],
+    equipment: 'Máquina de palanca',
+    instructions: 'Sentado en la máquina con los codos a 90°, empuja las asas hacia adelante hasta la extensión de los brazos.',
+    imageAsset: 'assets/exercises/wDN97Ca.gif',
+  ),
+  ExerciseSeed(
+    name: 'Press de pecho de pie en máquina de palanca',
+    primaryMuscles: ['Pecho'],
+    secondaryMuscles: ['Tríceps', 'Hombros'],
+    equipment: 'Máquina de palanca',
+    instructions: 'De pie frente a la máquina, empuja las asas hacia adelante a la altura del pecho.',
+    imageAsset: 'assets/exercises/WbNq5Xu.gif',
+  ),
+  ExerciseSeed(
+    name: 'Press de pecho declinado en máquina de palanca',
+    primaryMuscles: ['Pecho'],
+    secondaryMuscles: ['Tríceps'],
+    equipment: 'Máquina de palanca',
+    instructions: 'Sentado en la máquina declinada, empuja las asas hacia adelante y abajo desde la parte baja del pecho.',
+    imageAsset: 'assets/exercises/vsVoPHt.gif',
+  ),
+
   // ==================== ESPALDA ====================
   ExerciseSeed(
     name: 'Dominadas',
@@ -467,6 +492,47 @@ const exerciseSeedData = <ExerciseSeed>[
     equipment: 'Máquina de palanca',
     instructions: 'Con el tronco doblado sobre el respaldo de la máquina, eleva el torso hasta alinearlo con las piernas.',
     imageAsset: 'assets/exercises/rUXfn3R.gif',
+  ),
+
+  ExerciseSeed(
+    name: 'Jalón agarre invertido en máquina de palanca',
+    primaryMuscles: ['Espalda'],
+    secondaryMuscles: ['Bíceps'],
+    equipment: 'Máquina de palanca',
+    instructions: 'Sentado en la máquina, tira de las asas hacia abajo con agarre en supinación hasta el pecho.',
+    imageAsset: 'assets/exercises/ecpY0rH.gif',
+  ),
+  ExerciseSeed(
+    name: 'Jalón lateral agarre invertido en máquina de palanca',
+    primaryMuscles: ['Espalda'],
+    secondaryMuscles: ['Bíceps'],
+    equipment: 'Máquina de palanca',
+    instructions: 'Con las rodillas ancladas bajo la máquina, tira de las asas hacia abajo y hacia el pecho con codos por delante.',
+    imageAsset: 'assets/exercises/ky8FLU8.gif',
+  ),
+  ExerciseSeed(
+    name: 'Remo vertical agarre invertido en máquina de palanca',
+    primaryMuscles: ['Espalda'],
+    secondaryMuscles: ['Bíceps', 'Antebrazos'],
+    equipment: 'Máquina de palanca',
+    instructions: 'Con el pecho apoyado en la máquina y agarre en supinación, tira de las asas hacia el pecho juntando los omóplatos.',
+    imageAsset: 'assets/exercises/ZqNOWQ6.gif',
+  ),
+  ExerciseSeed(
+    name: 'Remo alto en máquina de palanca',
+    primaryMuscles: ['Espalda'],
+    secondaryMuscles: ['Bíceps', 'Antebrazos'],
+    equipment: 'Máquina de palanca',
+    instructions: 'Con el pecho apoyado en la máquina, tira de las asas hacia el cuerpo por encima de la línea de los hombros.',
+    imageAsset: 'assets/exercises/nZZZy9m.gif',
+  ),
+  ExerciseSeed(
+    name: 'Remo a una mano en máquina de palanca',
+    primaryMuscles: ['Espalda'],
+    secondaryMuscles: ['Bíceps', 'Antebrazos'],
+    equipment: 'Máquina de palanca',
+    instructions: 'De frente a la máquina, tira del asa hacia el cuerpo con un solo brazo juntando el omóplato.',
+    imageAsset: 'assets/exercises/oROuvrX.gif',
   ),
 
   // ==================== HOMBROS ====================
@@ -1385,6 +1451,15 @@ const exerciseSeedData = <ExerciseSeed>[
     imageAsset: 'assets/exercises/oHsrypV.gif',
   ),
 
+  ExerciseSeed(
+    name: 'Buenos días sentado en máquina de palanca',
+    primaryMuscles: ['Glúteos'],
+    secondaryMuscles: ['Isquiotibiales', 'Espalda'],
+    equipment: 'Máquina de palanca',
+    instructions: 'Sentado con la cadera más alta que las rodillas, inclina el torso hacia adelante desde la cadera y vuelve empujando con glúteos e isquiotibiales.',
+    imageAsset: 'assets/exercises/XsCcxCC.gif',
+  ),
+
   // ==================== GEMELOS ====================
   ExerciseSeed(
     name: 'Elevación de gemelos',
@@ -1498,6 +1573,23 @@ const exerciseSeedData = <ExerciseSeed>[
     equipment: 'Máquina de palanca',
     instructions: 'Con el pie apoyado en la plataforma giratoria, eleva el talón rotando el pie hacia dentro y hacia fuera.',
     imageAsset: 'assets/exercises/MrgP9L6.gif',
+  ),
+
+  ExerciseSeed(
+    name: 'Elevación de gemelos en prensa de piernas',
+    primaryMuscles: ['Gemelos'],
+    secondaryMuscles: [],
+    equipment: 'Máquina de palanca',
+    instructions: 'En la prensa de piernas con las rodillas extendidas, empuja la plataforma solo con la punta de los pies.',
+    imageAsset: 'assets/exercises/IeDEXTe.gif',
+  ),
+  ExerciseSeed(
+    name: 'Prensa de gemelos sentado en máquina de palanca',
+    primaryMuscles: ['Gemelos'],
+    secondaryMuscles: [],
+    equipment: 'Máquina de palanca',
+    instructions: 'Sentado con las rodillas bajo la almohadilla, empuja la plataforma extendiendo los tobillos.',
+    imageAsset: 'assets/exercises/Ie9UGty.gif',
   ),
 
   // ==================== ABDOMEN ====================
