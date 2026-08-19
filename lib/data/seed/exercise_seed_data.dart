@@ -350,6 +350,14 @@ const exerciseSeedData = <ExerciseSeed>[
     imageAsset: 'assets/exercises/kesXOpB.gif',
   ),
   ExerciseSeed(
+    name: 'Remo sentado a una mano en polea',
+    primaryMuscles: ['Espalda'],
+    secondaryMuscles: ['Bíceps', 'Antebrazos'],
+    equipment: 'Polea',
+    instructions: 'Sentado frente a la polea baja, tira del asa hacia la cadera con un brazo y alterna con el otro.',
+    imageAsset: 'assets/exercises/vpp9Ku2.gif',
+  ),
+  ExerciseSeed(
     name: 'Remo con mancuerna inclinado',
     primaryMuscles: ['Espalda'],
     secondaryMuscles: ['Bíceps', 'Antebrazos'],
