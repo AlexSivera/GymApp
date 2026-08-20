@@ -763,6 +763,14 @@ const exerciseSeedData = <ExerciseSeed>[
     instructions: 'Sentado de cara a la máquina, abre los brazos hacia atrás para trabajar el deltoide posterior.',
     imageAsset: 'assets/exercises/myfUsKf.gif',
   ),
+  ExerciseSeed(
+    name: 'Aperturas posteriores agarre neutro en máquina de palanca',
+    primaryMuscles: ['Hombros'],
+    secondaryMuscles: ['Espalda'],
+    equipment: 'Máquina de palanca',
+    instructions: 'Sentado de cara a la máquina con agarre neutro (palmas enfrentadas), abre los brazos hacia atrás y afuera.',
+    imageAsset: 'assets/exercises/xiHiJcA.gif',
+  ),
 
   ExerciseSeed(
     name: 'Remo posterior de hombro en máquina Smith',
