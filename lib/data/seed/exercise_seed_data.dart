@@ -583,6 +583,14 @@ const exerciseSeedData = <ExerciseSeed>[
     instructions: 'De frente a la máquina, tira del asa hacia el cuerpo con un solo brazo juntando el omóplato.',
     imageAsset: 'assets/exercises/oROuvrX.gif',
   ),
+  ExerciseSeed(
+    name: 'Remo sentado en máquina de palanca agarre neutro a un brazo',
+    primaryMuscles: ['Espalda'],
+    secondaryMuscles: ['Bíceps', 'Antebrazos'],
+    equipment: 'Máquina de palanca',
+    instructions: 'Sentado en la máquina con agarre neutro (palmas enfrentadas), tira de un asa hacia el torso mientras la otra permanece fija, y alterna de brazo.',
+    imageAsset: 'assets/exercises/w2oRpuH.gif',
+  ),
 
   ExerciseSeed(
     name: 'Remo inclinado agarre invertido en máquina Smith',
