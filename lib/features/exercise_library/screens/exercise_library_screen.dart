@@ -393,11 +393,13 @@ class _ExerciseListView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 80),
+      padding: const EdgeInsets.fromLTRB(0, AppSpacing.sm, 0, 80),
       itemCount: exercises.length,
       separatorBuilder: (context, index) => Divider(
         height: 1,
         thickness: 1,
+        indent: AppSpacing.lg,
+        endIndent: AppSpacing.lg,
         color: theme.dividerColor.withValues(alpha: 0.3),
       ),
       itemBuilder: (context, index) {
@@ -406,7 +408,7 @@ class _ExerciseListView extends ConsumerWidget {
         return Material(
           color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.14) : Colors.transparent,
           child: ListTile(
-            contentPadding: EdgeInsets.zero,
+            contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             leading: Stack(
               clipBehavior: Clip.none,
               children: [
