@@ -511,6 +511,22 @@ const exerciseSeedData = <ExerciseSeed>[
     imageAsset: 'assets/exercises/4U7iLb5.gif',
   ),
   ExerciseSeed(
+    name: 'Pullover tumbado en polea alta',
+    primaryMuscles: ['Espalda'],
+    secondaryMuscles: ['Tríceps', 'Pecho'],
+    equipment: 'Polea',
+    instructions: 'Tumbado en un banco con la cabeza hacia la polea alta, lleva la cuerda desde encima del pecho hasta detrás de la cabeza.',
+    imageAsset: 'assets/exercises/Q2Eu1Ax.gif',
+  ),
+  ExerciseSeed(
+    name: 'Pullover de pie en polea alta',
+    primaryMuscles: ['Espalda'],
+    secondaryMuscles: ['Tríceps', 'Pecho'],
+    equipment: 'Polea',
+    instructions: 'De pie frente a la polea alta con los brazos extendidos, tira de la barra hacia los muslos manteniendo los codos rectos.',
+    imageAsset: 'assets/exercises/x69MAlq.gif',
+  ),
+  ExerciseSeed(
     name: 'Encogimientos en máquina de palanca',
     primaryMuscles: ['Espalda'],
     secondaryMuscles: [],
