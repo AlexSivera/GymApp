@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/muscle_groups.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/exercise_thumbnail.dart';
 import '../../../data/database/app_database.dart';
 import '../providers/exercise_library_providers.dart';
@@ -396,18 +395,22 @@ class _ExerciseListView extends ConsumerWidget {
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, 80),
       itemCount: exercises.length,
-      separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.sm),
+      separatorBuilder: (context, index) => Divider(
+        height: 1,
+        thickness: 1,
+        color: theme.dividerColor.withValues(alpha: 0.3),
+      ),
       itemBuilder: (context, index) {
         final exercise = exercises[index];
         final isSelected = multiSelect && selectedIds.contains(exercise.id);
-        return AppCard(
-          padding: EdgeInsets.zero,
-          color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.14) : null,
+        return Material(
+          color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.14) : Colors.transparent,
           child: ListTile(
+            contentPadding: EdgeInsets.zero,
             leading: Stack(
               clipBehavior: Clip.none,
               children: [
-                ExerciseThumbnail(imagePaths: exercise.imagePaths),
+                ExerciseThumbnail(imagePaths: exercise.imagePaths, circular: true),
                 if (isSelected)
                   Positioned(
                     left: -4,

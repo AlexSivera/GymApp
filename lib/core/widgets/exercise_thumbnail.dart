@@ -31,17 +31,24 @@ class ExerciseImage extends StatelessWidget {
   }
 }
 
-// Small fixed-size square thumbnail, e.g. for a ListTile's leading slot.
+// Small fixed-size thumbnail, e.g. for a ListTile's leading slot. Rounded
+// square by default; pass [circular] for a fully round avatar-style crop.
 class ExerciseThumbnail extends StatelessWidget {
-  const ExerciseThumbnail({super.key, required this.imagePaths, this.size = 48});
+  const ExerciseThumbnail({
+    super.key,
+    required this.imagePaths,
+    this.size = 48,
+    this.circular = false,
+  });
 
   final List<String> imagePaths;
   final double size;
+  final bool circular;
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(circular ? size / 2 : 8),
       child: SizedBox(
         width: size,
         height: size,
