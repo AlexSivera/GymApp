@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/text_normalize.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
 
@@ -35,12 +36,12 @@ final exerciseCardioOnlyProvider = StateProvider<bool>((ref) => false);
 
 final filteredExercisesProvider = Provider<List<Exercise>>((ref) {
   final exercises = ref.watch(allExercisesProvider).valueOrNull ?? const [];
-  final query = ref.watch(exerciseSearchQueryProvider).trim().toLowerCase();
+  final query = normalizeForSearch(ref.watch(exerciseSearchQueryProvider).trim());
   final muscles = ref.watch(exerciseMuscleFilterProvider);
   final cardioOnly = ref.watch(exerciseCardioOnlyProvider);
 
   return exercises.where((e) {
-    final matchesQuery = query.isEmpty || e.name.toLowerCase().contains(query);
+    final matchesQuery = query.isEmpty || normalizeForSearch(e.name).contains(query);
     if (!matchesQuery) return false;
     if (cardioOnly) return e.category == ExerciseCategory.cardio;
     if (muscles.isEmpty) return true;
