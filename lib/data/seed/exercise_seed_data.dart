@@ -495,6 +495,14 @@ const exerciseSeedData = <ExerciseSeed>[
     imageAsset: 'assets/exercises/aaXr7ld.gif',
   ),
   ExerciseSeed(
+    name: 'Remo en T de pie con agarre V',
+    primaryMuscles: ['Espalda'],
+    secondaryMuscles: ['Bíceps', 'Antebrazos'],
+    equipment: 'Máquina de palanca',
+    instructions: 'Inclinado hacia adelante frente a la máquina, tira del agarre en V hacia el abdomen.',
+    imageAsset: 'assets/exercises/LuBEORI.gif',
+  ),
+  ExerciseSeed(
     name: 'Pullover en máquina de palanca',
     primaryMuscles: ['Espalda'],
     secondaryMuscles: ['Tríceps', 'Pecho'],
