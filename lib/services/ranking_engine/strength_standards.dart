@@ -93,6 +93,14 @@ const exerciseStandards = <String, ExerciseStandard>{
   'Press banca declinado en máquina Smith': ExerciseStandard(38 / referenceBodyweightKg),
   'Fondos en barra con peso añadido': ExerciseStandard(0.65, bodyweightBased: true),
   'Flexión con caída y peso': ExerciseStandard.repsBased(10),
+  'Press de pecho plano en máquina de palanca': ExerciseStandard(35 / referenceBodyweightKg),
+  'Press de pecho inclinado en máquina de palanca': ExerciseStandard(32 / referenceBodyweightKg),
+  'Aperturas en máquina de palanca (pec deck)': ExerciseStandard(12 / referenceBodyweightKg),
+  'Press de pecho convergente en máquina de palanca': ExerciseStandard(32 / referenceBodyweightKg),
+  'Press de pecho de pie en máquina de palanca': ExerciseStandard(24 / referenceBodyweightKg),
+  'Press de pecho declinado en máquina de palanca': ExerciseStandard(32 / referenceBodyweightKg),
+  'Press banca inclinado en máquina Smith': ExerciseStandard(38 / referenceBodyweightKg),
+  'Press banca agarre invertido en máquina Smith': ExerciseStandard(34 / referenceBodyweightKg),
 
   // Espalda
   // Ratio kept well under 1 on purpose: bodyweightBased exercises rank the
@@ -122,6 +130,29 @@ const exerciseStandards = <String, ExerciseStandard>{
   'Dominada con peso añadido': ExerciseStandard(0.6, bodyweightBased: true),
   'Dominada supina agarre cerrado con peso añadido': ExerciseStandard(0.6, bodyweightBased: true),
   'Hiperextensión lumbar con peso añadido': ExerciseStandard(0.15, bodyweightBased: true),
+  'Palanca dorsal (back lever)': ExerciseStandard.repsBased(3),
+  // Unilateral rows/pulldowns below (one arm at a time) use roughly half
+  // the ratio of their bilateral counterpart — the logged weight is the
+  // full stack/bar setting for just one side, same idea as
+  // 'Sentadilla a una pierna con barra' above for legs.
+  'Remo sentado a una mano en polea': ExerciseStandard(25 / referenceBodyweightKg),
+  'Jalón al pecho en máquina de palanca': ExerciseStandard(50 / referenceBodyweightKg),
+  'Remo sentado en máquina de palanca': ExerciseStandard(45 / referenceBodyweightKg),
+  'Remo en T en máquina de palanca': ExerciseStandard(45 / referenceBodyweightKg),
+  'Remo en T de pie con agarre V': ExerciseStandard(40 / referenceBodyweightKg),
+  'Pullover en máquina de palanca': ExerciseStandard(20 / referenceBodyweightKg),
+  'Pullover tumbado en polea alta': ExerciseStandard(15 / referenceBodyweightKg),
+  'Pullover de pie en polea alta': ExerciseStandard(15 / referenceBodyweightKg),
+  'Encogimientos en máquina de palanca': ExerciseStandard(50 / referenceBodyweightKg),
+  'Hiperextensión en máquina de palanca': ExerciseStandard(20 / referenceBodyweightKg),
+  'Jalón agarre invertido en máquina de palanca': ExerciseStandard(55 / referenceBodyweightKg),
+  'Jalón lateral agarre invertido en máquina de palanca': ExerciseStandard(48 / referenceBodyweightKg),
+  'Remo vertical agarre invertido en máquina de palanca': ExerciseStandard(40 / referenceBodyweightKg),
+  'Remo alto en máquina de palanca': ExerciseStandard(42 / referenceBodyweightKg),
+  'Remo a una mano en máquina de palanca': ExerciseStandard(25 / referenceBodyweightKg),
+  'Remo sentado en máquina de palanca agarre neutro a un brazo': ExerciseStandard(22 / referenceBodyweightKg),
+  'Remo inclinado agarre invertido en máquina Smith': ExerciseStandard(42 / referenceBodyweightKg),
+  'Remo a una mano en máquina Smith': ExerciseStandard(25 / referenceBodyweightKg),
 
   // Hombros
   'Elevaciones laterales': ExerciseStandard(6 / referenceBodyweightKg),
@@ -143,6 +174,13 @@ const exerciseStandards = <String, ExerciseStandard>{
   'Press de hombro sentado en máquina Smith': ExerciseStandard(28 / referenceBodyweightKg),
   'Press tras nuca en máquina Smith': ExerciseStandard(26 / referenceBodyweightKg),
   'Elevación frontal con peso añadido': ExerciseStandard(8 / referenceBodyweightKg),
+  'Press de hombro en máquina de palanca': ExerciseStandard(26 / referenceBodyweightKg),
+  'Press de hombro a un brazo en máquina de palanca': ExerciseStandard(15 / referenceBodyweightKg),
+  'Aperturas posteriores en máquina de palanca': ExerciseStandard(10 / referenceBodyweightKg),
+  'Aperturas posteriores agarre neutro en máquina de palanca': ExerciseStandard(10 / referenceBodyweightKg),
+  'Remo posterior de hombro en máquina Smith': ExerciseStandard(15 / referenceBodyweightKg),
+  'Remo al mentón en máquina Smith': ExerciseStandard(20 / referenceBodyweightKg),
+  'Press militar de pie en máquina Smith': ExerciseStandard(26 / referenceBodyweightKg),
 
   // Bíceps
   'Curl con mancuernas': ExerciseStandard(9 / referenceBodyweightKg),
@@ -157,6 +195,9 @@ const exerciseStandards = <String, ExerciseStandard>{
   'Curl en banco Scott agarre cerrado con barra Z': ExerciseStandard(16 / referenceBodyweightKg),
   'Curl de bíceps en máquina de palanca': ExerciseStandard(20 / referenceBodyweightKg),
   'Curl martillo en banco Scott (máquina)': ExerciseStandard(16 / referenceBodyweightKg),
+  'Curl en banco Scott en máquina de palanca': ExerciseStandard(18 / referenceBodyweightKg),
+  'Curl en banco Scott agarre invertido en máquina de palanca': ExerciseStandard(14 / referenceBodyweightKg),
+  'Curl de bíceps en máquina Smith': ExerciseStandard(18 / referenceBodyweightKg),
 
   // Tríceps
   'Press banca agarre cerrado': ExerciseStandard(35 / referenceBodyweightKg),
@@ -172,6 +213,17 @@ const exerciseStandards = <String, ExerciseStandard>{
   'Fondos de tríceps en máquina de palanca': ExerciseStandard(25 / referenceBodyweightKg),
   'Press banca agarre cerrado en máquina Smith': ExerciseStandard(30 / referenceBodyweightKg),
   'Fondos en banco con peso añadido': ExerciseStandard(0.5, bodyweightBased: true),
+  'Extensión de tríceps a un brazo en polea': ExerciseStandard(14 / referenceBodyweightKg),
+  'Extensión de tríceps tumbado en el suelo con polea': ExerciseStandard(15 / referenceBodyweightKg),
+  'Extensión de tríceps por encima de la cabeza con cuerda': ExerciseStandard(15 / referenceBodyweightKg),
+  'Patada de tríceps en polea': ExerciseStandard(8 / referenceBodyweightKg),
+  'Extensión de tríceps en polea agarre invertido': ExerciseStandard(15 / referenceBodyweightKg),
+  'Extensión de tríceps inclinado con polea baja': ExerciseStandard(15 / referenceBodyweightKg),
+  'Extensión de tríceps concentrada en polea': ExerciseStandard(10 / referenceBodyweightKg),
+  'Extensión de tríceps hacia atrás en polea': ExerciseStandard(10 / referenceBodyweightKg),
+  'Extensión de tríceps en máquina de palanca': ExerciseStandard(25 / referenceBodyweightKg),
+  'Fondos sentado en máquina de palanca': ExerciseStandard(25 / referenceBodyweightKg),
+  'Extensión de tríceps inclinada en máquina Smith': ExerciseStandard(18 / referenceBodyweightKg),
 
   // Antebrazos
   'Curl de muñeca prono con barra': ExerciseStandard(10 / referenceBodyweightKg),
@@ -181,6 +233,9 @@ const exerciseStandards = <String, ExerciseStandard>{
   'Pronación tumbado con mancuerna': ExerciseStandard(4 / referenceBodyweightKg),
   'Curl de muñeca sentado en máquina Smith': ExerciseStandard(22 / referenceBodyweightKg),
   'Rodillo de muñeca con peso': ExerciseStandard(6 / referenceBodyweightKg),
+  'Apretón de mano con peso': ExerciseStandard(8 / referenceBodyweightKg),
+  'Máquina de agarre (grip) de palanca': ExerciseStandard(20 / referenceBodyweightKg),
+  'Curl de muñeca invertido de pie en máquina Smith': ExerciseStandard(10 / referenceBodyweightKg),
 
   // Cuádriceps
   'Sentadilla': ExerciseStandard(50 / referenceBodyweightKg),
@@ -201,6 +256,10 @@ const exerciseStandards = <String, ExerciseStandard>{
   'Extensión de cuádriceps en máquina': ExerciseStandard(33 / referenceBodyweightKg),
   'Sentadilla en máquina Smith': ExerciseStandard(55 / referenceBodyweightKg),
   'Zancada búlgara en máquina Smith': ExerciseStandard(25 / referenceBodyweightKg),
+  'Sentadilla sumo en máquina Smith': ExerciseStandard(50 / referenceBodyweightKg),
+  'Hack squat en máquina Smith': ExerciseStandard(60 / referenceBodyweightKg),
+  'Hack squat en máquina de prensa': ExerciseStandard(90 / referenceBodyweightKg),
+  'Sentadilla tumbada en máquina de prensa': ExerciseStandard(110 / referenceBodyweightKg),
 
   // Isquiotibiales
   'Buenos días con barra': ExerciseStandard(30 / referenceBodyweightKg),
@@ -212,6 +271,8 @@ const exerciseStandards = <String, ExerciseStandard>{
   'Curl femoral de rodillas en máquina': ExerciseStandard(15 / referenceBodyweightKg),
   'Curl femoral': ExerciseStandard(25 / referenceBodyweightKg),
   'Curl femoral sentado en máquina': ExerciseStandard(25 / referenceBodyweightKg),
+  // Unilateral — roughly half the bilateral 'Curl femoral' ratio.
+  'Curl femoral tumbado a una pierna en máquina': ExerciseStandard(14 / referenceBodyweightKg),
 
   // Glúteos
   'Sentadilla frontal agarre de cargada': ExerciseStandard(40 / referenceBodyweightKg),
@@ -233,6 +294,12 @@ const exerciseStandards = <String, ExerciseStandard>{
   'Sentadilla frontal en máquina Smith': ExerciseStandard(40 / referenceBodyweightKg),
   'Sentadilla cosaca con peso': ExerciseStandard.repsBased(10),
   'Zancada con peso y balanceo': ExerciseStandard.repsBased(10),
+  'Hiperextensión inversa en máquina de palanca': ExerciseStandard(40 / referenceBodyweightKg),
+  'Abducción de cadera en máquina de palanca': ExerciseStandard(25 / referenceBodyweightKg),
+  'Aducción de cadera en máquina de palanca': ExerciseStandard(25 / referenceBodyweightKg),
+  'Buenos días sentado en máquina de palanca': ExerciseStandard(30 / referenceBodyweightKg),
+  'Elevación de cadera en máquina Smith': ExerciseStandard(65 / referenceBodyweightKg),
+  'Prensa de piernas separadas en máquina de prensa': ExerciseStandard(100 / referenceBodyweightKg),
 
   // Gemelos
   'Elevación de gemelos': ExerciseStandard(50 / referenceBodyweightKg),
@@ -246,6 +313,16 @@ const exerciseStandards = <String, ExerciseStandard>{
   'Elevación de gemelos burro en máquina': ExerciseStandard(70 / referenceBodyweightKg),
   'Elevación de gemelos a una pierna en máquina Smith': ExerciseStandard(30 / referenceBodyweightKg),
   'Elevación de gemelos invertida en máquina Smith': ExerciseStandard(55 / referenceBodyweightKg),
+  'Elevación de gemelos de pie en máquina de palanca': ExerciseStandard(60 / referenceBodyweightKg),
+  'Elevación de gemelos sentado en máquina de palanca': ExerciseStandard(45 / referenceBodyweightKg),
+  'Gemelo rotatorio en máquina de palanca': ExerciseStandard(35 / referenceBodyweightKg),
+  'Elevación de gemelos en prensa de piernas': ExerciseStandard(75 / referenceBodyweightKg),
+  'Prensa de gemelos sentado en máquina de palanca': ExerciseStandard(55 / referenceBodyweightKg),
+  'Elevación de tibiales en máquina Smith': ExerciseStandard(15 / referenceBodyweightKg),
+  // Unilateral — roughly half the bilateral seated calf raise ratio.
+  'Elevación de gemelos sentado a una pierna en máquina Smith': ExerciseStandard(20 / referenceBodyweightKg),
+  'Elevación de gemelos inclinada en máquina de prensa': ExerciseStandard(70 / referenceBodyweightKg),
+  'Prensa de gemelos tumbado en máquina de prensa': ExerciseStandard(75 / referenceBodyweightKg),
 
   // Abdomen: most ab/core work has no meaningful *external* weight signal,
   // so it's ranked by reps instead — see ExerciseStandard.repsBased above.
@@ -266,6 +343,7 @@ const exerciseStandards = <String, ExerciseStandard>{
   'Rotación de tronco con mancuerna': ExerciseStandard(15 / referenceBodyweightKg),
   'Crunch sentado en máquina': ExerciseStandard(20 / referenceBodyweightKg),
   'Pallof press con banda': ExerciseStandard(15 / referenceBodyweightKg),
+  'Elevación de piernas con crunch en máquina de palanca': ExerciseStandard(15 / referenceBodyweightKg),
 
   // Abdomen (bodyweight classics, rep-based)
   'Crunch': ExerciseStandard.repsBased(20),
