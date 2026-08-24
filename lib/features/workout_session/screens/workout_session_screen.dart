@@ -678,6 +678,7 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
           isCompleted: true,
           completedAt: Value(DateTime.now()),
         ));
+    await _carryOverToNextSet(dao, set, result);
 
     HapticFeedback.lightImpact();
     final nextInSuperset = await _nextSupersetPartnerNeedingThisRound(ref, dao);
@@ -711,6 +712,28 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
         ));
       }
     }
+  }
+
+  // Pre-fills the next not-yet-completed set with whatever was just logged,
+  // so the user only has to touch the fields when they actually change
+  // weight/reps (or duration/distance) between sets.
+  Future<void> _carryOverToNextSet(
+    SessionLoggingDao dao,
+    WorkoutSet completedSet,
+    _SetResult result,
+  ) async {
+    final next = sets
+        .where((s) => s.setNumber == completedSet.setNumber + 1 && !s.isCompleted)
+        .firstOrNull;
+    if (next == null) return;
+
+    final isCardio = category == ExerciseCategory.cardio;
+    await dao.updateSet(next.copyWith(
+          weightKg: Value(isStrength ? result.weight : null),
+          reps: Value(isStrength ? result.reps : null),
+          durationSeconds: Value(isStrength ? null : result.durationSeconds),
+          distanceMeters: Value(isCardio ? result.distanceMeters : null),
+        ));
   }
 
   // Null if this exercise isn't in a superset, or every partner already has
