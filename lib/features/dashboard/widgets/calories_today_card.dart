@@ -39,7 +39,7 @@ class CaloriesTodayCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            hasData ? 'kcal · Estimadas hoy' : 'Aún no has entrenado hoy',
+            hasData ? 'kcal · Hoy' : 'Sin datos de calorías hoy',
             style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
         ],

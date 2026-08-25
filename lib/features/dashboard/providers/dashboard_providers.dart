@@ -86,9 +86,12 @@ final insightOfDayProvider = FutureProvider<DailyInsight>((ref) {
   return computeDailyInsight(ref.watch(appDatabaseProvider), unit: unit);
 });
 
-// Sums the estimated calorie burn of every workout completed today — someone
-// who trains twice in one day (e.g. Push in the morning, abs in the
-// evening) sees both added together, not just the last one.
+// The day's total calorie burn — from a linked wearable when available (so
+// it reflects the whole day, not just workouts logged in the app: someone
+// who spent the afternoon working still sees a number), otherwise the
+// MET-based estimate summed across every workout completed today (someone
+// who trains twice in one day, e.g. Push in the morning, abs in the
+// evening, sees both added together, not just the last one).
 final caloriesBurnedTodayProvider = FutureProvider<double>((ref) async {
   final sessions = ref.watch(_recentCompletedSessionsProvider).valueOrNull ?? const [];
   final now = DateTime.now();
@@ -97,15 +100,10 @@ final caloriesBurnedTodayProvider = FutureProvider<double>((ref) async {
     final date = DateTime(s.date.year, s.date.month, s.date.day);
     return date == today;
   }).toList();
-  if (todaysSessions.isEmpty) return 0.0;
 
   final db = ref.watch(appDatabaseProvider);
   final profile = await loadUserProfile(db);
-  var total = 0.0;
-  for (final session in todaysSessions) {
-    total += await resolveSessionCalories(db, session: session, profile: profile);
-  }
-  return total;
+  return resolveDailyCalories(db, dayStart: today, todaysSessions: todaysSessions, profile: profile);
 });
 
 // Last 3 completed sessions, most recent first — powers the "Actividad
