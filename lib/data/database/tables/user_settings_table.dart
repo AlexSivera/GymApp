@@ -12,4 +12,7 @@ class UserSettings extends Table {
   BoolColumn get onboardingCompleted => boolean().withDefault(const Constant(false))();
   BoolColumn get remindersEnabled => boolean().withDefault(const Constant(true))();
   TextColumn get themeMode => text().withDefault(const Constant('dark'))();
+  // Whether the user linked Health Connect (e.g. Mi Fitness/wearable data) to
+  // source workout calories instead of the app's own MET-based estimate.
+  BoolColumn get healthConnectEnabled => boolean().withDefault(const Constant(false))();
 }

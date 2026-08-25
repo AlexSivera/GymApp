@@ -73,6 +73,7 @@ dependencies:
 
   # Abrir enlaces externos (vídeo de ejercicio)
   url_launcher: ^6.3.1
+  health: ^13.3.2
 
 dev_dependencies:
   flutter_test:

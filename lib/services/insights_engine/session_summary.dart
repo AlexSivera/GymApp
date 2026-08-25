@@ -1,6 +1,7 @@
 import '../../core/utils/weight_unit.dart';
 import '../../data/database/app_database.dart';
 import '../calories_engine/estimate_calories_burned.dart';
+import '../calories_engine/resolve_session_calories.dart';
 import '../progression_engine/previous_performance.dart';
 
 class ExerciseImprovement {
@@ -142,7 +143,9 @@ Future<SessionSummary> computeSessionSummary(
   }
 
   final profile = await loadUserProfile(db);
-  final caloriesBurned = await estimateSessionCalories(db, sessionId: sessionId, profile: profile);
+  final caloriesBurned = session != null
+      ? await resolveSessionCalories(db, session: session, profile: profile)
+      : await estimateSessionCalories(db, sessionId: sessionId, profile: profile);
 
   return SessionSummary(
     routineDayName: routineDayName,

@@ -8,6 +8,7 @@ import '../../../core/theme/app_theme_mode.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
+import '../../../services/health_connect/health_connect_service.dart';
 import '../../../services/notifications/reminder_scheduler.dart';
 import '../../dashboard/providers/dashboard_providers.dart';
 
@@ -22,8 +23,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late final TextEditingController _nameController;
   String _units = 'kg';
   bool _remindersEnabled = true;
+  bool _healthConnectEnabled = false;
+  bool _healthConnectBusy = false;
   AppThemeMode _themeMode = AppThemeMode.dark;
   bool _initialized = false;
+  final _healthConnect = const HealthConnectService();
 
   @override
   void initState() {
@@ -60,6 +64,50 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await db.userSettingsDao.updateSettings(UserSettingsCompanion(themeMode: Value(mode.key)));
   }
 
+  // Also applied immediately: turning this on needs to walk through Health
+  // Connect availability + a permissions prompt right away, so the switch
+  // needs to reflect whether that actually succeeded, not just what the
+  // user tapped.
+  Future<void> _toggleHealthConnect(bool value) async {
+    if (!value) {
+      setState(() => _healthConnectEnabled = false);
+      await ref
+          .read(appDatabaseProvider)
+          .userSettingsDao
+          .updateSettings(const UserSettingsCompanion(healthConnectEnabled: Value(false)));
+      return;
+    }
+
+    setState(() => _healthConnectBusy = true);
+    try {
+      await _healthConnect.configure();
+      if (!await _healthConnect.isAvailable()) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Instala la app Health Connect desde Play Store para poder vincularla.'),
+          ));
+        }
+        return;
+      }
+      final granted = await _healthConnect.requestPermissions();
+      if (!granted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('No se concedió permiso para leer las calorías de Health Connect.'),
+          ));
+        }
+        return;
+      }
+      setState(() => _healthConnectEnabled = true);
+      await ref
+          .read(appDatabaseProvider)
+          .userSettingsDao
+          .updateSettings(const UserSettingsCompanion(healthConnectEnabled: Value(true)));
+    } finally {
+      if (mounted) setState(() => _healthConnectBusy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -69,6 +117,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       _units = settings.units;
       _nameController.text = settings.name ?? '';
       _remindersEnabled = settings.remindersEnabled;
+      _healthConnectEnabled = settings.healthConnectEnabled;
       _themeMode = AppThemeMode.fromKey(settings.themeMode);
       _initialized = true;
     }
@@ -130,6 +179,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               subtitle: const Text('Avisarme si hoy toca entrenar o si mi racha está en riesgo'),
               value: _remindersEnabled,
               onChanged: (value) => setState(() => _remindersEnabled = value),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          AppCard(
+            child: SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Health Connect'),
+              subtitle: const Text(
+                  'Usar las calorías registradas por tu pulsera/reloj (Mi Fitness, etc.) en vez de la estimación de Machoke'),
+              value: _healthConnectEnabled,
+              onChanged: _healthConnectBusy ? null : _toggleHealthConnect,
             ),
           ),
           const SizedBox(height: AppSpacing.xl),

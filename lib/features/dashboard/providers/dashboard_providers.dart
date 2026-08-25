@@ -5,6 +5,7 @@ import '../../../core/utils/weight_unit.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../services/calories_engine/estimate_calories_burned.dart';
+import '../../../services/calories_engine/resolve_session_calories.dart';
 import '../../../services/insights_engine/daily_insight.dart';
 import '../../../services/insights_engine/weekly_summary.dart';
 
@@ -102,7 +103,7 @@ final caloriesBurnedTodayProvider = FutureProvider<double>((ref) async {
   final profile = await loadUserProfile(db);
   var total = 0.0;
   for (final session in todaysSessions) {
-    total += await estimateSessionCalories(db, sessionId: session.id, profile: profile);
+    total += await resolveSessionCalories(db, session: session, profile: profile);
   }
   return total;
 });

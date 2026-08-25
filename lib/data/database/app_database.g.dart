@@ -4810,6 +4810,20 @@ class $UserSettingsTable extends UserSettings
     requiredDuringInsert: false,
     defaultValue: const Constant('dark'),
   );
+  static const VerificationMeta _healthConnectEnabledMeta =
+      const VerificationMeta('healthConnectEnabled');
+  @override
+  late final GeneratedColumn<bool> healthConnectEnabled = GeneratedColumn<bool>(
+    'health_connect_enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("health_connect_enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -4822,6 +4836,7 @@ class $UserSettingsTable extends UserSettings
     onboardingCompleted,
     remindersEnabled,
     themeMode,
+    healthConnectEnabled,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4901,6 +4916,15 @@ class $UserSettingsTable extends UserSettings
         themeMode.isAcceptableOrUnknown(data['theme_mode']!, _themeModeMeta),
       );
     }
+    if (data.containsKey('health_connect_enabled')) {
+      context.handle(
+        _healthConnectEnabledMeta,
+        healthConnectEnabled.isAcceptableOrUnknown(
+          data['health_connect_enabled']!,
+          _healthConnectEnabledMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -4950,6 +4974,10 @@ class $UserSettingsTable extends UserSettings
         DriftSqlType.string,
         data['${effectivePrefix}theme_mode'],
       )!,
+      healthConnectEnabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}health_connect_enabled'],
+      )!,
     );
   }
 
@@ -4970,6 +4998,7 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
   final bool onboardingCompleted;
   final bool remindersEnabled;
   final String themeMode;
+  final bool healthConnectEnabled;
   const UserSetting({
     required this.id,
     required this.units,
@@ -4981,6 +5010,7 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
     required this.onboardingCompleted,
     required this.remindersEnabled,
     required this.themeMode,
+    required this.healthConnectEnabled,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -5003,6 +5033,7 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
     map['onboarding_completed'] = Variable<bool>(onboardingCompleted);
     map['reminders_enabled'] = Variable<bool>(remindersEnabled);
     map['theme_mode'] = Variable<String>(themeMode);
+    map['health_connect_enabled'] = Variable<bool>(healthConnectEnabled);
     return map;
   }
 
@@ -5024,6 +5055,7 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
       onboardingCompleted: Value(onboardingCompleted),
       remindersEnabled: Value(remindersEnabled),
       themeMode: Value(themeMode),
+      healthConnectEnabled: Value(healthConnectEnabled),
     );
   }
 
@@ -5047,6 +5079,9 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
       ),
       remindersEnabled: serializer.fromJson<bool>(json['remindersEnabled']),
       themeMode: serializer.fromJson<String>(json['themeMode']),
+      healthConnectEnabled: serializer.fromJson<bool>(
+        json['healthConnectEnabled'],
+      ),
     );
   }
   @override
@@ -5063,6 +5098,7 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
       'onboardingCompleted': serializer.toJson<bool>(onboardingCompleted),
       'remindersEnabled': serializer.toJson<bool>(remindersEnabled),
       'themeMode': serializer.toJson<String>(themeMode),
+      'healthConnectEnabled': serializer.toJson<bool>(healthConnectEnabled),
     };
   }
 
@@ -5077,6 +5113,7 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
     bool? onboardingCompleted,
     bool? remindersEnabled,
     String? themeMode,
+    bool? healthConnectEnabled,
   }) => UserSetting(
     id: id ?? this.id,
     units: units ?? this.units,
@@ -5088,6 +5125,7 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
     onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
     remindersEnabled: remindersEnabled ?? this.remindersEnabled,
     themeMode: themeMode ?? this.themeMode,
+    healthConnectEnabled: healthConnectEnabled ?? this.healthConnectEnabled,
   );
   UserSetting copyWithCompanion(UserSettingsCompanion data) {
     return UserSetting(
@@ -5107,6 +5145,9 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
           ? data.remindersEnabled.value
           : this.remindersEnabled,
       themeMode: data.themeMode.present ? data.themeMode.value : this.themeMode,
+      healthConnectEnabled: data.healthConnectEnabled.present
+          ? data.healthConnectEnabled.value
+          : this.healthConnectEnabled,
     );
   }
 
@@ -5122,7 +5163,8 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
           ..write('birthDate: $birthDate, ')
           ..write('onboardingCompleted: $onboardingCompleted, ')
           ..write('remindersEnabled: $remindersEnabled, ')
-          ..write('themeMode: $themeMode')
+          ..write('themeMode: $themeMode, ')
+          ..write('healthConnectEnabled: $healthConnectEnabled')
           ..write(')'))
         .toString();
   }
@@ -5139,6 +5181,7 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
     onboardingCompleted,
     remindersEnabled,
     themeMode,
+    healthConnectEnabled,
   );
   @override
   bool operator ==(Object other) =>
@@ -5153,7 +5196,8 @@ class UserSetting extends DataClass implements Insertable<UserSetting> {
           other.birthDate == this.birthDate &&
           other.onboardingCompleted == this.onboardingCompleted &&
           other.remindersEnabled == this.remindersEnabled &&
-          other.themeMode == this.themeMode);
+          other.themeMode == this.themeMode &&
+          other.healthConnectEnabled == this.healthConnectEnabled);
 }
 
 class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
@@ -5167,6 +5211,7 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
   final Value<bool> onboardingCompleted;
   final Value<bool> remindersEnabled;
   final Value<String> themeMode;
+  final Value<bool> healthConnectEnabled;
   const UserSettingsCompanion({
     this.id = const Value.absent(),
     this.units = const Value.absent(),
@@ -5178,6 +5223,7 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
     this.onboardingCompleted = const Value.absent(),
     this.remindersEnabled = const Value.absent(),
     this.themeMode = const Value.absent(),
+    this.healthConnectEnabled = const Value.absent(),
   });
   UserSettingsCompanion.insert({
     this.id = const Value.absent(),
@@ -5190,6 +5236,7 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
     this.onboardingCompleted = const Value.absent(),
     this.remindersEnabled = const Value.absent(),
     this.themeMode = const Value.absent(),
+    this.healthConnectEnabled = const Value.absent(),
   });
   static Insertable<UserSetting> custom({
     Expression<int>? id,
@@ -5202,6 +5249,7 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
     Expression<bool>? onboardingCompleted,
     Expression<bool>? remindersEnabled,
     Expression<String>? themeMode,
+    Expression<bool>? healthConnectEnabled,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -5216,6 +5264,8 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
         'onboarding_completed': onboardingCompleted,
       if (remindersEnabled != null) 'reminders_enabled': remindersEnabled,
       if (themeMode != null) 'theme_mode': themeMode,
+      if (healthConnectEnabled != null)
+        'health_connect_enabled': healthConnectEnabled,
     });
   }
 
@@ -5230,6 +5280,7 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
     Value<bool>? onboardingCompleted,
     Value<bool>? remindersEnabled,
     Value<String>? themeMode,
+    Value<bool>? healthConnectEnabled,
   }) {
     return UserSettingsCompanion(
       id: id ?? this.id,
@@ -5242,6 +5293,7 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
       remindersEnabled: remindersEnabled ?? this.remindersEnabled,
       themeMode: themeMode ?? this.themeMode,
+      healthConnectEnabled: healthConnectEnabled ?? this.healthConnectEnabled,
     );
   }
 
@@ -5278,6 +5330,11 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
     if (themeMode.present) {
       map['theme_mode'] = Variable<String>(themeMode.value);
     }
+    if (healthConnectEnabled.present) {
+      map['health_connect_enabled'] = Variable<bool>(
+        healthConnectEnabled.value,
+      );
+    }
     return map;
   }
 
@@ -5293,7 +5350,8 @@ class UserSettingsCompanion extends UpdateCompanion<UserSetting> {
           ..write('birthDate: $birthDate, ')
           ..write('onboardingCompleted: $onboardingCompleted, ')
           ..write('remindersEnabled: $remindersEnabled, ')
-          ..write('themeMode: $themeMode')
+          ..write('themeMode: $themeMode, ')
+          ..write('healthConnectEnabled: $healthConnectEnabled')
           ..write(')'))
         .toString();
   }
@@ -8062,6 +8120,7 @@ typedef $$UserSettingsTableCreateCompanionBuilder =
       Value<bool> onboardingCompleted,
       Value<bool> remindersEnabled,
       Value<String> themeMode,
+      Value<bool> healthConnectEnabled,
     });
 typedef $$UserSettingsTableUpdateCompanionBuilder =
     UserSettingsCompanion Function({
@@ -8075,6 +8134,7 @@ typedef $$UserSettingsTableUpdateCompanionBuilder =
       Value<bool> onboardingCompleted,
       Value<bool> remindersEnabled,
       Value<String> themeMode,
+      Value<bool> healthConnectEnabled,
     });
 
 class $$UserSettingsTableFilterComposer
@@ -8133,6 +8193,11 @@ class $$UserSettingsTableFilterComposer
 
   ColumnFilters<String> get themeMode => $composableBuilder(
     column: $table.themeMode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get healthConnectEnabled => $composableBuilder(
+    column: $table.healthConnectEnabled,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -8195,6 +8260,11 @@ class $$UserSettingsTableOrderingComposer
     column: $table.themeMode,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get healthConnectEnabled => $composableBuilder(
+    column: $table.healthConnectEnabled,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UserSettingsTableAnnotationComposer
@@ -8241,6 +8311,11 @@ class $$UserSettingsTableAnnotationComposer
 
   GeneratedColumn<String> get themeMode =>
       $composableBuilder(column: $table.themeMode, builder: (column) => column);
+
+  GeneratedColumn<bool> get healthConnectEnabled => $composableBuilder(
+    column: $table.healthConnectEnabled,
+    builder: (column) => column,
+  );
 }
 
 class $$UserSettingsTableTableManager
@@ -8284,6 +8359,7 @@ class $$UserSettingsTableTableManager
                 Value<bool> onboardingCompleted = const Value.absent(),
                 Value<bool> remindersEnabled = const Value.absent(),
                 Value<String> themeMode = const Value.absent(),
+                Value<bool> healthConnectEnabled = const Value.absent(),
               }) => UserSettingsCompanion(
                 id: id,
                 units: units,
@@ -8295,6 +8371,7 @@ class $$UserSettingsTableTableManager
                 onboardingCompleted: onboardingCompleted,
                 remindersEnabled: remindersEnabled,
                 themeMode: themeMode,
+                healthConnectEnabled: healthConnectEnabled,
               ),
           createCompanionCallback:
               ({
@@ -8308,6 +8385,7 @@ class $$UserSettingsTableTableManager
                 Value<bool> onboardingCompleted = const Value.absent(),
                 Value<bool> remindersEnabled = const Value.absent(),
                 Value<String> themeMode = const Value.absent(),
+                Value<bool> healthConnectEnabled = const Value.absent(),
               }) => UserSettingsCompanion.insert(
                 id: id,
                 units: units,
@@ -8319,6 +8397,7 @@ class $$UserSettingsTableTableManager
                 onboardingCompleted: onboardingCompleted,
                 remindersEnabled: remindersEnabled,
                 themeMode: themeMode,
+                healthConnectEnabled: healthConnectEnabled,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
