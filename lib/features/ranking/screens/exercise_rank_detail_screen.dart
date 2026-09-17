@@ -239,11 +239,17 @@ class _HistoryTab extends ConsumerWidget {
                         children: [
                           Expanded(child: Text('${set.setNumber}')),
                           if (isDurationBased)
-                            Expanded(child: Text(_fmtSeconds(set.durationSeconds!)))
+                            Expanded(
+                                child: Text(set.durationSeconds == null
+                                    ? '—'
+                                    : _fmtSeconds(set.durationSeconds!)))
                           else ...[
                             if (!isRepsBased)
-                              Expanded(child: Text(formatWeightValue(set.weightKg!, unit))),
-                            Expanded(child: Text('${set.reps}')),
+                              Expanded(
+                                  child: Text(set.weightKg == null
+                                      ? '—'
+                                      : formatWeightValue(set.weightKg!, unit))),
+                            Expanded(child: Text('${set.reps ?? '—'}')),
                           ],
                         ],
                       ),
