@@ -112,6 +112,12 @@ final recentActivityProvider = StreamProvider<List<WorkoutSession>>((ref) {
   return ref.watch(_workoutSessionsDaoProvider).watchRecentCompletedSessions(limit: 3);
 });
 
+// Every completed session, most recent first — powers the full session
+// history screen reached from "Ver historial".
+final sessionHistoryProvider = StreamProvider<List<WorkoutSession>>((ref) {
+  return ref.watch(_workoutSessionsDaoProvider).watchRecentCompletedSessions();
+});
+
 final sessionExerciseCountProvider = StreamProvider.family<int, int>((ref, sessionId) {
   return ref
       .watch(_sessionLoggingDaoProvider)
