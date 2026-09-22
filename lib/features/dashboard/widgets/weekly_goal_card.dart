@@ -50,7 +50,7 @@ class WeeklyGoalCard extends StatelessWidget {
           Text(
             remaining <= 0
                 ? '¡Objetivo semanal completado!'
-                : 'Te queda $remaining ${remaining == 1 ? 'entrenamiento' : 'entrenamientos'} para completar tu objetivo.',
+                : 'Te ${remaining == 1 ? 'queda 1 entrenamiento' : 'quedan $remaining entrenamientos'} para completar tu objetivo.',
             style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
         ],

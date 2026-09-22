@@ -22,7 +22,7 @@ class InsightsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Insights'),
+        title: const Text('Estadísticas'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),

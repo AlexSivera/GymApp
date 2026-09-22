@@ -46,7 +46,7 @@ class RankingScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('RANGO PREDECIDO',
+                          Text('RANGO ESTIMADO',
                               style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 0.5)),
                           const SizedBox(height: AppSpacing.xs),
                           Text(predicted?.label ?? 'Sin rango', style: theme.textTheme.headlineMedium),

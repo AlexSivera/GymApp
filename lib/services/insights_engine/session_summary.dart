@@ -121,7 +121,9 @@ Future<SessionSummary> computeSessionSummary(
 
     final prRecords = await db.personalRecordsDao.watchForExercise(sessionExercise.exerciseId).first;
     final gotPR = validSets.any((set) => prRecords.any((r) => r.setId == set.id));
-    if (gotPR) newPRs.add(exerciseName);
+    // A first-ever session "beats" an empty record on every set — that's
+    // just the baseline, not something to celebrate as a PR.
+    if (gotPR && previousSets.isNotEmpty) newPRs.add(exerciseName);
   }
 
   double? volumeChangePercent;

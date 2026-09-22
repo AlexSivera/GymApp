@@ -92,10 +92,9 @@ class WorkoutSessionScreen extends ConsumerWidget {
               appBar: AppBar(
                 title: Text(title),
               ),
-              floatingActionButton: FloatingActionButton(
-                onPressed: () => _addExercise(context, ref, sessionExercises.length),
-                child: const Icon(Icons.add),
-              ),
+              // No FAB here: it floated right on top of "Finalizar
+              // entrenamiento". Adding an exercise lives at the end of the
+              // list instead (see the footer below).
               bottomNavigationBar: const RestTimerBanner(),
               body: Column(
                 children: [
@@ -150,40 +149,53 @@ class WorkoutSessionScreen extends ConsumerWidget {
                   Expanded(
                     child: sessionExercises.isEmpty
                         ? Center(
-                            child: Text(
-                              'Añade un ejercicio con el botón +.',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            child: OutlinedButton.icon(
+                              onPressed: () => _addExercise(context, ref, 0),
+                              icon: const Icon(Icons.add),
+                              label: const Text('Añadir ejercicio'),
                             ),
                           )
                         : ReorderableListView.builder(
                             padding: const EdgeInsets.fromLTRB(
-                                AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xxxl),
+                                AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.lg),
                             itemCount: sessionExercises.length,
                             onReorderItem: (oldIndex, newIndex) =>
                                 _reorder(ref, sessionExercises, oldIndex, newIndex),
+                            // Long-press to reorder on every platform. The
+                            // default desktop/web drag handle is drawn on top
+                            // of the row's trailing status icon.
+                            buildDefaultDragHandles: false,
                             itemBuilder: (context, index) {
                               final sessionExercise = sessionExercises[index];
                               final exercise = exercisesById[sessionExercise.exerciseId];
                               final groupLabel = sessionExercise.supersetGroup == null
                                   ? null
                                   : supersetLabels[sessionExercise.supersetGroup];
-                              return Padding(
+                              return ReorderableDelayedDragStartListener(
                                 key: ValueKey(sessionExercise.id),
-                                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                                child: _ExerciseRow(
-                                  sessionId: sessionId,
-                                  sessionExercise: sessionExercise,
-                                  exerciseName: exercise?.name ?? 'Ejercicio',
-                                  imagePaths: exercise?.imagePaths ?? const [],
-                                  category: exercise?.category ?? ExerciseCategory.strength,
-                                  targets: targetsByExercise[sessionExercise.exerciseId],
-                                  groupLabel: groupLabel,
+                                index: index,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                                  child: _ExerciseRow(
+                                    sessionId: sessionId,
+                                    sessionExercise: sessionExercise,
+                                    exerciseName: exercise?.name ?? 'Ejercicio',
+                                    imagePaths: exercise?.imagePaths ?? const [],
+                                    category: exercise?.category ?? ExerciseCategory.strength,
+                                    targets: targetsByExercise[sessionExercise.exerciseId],
+                                    groupLabel: groupLabel,
+                                  ),
                                 ),
                               );
                             },
+                            footer: Align(
+                              alignment: Alignment.centerLeft,
+                              child: TextButton.icon(
+                                onPressed: () => _addExercise(context, ref, sessionExercises.length),
+                                icon: const Icon(Icons.add),
+                                label: const Text('Añadir ejercicio'),
+                              ),
+                            ),
                           ),
                   ),
                   Padding(
@@ -192,7 +204,7 @@ class WorkoutSessionScreen extends ConsumerWidget {
                     child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () => _completeSession(context, ref, session),
+                        onPressed: () => _completeSession(context, ref, session, sessionExercises),
                         child: const Text('Finalizar entrenamiento'),
                       ),
                     ),
@@ -218,8 +230,58 @@ class WorkoutSessionScreen extends ConsumerWidget {
     await ref.read(sessionLoggingDaoProvider).reorderSessionExercises(list.map((e) => e.id).toList());
   }
 
-  Future<void> _completeSession(BuildContext context, WidgetRef ref, WorkoutSession session) async {
+  // Finishing with work left undone asks first — otherwise one stray tap on
+  // "Finalizar" ends the session on the spot. Returns false if the user
+  // chose to keep training.
+  Future<bool> _confirmFinishIfIncomplete(
+    BuildContext context,
+    WidgetRef ref,
+    List<SessionExercise> sessionExercises,
+  ) async {
+    final dao = ref.read(sessionLoggingDaoProvider);
+    var completedSets = 0;
+    var pendingExercises = 0;
+    for (final sessionExercise in sessionExercises) {
+      final sets = await dao.getSets(sessionExercise.id);
+      completedSets += sets.where((s) => s.isCompleted).length;
+      if (sessionExercise.status != SessionExerciseStatus.completed &&
+          sessionExercise.status != SessionExerciseStatus.skipped) {
+        pendingExercises++;
+      }
+    }
+    if (pendingExercises == 0 || !context.mounted) return true;
+
+    final message = completedSets == 0
+        ? 'No has marcado ninguna serie como hecha, así que este entrenamiento se guardará vacío.'
+        : 'Te ${pendingExercises == 1 ? 'queda 1 ejercicio' : 'quedan $pendingExercises ejercicios'} '
+            'por completar. Las series que no hayas marcado como hechas no se guardarán.';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('¿Terminar el entrenamiento?'),
+        content: Text(message),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Seguir entrenando')),
+          TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Terminar')),
+        ],
+      ),
+    );
+    return confirmed == true;
+  }
+
+  Future<void> _completeSession(
+    BuildContext context,
+    WidgetRef ref,
+    WorkoutSession session,
+    List<SessionExercise> sessionExercises,
+  ) async {
+    if (!await _confirmFinishIfIncomplete(context, ref, sessionExercises)) return;
+    if (!context.mounted) return;
+
+    // Everything needed from ref is read up front: once the session is
+    // marked completed below, this widget is unmounted and ref stops working.
     final db = ref.read(appDatabaseProvider);
+    final unit = ref.read(weightUnitProvider);
     final durationSeconds = session.startedAt != null
         ? DateTime.now().difference(session.startedAt!).inSeconds
         : null;
@@ -241,8 +303,9 @@ class WorkoutSessionScreen extends ConsumerWidget {
         durationSeconds: Value(durationSeconds),
       ),
     );
+    await db.sessionLoggingDao.deleteUncompletedSetsOfFinishedSessions(sessionId: sessionId);
 
-    final summary = await computeSessionSummary(db, sessionId: sessionId, unit: ref.read(weightUnitProvider));
+    final summary = await computeSessionSummary(db, sessionId: sessionId, unit: unit);
     final achievements = await computeNewRankAchievements(db, sessionId: sessionId);
 
     navigator.push(
@@ -448,7 +511,9 @@ class _ExerciseRow extends ConsumerWidget {
       await dao.addSet(WorkoutSetsCompanion.insert(
         sessionExerciseId: sessionExercise.id,
         setNumber: i + 1,
-        weightKg: Value(isStrength ? matchingPrevious?.weightKg ?? suggestion?.suggestedWeight : null),
+        // The suggestion wins over last time's weight, so every set starts at
+        // the load the "Prueba con X kg" hint above is recommending.
+        weightKg: Value(isStrength ? suggestion?.suggestedWeight ?? matchingPrevious?.weightKg : null),
         reps: Value(isStrength ? matchingPrevious?.reps ?? targets!.repsMax : null),
         durationSeconds: Value(isStrength ? null : matchingPrevious?.durationSeconds),
         distanceMeters: Value(isCardio ? matchingPrevious?.distanceMeters : null),
@@ -457,8 +522,12 @@ class _ExerciseRow extends ConsumerWidget {
     }
   }
 
-  String _setsSummary(List<WorkoutSet> sets, WeightUnit unit) {
-    if (sets.isEmpty) return 'Sin series todavía';
+  // Only sets actually ticked off are summarized — pending ones are just
+  // pre-filled suggestions. Until the first one is done, the row shows the
+  // plan instead ("3 × 8–12 reps").
+  String _setsSummary(List<WorkoutSet> allSets, WeightUnit unit) {
+    final sets = allSets.where((s) => s.isCompleted).toList();
+    if (sets.isEmpty) return _plannedSummary(allSets.length);
     if (category != ExerciseCategory.strength) {
       final valid = sets.where((s) => s.durationSeconds != null || s.distanceMeters != null).toList();
       if (valid.isEmpty) return '${sets.length} serie${sets.length == 1 ? '' : 's'}';
@@ -471,6 +540,18 @@ class _ExerciseRow extends ConsumerWidget {
     final parts = valid.take(3).map((s) => '${formatWeightValue(s.weightKg!, unit)}×${s.reps}');
     final suffix = valid.length > 3 ? ' +${valid.length - 3}' : '';
     return '${parts.join(' · ')}$suffix ${weightUnitLabel(unit)}';
+  }
+
+  String _plannedSummary(int createdSets) {
+    final plannedSets = targets?.sets ?? createdSets;
+    if (plannedSets == 0) return 'Sin series todavía';
+    if (category == ExerciseCategory.strength && targets != null) {
+      final reps = targets!.repsMin == targets!.repsMax
+          ? '${targets!.repsMin}'
+          : '${targets!.repsMin}–${targets!.repsMax}';
+      return '$plannedSets × $reps reps';
+    }
+    return '$plannedSets serie${plannedSets == 1 ? '' : 's'}';
   }
 }
 
@@ -669,6 +750,11 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
   ) async {
     final setId = set.id;
     final dao = ref.read(sessionLoggingDaoProvider);
+    // Carry over *before* marking this set done: marking it done is what
+    // turns the next set into the active card, and that card reads its
+    // starting weight/reps only once, when it's created. Doing it the other
+    // way round showed the next set at 0 kg.
+    await _carryOverToNextSet(dao, set, result);
     await dao.updateSet(set.copyWith(
           weightKg: Value(result.weight),
           reps: Value(result.reps),
@@ -678,7 +764,6 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
           isCompleted: true,
           completedAt: Value(DateTime.now()),
         ));
-    await _carryOverToNextSet(dao, set, result);
 
     HapticFeedback.lightImpact();
     final nextInSuperset = await _nextSupersetPartnerNeedingThisRound(ref, dao);
@@ -693,14 +778,21 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
     await _syncExerciseStatus(ref);
 
     if (result.weight != null && result.reps != null) {
+      final db = ref.read(appDatabaseProvider);
       final achieved = await checkAndRecordPRs(
-        ref.read(appDatabaseProvider),
+        db,
         exerciseId: exerciseId,
         setId: setId,
         weightKg: result.weight!,
         reps: result.reps!,
       );
-      if (achieved.isNotEmpty && context.mounted) {
+      // The very first time an exercise is done, every set "beats" an empty
+      // record. Those still get stored (as the baseline), but a record only
+      // gets celebrated once there's a past session to have beaten.
+      final hasHistory = achieved.isNotEmpty &&
+          (await getPreviousSetsForExercise(db, exerciseId: exerciseId, excludeSessionId: sessionId))
+              .isNotEmpty;
+      if (hasHistory && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Row(
             children: [

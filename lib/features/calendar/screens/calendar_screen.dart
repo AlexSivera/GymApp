@@ -104,6 +104,7 @@ class CalendarScreen extends ConsumerWidget {
                 children: [
                   TableCalendar<WorkoutSession>(
                     locale: 'es',
+                    startingDayOfWeek: StartingDayOfWeek.monday,
                     firstDay: DateTime(2020, 1, 1),
                     lastDay: DateTime(2035, 12, 31),
                     focusedDay: focusedMonth,
@@ -161,7 +162,9 @@ class CalendarScreen extends ConsumerWidget {
               ),
             ),
           ),
-          if (!selectionMode)
+          // Nothing to assign until at least one routine exists — the empty
+          // state below already points to creating one.
+          if (!selectionMode && (routinesAsync.valueOrNull?.isNotEmpty ?? false))
             Padding(
               padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
               child: SizedBox(

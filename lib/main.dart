@@ -20,6 +20,7 @@ void main() async {
   final db = AppDatabase();
   await syncSeedExercises(db);
   await db.userSettingsDao.ensureDefaultRow();
+  await db.sessionLoggingDao.deleteUncompletedSetsOfFinishedSessions();
   final onboardingDone = await db.userSettingsDao.isOnboardingCompleted();
   unawaited(refreshDailyReminders(db));
 

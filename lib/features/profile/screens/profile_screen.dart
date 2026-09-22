@@ -88,7 +88,7 @@ class ProfileScreen extends ConsumerWidget {
             ),
             _ProfileTile(
               icon: Icons.insights_outlined,
-              title: 'Insights',
+              title: 'Estadísticas',
               subtitle: insight?.message,
               onTap: () =>
                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => const InsightsScreen())),
@@ -108,16 +108,19 @@ class ProfileScreen extends ConsumerWidget {
           _ProfileSectionHeader('Aplicación'),
           _ProfileSection(tiles: [
             _ProfileTile(
+              icon: Icons.settings_outlined,
               title: 'Configuración',
               onTap: () =>
                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
             ),
             _ProfileTile(
+              icon: Icons.backup_outlined,
               title: 'Copia de seguridad',
               onTap: () => Navigator.of(context)
                   .push(MaterialPageRoute(builder: (_) => const ImportExportScreen())),
             ),
             _ProfileTile(
+              icon: Icons.info_outline,
               title: 'Acerca de',
               onTap: () =>
                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AboutScreen())),
@@ -208,11 +211,9 @@ class _ProfileSection extends StatelessWidget {
   }
 }
 
-// [icon]/[subtitle] are both optional so the two sections this feeds can
-// carry different visual weight from the same widget: Progreso rows get a
-// small muted icon plus a real-data subtitle when there's something to show;
-// Aplicación rows are plain title-and-chevron, deliberately lighter so the
-// whole screen doesn't read as one flat settings list.
+// Every row gets a small muted icon so both sections line up; [subtitle] is
+// optional — Progreso rows show real data there when there's something to
+// show, Aplicación rows stay title-only.
 class _ProfileTile extends StatelessWidget {
   const _ProfileTile({this.icon, required this.title, this.subtitle, required this.onTap});
 

@@ -128,23 +128,30 @@ class DayExercisesList extends ConsumerWidget {
         }
         final groupLabels = supersetGroupLabels(routineExercises, (e) => e.supersetGroup);
         return ReorderableListView.builder(
-          padding: const EdgeInsets.all(16),
+          // Extra bottom room so the + FAB never sits on the last row's ⋮ menu.
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
           itemCount: routineExercises.length,
           onReorderItem: (oldIndex, newIndex) => _reorder(ref, routineExercises, oldIndex, newIndex),
+          // Long-press to reorder on every platform — the default
+          // desktop/web drag handle collides with the row's ⋮ menu.
+          buildDefaultDragHandles: false,
           itemBuilder: (context, index) {
             final entry = routineExercises[index];
             final exercise = exercisesById[entry.exerciseId];
             final nextEntry = index + 1 < routineExercises.length ? routineExercises[index + 1] : null;
-            return Padding(
+            return ReorderableDelayedDragStartListener(
               key: ValueKey(entry.id),
-              padding: const EdgeInsets.only(bottom: 8),
-              child: _RoutineExerciseRow(
-                entry: entry,
-                exerciseName: exercise?.name ?? 'Ejercicio eliminado',
-                imagePaths: exercise?.imagePaths ?? const [],
-                exercise: exercise,
-                groupLabel: entry.supersetGroup == null ? null : groupLabels[entry.supersetGroup],
-                nextEntry: nextEntry,
+              index: index,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _RoutineExerciseRow(
+                  entry: entry,
+                  exerciseName: exercise?.name ?? 'Ejercicio eliminado',
+                  imagePaths: exercise?.imagePaths ?? const [],
+                  exercise: exercise,
+                  groupLabel: entry.supersetGroup == null ? null : groupLabels[entry.supersetGroup],
+                  nextEntry: nextEntry,
+                ),
               ),
             );
           },
@@ -165,6 +172,8 @@ class DayExercisesList extends ConsumerWidget {
     await ref.read(routinesDaoProvider).reorderExercises(list.map((e) => e.id).toList());
   }
 }
+
+enum _RoutineExerciseAction { toggleLink, delete }
 
 class _RoutineExerciseRow extends ConsumerWidget {
   const _RoutineExerciseRow({
@@ -234,9 +243,37 @@ class _RoutineExerciseRow extends ConsumerWidget {
             leading: ExerciseThumbnail(imagePaths: imagePaths),
             title: Text(exerciseName),
             subtitle: Text(_summarize(entry, isStrength: isStrength, unit: unit)),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () => ref.read(routinesDaoProvider).removeExerciseFromDay(entry.id),
+            // Supersets are an occasional power-user thing, so linking lives
+            // in this menu instead of a highlighted button under every row.
+            trailing: PopupMenuButton<_RoutineExerciseAction>(
+              icon: Icon(Icons.more_vert, color: theme.colorScheme.onSurfaceVariant),
+              onSelected: (action) {
+                switch (action) {
+                  case _RoutineExerciseAction.toggleLink:
+                    _toggleLink(ref);
+                  case _RoutineExerciseAction.delete:
+                    ref.read(routinesDaoProvider).removeExerciseFromDay(entry.id);
+                }
+              },
+              itemBuilder: (context) => [
+                if (nextEntry != null)
+                  PopupMenuItem(
+                    value: _RoutineExerciseAction.toggleLink,
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(_linkedWithNext ? Icons.link_off : Icons.link),
+                      title: Text(_linkedWithNext ? 'Separar del siguiente' : 'Superserie con el siguiente'),
+                    ),
+                  ),
+                const PopupMenuItem(
+                  value: _RoutineExerciseAction.delete,
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.delete_outline),
+                    title: Text('Quitar de la rutina'),
+                  ),
+                ),
+              ],
             ),
             onTap: () {
               final notifier = ref.read(expandedRoutineExerciseIdsProvider.notifier);
@@ -246,18 +283,6 @@ class _RoutineExerciseRow extends ConsumerWidget {
                   : ({...current, entry.id});
             },
           ),
-          if (nextEntry != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  onPressed: () => _toggleLink(ref),
-                  icon: Icon(_linkedWithNext ? Icons.link_off : Icons.link, size: 18),
-                  label: Text(_linkedWithNext ? 'Separar del siguiente' : 'Vincular con el siguiente'),
-                ),
-              ),
-            ),
           AnimatedSize(
             duration: AppMotion.normal,
             curve: AppMotion.curve,

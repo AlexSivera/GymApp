@@ -76,4 +76,26 @@ class SessionLoggingDao extends DatabaseAccessor<AppDatabase>
   Future<int> deleteSet(int id) {
     return (delete(workoutSets)..where((s) => s.id.equals(id))).go();
   }
+
+  // Opening an exercise mid-workout pre-creates (and pre-fills) all of its
+  // planned sets, so a finished session can still hold sets the user never
+  // ticked off. Those were never performed and must not count towards
+  // volume, PRs, ranks or "Última vez" — every one of those queries only
+  // checks weightKg/reps, not isCompleted — so they're dropped once the
+  // session is over. Scoped to one session when finishing it; run with no
+  // sessionId at startup to clean up sessions finished before this existed.
+  Future<int> deleteUncompletedSetsOfFinishedSessions({int? sessionId}) {
+    return customUpdate(
+      'DELETE FROM workout_sets WHERE is_completed = 0 AND session_exercise_id IN ('
+      'SELECT se.id FROM session_exercises se '
+      'JOIN workout_sessions ws ON ws.id = se.workout_session_id '
+      'WHERE ws.status = ?${sessionId == null ? '' : ' AND ws.id = ?'})',
+      variables: [
+        Variable.withInt(SessionStatus.completed.index),
+        if (sessionId != null) Variable.withInt(sessionId),
+      ],
+      updates: {workoutSets},
+      updateKind: UpdateKind.delete,
+    );
+  }
 }
