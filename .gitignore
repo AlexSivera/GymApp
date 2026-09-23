@@ -48,3 +48,6 @@ app.*.map.json
 # Debug-only artifacts from compiling web/drift_worker.dart -> drift_worker.js
 /web/drift_worker.js.map
 /web/drift_worker.js.deps
+
+# Archivos de trabajo de diseño (ilustración original, XCF de GIMP): solo en local
+/design/
