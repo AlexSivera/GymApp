@@ -1,5 +1,5 @@
 {
-  "_info": "Máscaras musculares (blanco = músculo, transparente = resto) del mismo tamaño y posición que la base de su vista. Colorear en Flutter tiñendo la máscara (p. ej. ColorFiltered/srcIn) y superponiéndola a la base. \"appMuscle\" coincide con los nombres de lib/core/constants/muscle_groups.dart (16 músculos, uno o más máscaras cada uno).",
+  "_info": "Máscaras musculares (blanco = músculo, transparente = resto) del mismo tamaño y posición que la base de su vista. appMuscle = nombres de lib/core/constants/muscle_groups.dart (Abductores no tiene región en la ilustración). En la app el mapeo vive en lib/features/ranking/widgets/body_masks.dart; este JSON es de referencia.",
   "size": {
     "width": 610,
     "height": 1157
@@ -52,8 +52,8 @@
           "file": "assets/body/masks/front/antebrazo.png"
         },
         "abdomen": {
-          "name": "Abdomen",
-          "appMuscle": "Abdomen",
+          "name": "Abdominales",
+          "appMuscle": "Abdominales",
           "side": "both",
           "view": "front",
           "file": "assets/body/masks/front/abdomen.png"
@@ -128,8 +128,8 @@
           "file": "assets/body/masks/back/antebrazo.png"
         },
         "lumbares": {
-          "name": "Lumbares",
-          "appMuscle": "Lumbares",
+          "name": "Lumbar",
+          "appMuscle": "Lumbar",
           "side": "both",
           "view": "back",
           "file": "assets/body/masks/back/lumbares.png"
@@ -142,8 +142,8 @@
           "file": "assets/body/masks/back/gluteos.png"
         },
         "isquiotibiales": {
-          "name": "Isquiotibiales",
-          "appMuscle": "Isquiotibiales",
+          "name": "Femoral",
+          "appMuscle": "Femoral",
           "side": "both",
           "view": "back",
           "file": "assets/body/masks/back/isquiotibiales.png"
@@ -187,7 +187,7 @@
       "assets/body/masks/front/antebrazo.png",
       "assets/body/masks/back/antebrazo.png"
     ],
-    "Abdomen": [
+    "Abdominales": [
       "assets/body/masks/front/abdomen.png"
     ],
     "Aductores": [
@@ -210,13 +210,13 @@
     "Tríceps": [
       "assets/body/masks/back/triceps.png"
     ],
-    "Lumbares": [
+    "Lumbar": [
       "assets/body/masks/back/lumbares.png"
     ],
     "Glúteos": [
       "assets/body/masks/back/gluteos.png"
     ],
-    "Isquiotibiales": [
+    "Femoral": [
       "assets/body/masks/back/isquiotibiales.png"
     ]
   }

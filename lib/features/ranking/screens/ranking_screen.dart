@@ -11,6 +11,8 @@ import '../../../services/ranking_engine/rank_tier.dart';
 import '../../exercise_library/providers/exercise_library_providers.dart';
 import '../providers/ranking_providers.dart';
 import '../widgets/body_diagram.dart';
+import '../widgets/body_masks.dart';
+import '../widgets/body_thumbnail.dart';
 import '../widgets/rank_badge.dart';
 import 'exercise_rank_detail_screen.dart';
 
@@ -23,7 +25,9 @@ class RankingScreen extends ConsumerWidget {
     final predicted = ref.watch(overallPredictedRankProvider);
     final muscleRanks = ref.watch(muscleRanksProvider);
     final available = ref.watch(availableMusclesProvider);
-    final grouped = groupedAvailableMuscles(available);
+    // Every muscle of the body diagram is always listed (unranked ones as
+    // "Sin rango"), plus any extra muscle a custom exercise uses.
+    final grouped = groupedAvailableMuscles([...muscleGroups.values.expand((m) => m), ...available]);
 
     final colorsByMuscle = {
       for (final entry in muscleRanks.entries) entry.key: rankTierColors[entry.value.tier]!,
@@ -78,24 +82,14 @@ class RankingScreen extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.xl),
             Text('Rankings musculares', style: theme.textTheme.titleLarge),
-            for (final entry in grouped.entries) ...[
+            const SizedBox(height: AppSpacing.md),
+            for (final MapEntry(key: group, value: muscles) in grouped.entries)
               Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.md, bottom: AppSpacing.xs),
-                child: Text(entry.key,
-                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: muscleGroups[group]?.length == 1
+                    ? _MuscleCard(muscle: muscles.single, rank: muscleRanks[muscles.single], standalone: true)
+                    : _MuscleGroupCard(group: group, muscles: muscles, ranks: muscleRanks),
               ),
-              AppCard(
-                padding: EdgeInsets.zero,
-                child: Column(
-                  children: [
-                    for (var i = 0; i < entry.value.length; i++) ...[
-                      _MuscleRow(muscle: entry.value[i], rank: muscleRanks[entry.value[i]]),
-                      if (i != entry.value.length - 1) const Divider(height: 1, indent: 68),
-                    ],
-                  ],
-                ),
-              ),
-            ],
           ],
         ],
       ),
@@ -150,39 +144,206 @@ class _RankingEmptyState extends StatelessWidget {
   }
 }
 
-class _MuscleRow extends StatelessWidget {
-  const _MuscleRow({required this.muscle, required this.rank});
+// Highlight for a muscle in the list thumbnails: its rank color, or a faint
+// white when unranked so it's still clear which muscle the row is about.
+Color _thumbnailColor(Rank? rank) =>
+    rank == null ? Colors.white.withValues(alpha: 0.28) : rankTierColors[rank.tier]!;
 
-  final String muscle;
+// Card tinted by a rank's color (plain surface when there's no rank).
+class _RankTintedCard extends StatelessWidget {
+  const _RankTintedCard({required this.rank, required this.child, this.onTap});
+
   final Rank? rank;
+  final Widget child;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final tier = rank == null ? null : rankTierColors[rank!.tier];
+    return Material(
+      color: tier == null ? colors.surface : Color.alphaBlend(tier.withValues(alpha: 0.08), colors.surface),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        side: BorderSide(color: tier?.withValues(alpha: 0.4) ?? colors.border),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(padding: const EdgeInsets.all(AppSpacing.md), child: child),
+      ),
+    );
+  }
+}
+
+// "ORO III · 1/3" / "SIN RANGO · 0/6" — [count] only for groups.
+class _RankLine extends StatelessWidget {
+  const _RankLine({required this.rank, this.count});
+
+  final Rank? rank;
+  final String? count;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ListTile(
-      leading: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.primary.withValues(alpha: 0.14),
-          borderRadius: BorderRadius.circular(AppSpacing.sm),
+    final base = theme.textTheme.bodyMedium;
+    return Text.rich(
+      TextSpan(children: [
+        TextSpan(
+          text: rank?.label.toUpperCase() ?? 'SIN RANGO',
+          style: base?.copyWith(
+            color: rank == null ? theme.colorScheme.onSurfaceVariant : rankTierColors[rank!.tier],
+            fontWeight: FontWeight.w600,
+          ),
         ),
-        child: Icon(iconForMuscle(muscle), size: 18, color: theme.colorScheme.primary),
-      ),
-      title: Text(muscle),
-      subtitle: Text(
-        rank?.label ?? 'Sin rango',
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: rank == null ? theme.colorScheme.onSurfaceVariant : rankTierColors[rank!.tier],
-          fontWeight: rank == null ? null : FontWeight.w600,
-        ),
-      ),
-      trailing: Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
+        if (count != null) TextSpan(text: ' · $count', style: base?.copyWith(fontWeight: FontWeight.w600)),
+      ]),
+    );
+  }
+}
+
+class _Thumbnail extends StatelessWidget {
+  const _Thumbnail({required this.frame, required this.colorsByMuscle, required this.shape, required this.icon});
+
+  final BodyFrame? frame;
+  final Map<String, Color> colorsByMuscle;
+  final BodyThumbnailShape shape;
+  final IconData icon; // fallback for muscles outside the body diagram
+
+  @override
+  Widget build(BuildContext context) {
+    const size = 56.0;
+    if (frame case final frame?) {
+      return BodyThumbnail(frame: frame, colorsByMuscle: colorsByMuscle, size: size, shape: shape);
+    }
+    final theme = Theme.of(context);
+    return CircleAvatar(
+      radius: size / 2,
+      backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.14),
+      child: Icon(icon, color: theme.colorScheme.primary),
+    );
+  }
+}
+
+// One muscle: hexagon icon when it stands alone (Pecho, Hombros...), round
+// icon plus rank badge when it's listed inside an expanded group.
+class _MuscleCard extends StatelessWidget {
+  const _MuscleCard({required this.muscle, required this.rank, this.standalone = false});
+
+  final String muscle;
+  final Rank? rank;
+  final bool standalone;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return _RankTintedCard(
+      rank: rank,
       onTap: () => showModalBottomSheet(
         context: context,
         isScrollControlled: true,
         builder: (_) => _MuscleDetailSheet(muscle: muscle),
       ),
+      child: Row(
+        children: [
+          _Thumbnail(
+            frame: muscleFrames[muscle],
+            colorsByMuscle: {muscle: _thumbnailColor(rank)},
+            shape: standalone ? BodyThumbnailShape.hexagon : BodyThumbnailShape.circle,
+            icon: iconForMuscle(muscle),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(muscle, style: theme.textTheme.titleMedium),
+                const SizedBox(height: 2),
+                _RankLine(rank: rank),
+              ],
+            ),
+          ),
+          if (!standalone && rank != null) RankBadge(rank: rank!, size: 36),
+        ],
+      ),
+    );
+  }
+}
+
+// Brazos / Piernas / Espalda: collapsed to one row with the group's average
+// rank and how many of its muscles are ranked; tap to show each muscle.
+class _MuscleGroupCard extends StatefulWidget {
+  const _MuscleGroupCard({required this.group, required this.muscles, required this.ranks});
+
+  final String group;
+  final List<String> muscles;
+  final Map<String, Rank> ranks;
+
+  @override
+  State<_MuscleGroupCard> createState() => _MuscleGroupCardState();
+}
+
+class _MuscleGroupCardState extends State<_MuscleGroupCard> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final ranked = [for (final m in widget.muscles) ?widget.ranks[m]];
+    final groupRank = ranked.isEmpty ? null : averageRank(ranked);
+
+    return Column(
+      children: [
+        _RankTintedCard(
+          rank: groupRank,
+          onTap: () => setState(() => _expanded = !_expanded),
+          child: Row(
+            children: [
+              _Thumbnail(
+                frame: bestGroupFrame(widget.group, [for (final m in widget.muscles) if (widget.ranks.containsKey(m)) m]),
+                colorsByMuscle: {for (final m in widget.muscles) m: _thumbnailColor(widget.ranks[m])},
+                shape: BodyThumbnailShape.hexagon,
+                icon: Icons.category_outlined,
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.group, style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 2),
+                    _RankLine(rank: groupRank, count: '${ranked.length}/${widget.muscles.length}'),
+                  ],
+                ),
+              ),
+              AnimatedRotation(
+                turns: _expanded ? 0.5 : 0,
+                duration: const Duration(milliseconds: 200),
+                child: Icon(Icons.keyboard_arrow_down, color: theme.colorScheme.onSurfaceVariant),
+              ),
+            ],
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          alignment: Alignment.topCenter,
+          child: !_expanded
+              ? const SizedBox(width: double.infinity)
+              : Padding(
+                  padding: const EdgeInsets.only(left: AppSpacing.lg, top: AppSpacing.sm),
+                  child: Column(
+                    children: [
+                      for (final muscle in widget.muscles)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: _MuscleCard(muscle: muscle, rank: widget.ranks[muscle]),
+                        ),
+                    ],
+                  ),
+                ),
+        ),
+      ],
     );
   }
 }

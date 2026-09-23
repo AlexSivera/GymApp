@@ -58,7 +58,7 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final grouped = groupedAvailableMuscles(muscleGroups.values.expand((v) => v).toList());
+    final grouped = groupedMusclesForPicker(muscleGroups.values.expand((v) => v).toList());
 
     return Scaffold(
       appBar: AppBar(title: const Text('Crear ejercicio')),

@@ -159,7 +159,7 @@ class _MuscleFilterSheet extends ConsumerWidget {
     final available = ref.watch(availableMusclesProvider);
     final selected = ref.watch(exerciseMuscleFilterProvider);
     final cardioOnly = ref.watch(exerciseCardioOnlyProvider);
-    final grouped = groupedAvailableMuscles(available);
+    final grouped = groupedMusclesForPicker(available);
     final resultCount = ref.watch(filteredExercisesProvider).length;
 
     void toggle(String muscle) {

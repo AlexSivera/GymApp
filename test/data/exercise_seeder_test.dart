@@ -73,8 +73,9 @@ void main() {
       isCustom: const Value(true),
     ));
     await db.exercisesDao.insert(ExercisesCompanion.insert(
-      name: 'Mi abducción',
-      primaryMuscles: const Value(['Abductores', 'Glúteos']),
+      name: 'Mi peso muerto',
+      primaryMuscles: const Value(['Isquiotibiales']),
+      secondaryMuscles: const Value(['Lumbares', 'Abdomen']),
       isCustom: const Value(true),
     ));
 
@@ -83,6 +84,7 @@ void main() {
     final byName = {for (final e in await db.exercisesDao.getAll()) e.name: e};
     expect(byName['Mi curl de muñeca']!.primaryMuscles, ['Antebrazos']);
     expect(byName['Mi curl de muñeca']!.secondaryMuscles, ['Bíceps']);
-    expect(byName['Mi abducción']!.primaryMuscles, ['Glúteos']);
+    expect(byName['Mi peso muerto']!.primaryMuscles, ['Femoral']);
+    expect(byName['Mi peso muerto']!.secondaryMuscles, ['Lumbar', 'Abdominales']);
   });
 }

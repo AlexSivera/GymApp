@@ -1,46 +1,52 @@
 import 'package:flutter/material.dart';
 
-// Muscles grouped by body region, in display order — shared by the exercise
-// picker's muscle filter and the Rangos screen's muscle list. Any muscle
-// present in the data but not listed here (e.g. a custom exercise with a
-// made-up muscle name) still shows up, tacked onto "Otros", so nothing gets
-// silently hidden.
+// Muscles grouped the way the Rangos screen shows them, in display order:
+// three expandable groups, then four standalone muscles (a group of one).
+// Shared by the exercise picker's muscle filter, the create-exercise muscle
+// chooser and the Rangos muscle list. Any muscle present in the data but not
+// listed here (e.g. a custom exercise with a made-up muscle name) still shows
+// up, tacked onto "Otros", so nothing gets silently hidden.
 //
-// Exactly the 16 regions of the Rangos body diagram (one or more masks each,
-// see lib/features/ranking/widgets/body_diagram.dart). 'Espalda' is the
-// mid/upper back (rows); the lats are their own 'Dorsales'.
+// Every muscle except 'Abductores' has its own region in the body
+// illustration (see lib/features/ranking/widgets/body_masks.dart). 'Espalda'
+// is the mid/upper back (rows); the lats are their own 'Dorsales'.
 const muscleGroups = {
-  'Tren superior': [
-    'Pecho', 'Espalda', 'Dorsales', 'Hombros', 'Bíceps', 'Tríceps', 'Trapecio', 'Antebrazos', 'Cuello',
-  ],
-  'Tren inferior': ['Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Gemelos', 'Aductores'],
-  'Core': ['Abdomen', 'Lumbares'],
+  'Brazos': ['Tríceps', 'Bíceps', 'Antebrazos'],
+  'Piernas': ['Cuádriceps', 'Glúteos', 'Gemelos', 'Aductores', 'Femoral', 'Abductores'],
+  'Espalda': ['Espalda', 'Lumbar', 'Dorsales', 'Trapecio'],
+  'Pecho': ['Pecho'],
+  'Hombros': ['Hombros'],
+  'Abdominales': ['Abdominales'],
+  'Cuello': ['Cuello'],
 };
 
-// Names that older versions of the app let custom exercises use, mapped to
-// their current equivalent. Applied to stored exercises on every launch.
+// Names that older versions of the app used, mapped to their current
+// equivalent. Applied to stored exercises on every launch.
 const legacyMuscleNames = {
   'Antebrazo': 'Antebrazos',
-  'Abductores': 'Glúteos',
+  'Isquiotibiales': 'Femoral',
+  'Lumbares': 'Lumbar',
+  'Abdomen': 'Abdominales',
 };
 
 const _muscleIcons = {
   'Pecho': Icons.fitness_center,
   'Espalda': Icons.rowing,
   'Dorsales': Icons.open_in_full,
+  'Lumbar': Icons.horizontal_rule,
+  'Trapecio': Icons.expand_less,
   'Hombros': Icons.sports_gymnastics,
   'Bíceps': Icons.front_hand,
   'Tríceps': Icons.back_hand,
-  'Trapecio': Icons.expand_less,
   'Antebrazos': Icons.pan_tool_outlined,
   'Cuello': Icons.face_outlined,
-  'Abdomen': Icons.self_improvement,
-  'Lumbares': Icons.horizontal_rule,
+  'Abdominales': Icons.self_improvement,
   'Cuádriceps': Icons.directions_run,
-  'Isquiotibiales': Icons.directions_walk,
+  'Femoral': Icons.directions_walk,
   'Glúteos': Icons.accessibility_new,
   'Gemelos': Icons.bolt,
   'Aductores': Icons.compress,
+  'Abductores': Icons.swap_horiz,
 };
 
 IconData iconForMuscle(String muscle) => _muscleIcons[muscle] ?? Icons.fitness_center;
@@ -69,4 +75,22 @@ Map<String, List<String>> groupedAvailableMuscles(List<String> available) {
   }
   if (remaining.isNotEmpty) grouped['Otros'] = remaining.toList()..sort();
   return grouped;
+}
+
+// [groupedAvailableMuscles] for chip/tile pickers: the standalone muscles
+// are pooled under one heading, so a picker never shows a "Pecho" header
+// over a lone "Pecho" chip.
+Map<String, List<String>> groupedMusclesForPicker(List<String> available) {
+  final result = <String, List<String>>{};
+  final standalone = <String>[];
+  for (final MapEntry(key: group, value: muscles) in groupedAvailableMuscles(available).entries) {
+    if (muscleGroups[group]?.length == 1) {
+      standalone.addAll(muscles);
+    } else {
+      if (group == 'Otros' && standalone.isNotEmpty) result['Torso y cuello'] = [...standalone];
+      result[group] = muscles;
+    }
+  }
+  if (standalone.isNotEmpty) result.putIfAbsent('Torso y cuello', () => standalone);
+  return result;
 }
