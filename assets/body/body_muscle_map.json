@@ -1,0 +1,221 @@
+{
+  "_info": "Máscaras musculares (blanco = músculo, transparente = resto) del mismo tamaño y posición que la base de su vista. Colorear en Flutter tiñendo la máscara (p. ej. ColorFiltered/srcIn) y superponiéndola a la base. \"appMuscle\" coincide con los nombres de lib/core/constants/muscle_groups.dart.",
+  "size": {
+    "width": 610,
+    "height": 1157
+  },
+  "views": {
+    "front": {
+      "name": "Frontal",
+      "base": "assets/body/front_base.png",
+      "masks": {
+        "cuello": {
+          "name": "Cuello",
+          "appMuscle": "Cuello",
+          "side": "both",
+          "view": "front",
+          "file": "assets/body/masks/front/cuello.png"
+        },
+        "trapecio": {
+          "name": "Trapecio",
+          "appMuscle": "Trapecio",
+          "side": "both",
+          "view": "front",
+          "file": "assets/body/masks/front/trapecio.png"
+        },
+        "pecho": {
+          "name": "Pecho",
+          "appMuscle": "Pecho",
+          "side": "both",
+          "view": "front",
+          "file": "assets/body/masks/front/pecho.png"
+        },
+        "hombros": {
+          "name": "Hombros",
+          "appMuscle": "Hombros",
+          "side": "both",
+          "view": "front",
+          "file": "assets/body/masks/front/hombros.png"
+        },
+        "biceps": {
+          "name": "Bíceps",
+          "appMuscle": "Bíceps",
+          "side": "both",
+          "view": "front",
+          "file": "assets/body/masks/front/biceps.png"
+        },
+        "antebrazo": {
+          "name": "Antebrazo",
+          "appMuscle": "Antebrazo",
+          "side": "both",
+          "view": "front",
+          "file": "assets/body/masks/front/antebrazo.png"
+        },
+        "abdomen": {
+          "name": "Abdomen",
+          "appMuscle": "Abdomen",
+          "side": "both",
+          "view": "front",
+          "file": "assets/body/masks/front/abdomen.png"
+        },
+        "aductores": {
+          "name": "Aductores",
+          "appMuscle": "Aductores",
+          "side": "both",
+          "view": "front",
+          "file": "assets/body/masks/front/aductores.png"
+        },
+        "cuadriceps": {
+          "name": "Cuádriceps",
+          "appMuscle": "Cuádriceps",
+          "side": "both",
+          "view": "front",
+          "file": "assets/body/masks/front/cuadriceps.png"
+        },
+        "gemelos": {
+          "name": "Gemelos",
+          "appMuscle": "Gemelos",
+          "side": "both",
+          "view": "front",
+          "file": "assets/body/masks/front/gemelos.png"
+        }
+      }
+    },
+    "back": {
+      "name": "Posterior",
+      "base": "assets/body/back_base.png",
+      "masks": {
+        "trapecio": {
+          "name": "Trapecio",
+          "appMuscle": "Trapecio",
+          "side": "both",
+          "view": "back",
+          "file": "assets/body/masks/back/trapecio.png"
+        },
+        "hombros": {
+          "name": "Hombros",
+          "appMuscle": "Hombros",
+          "side": "both",
+          "view": "back",
+          "file": "assets/body/masks/back/hombros.png"
+        },
+        "espalda": {
+          "name": "Espalda",
+          "appMuscle": "Espalda",
+          "side": "both",
+          "view": "back",
+          "file": "assets/body/masks/back/espalda.png"
+        },
+        "dorsales": {
+          "name": "Dorsales",
+          "appMuscle": "Espalda",
+          "side": "both",
+          "view": "back",
+          "file": "assets/body/masks/back/dorsales.png"
+        },
+        "triceps": {
+          "name": "Tríceps",
+          "appMuscle": "Tríceps",
+          "side": "both",
+          "view": "back",
+          "file": "assets/body/masks/back/triceps.png"
+        },
+        "antebrazo": {
+          "name": "Antebrazo",
+          "appMuscle": "Antebrazo",
+          "side": "both",
+          "view": "back",
+          "file": "assets/body/masks/back/antebrazo.png"
+        },
+        "lumbares": {
+          "name": "Lumbares",
+          "appMuscle": "Lumbares",
+          "side": "both",
+          "view": "back",
+          "file": "assets/body/masks/back/lumbares.png"
+        },
+        "gluteos": {
+          "name": "Glúteos",
+          "appMuscle": "Glúteos",
+          "side": "both",
+          "view": "back",
+          "file": "assets/body/masks/back/gluteos.png"
+        },
+        "isquiotibiales": {
+          "name": "Isquiotibiales",
+          "appMuscle": "Isquiotibiales",
+          "side": "both",
+          "view": "back",
+          "file": "assets/body/masks/back/isquiotibiales.png"
+        },
+        "cuadriceps": {
+          "name": "Cuádriceps",
+          "appMuscle": "Cuádriceps",
+          "side": "both",
+          "view": "back",
+          "file": "assets/body/masks/back/cuadriceps.png"
+        },
+        "gemelos": {
+          "name": "Gemelos",
+          "appMuscle": "Gemelos",
+          "side": "both",
+          "view": "back",
+          "file": "assets/body/masks/back/gemelos.png"
+        }
+      }
+    }
+  },
+  "muscles": {
+    "Cuello": [
+      "assets/body/masks/front/cuello.png"
+    ],
+    "Trapecio": [
+      "assets/body/masks/front/trapecio.png",
+      "assets/body/masks/back/trapecio.png"
+    ],
+    "Pecho": [
+      "assets/body/masks/front/pecho.png"
+    ],
+    "Hombros": [
+      "assets/body/masks/front/hombros.png",
+      "assets/body/masks/back/hombros.png"
+    ],
+    "Bíceps": [
+      "assets/body/masks/front/biceps.png"
+    ],
+    "Antebrazo": [
+      "assets/body/masks/front/antebrazo.png",
+      "assets/body/masks/back/antebrazo.png"
+    ],
+    "Abdomen": [
+      "assets/body/masks/front/abdomen.png"
+    ],
+    "Aductores": [
+      "assets/body/masks/front/aductores.png"
+    ],
+    "Cuádriceps": [
+      "assets/body/masks/front/cuadriceps.png",
+      "assets/body/masks/back/cuadriceps.png"
+    ],
+    "Gemelos": [
+      "assets/body/masks/front/gemelos.png",
+      "assets/body/masks/back/gemelos.png"
+    ],
+    "Espalda": [
+      "assets/body/masks/back/espalda.png",
+      "assets/body/masks/back/dorsales.png"
+    ],
+    "Tríceps": [
+      "assets/body/masks/back/triceps.png"
+    ],
+    "Lumbares": [
+      "assets/body/masks/back/lumbares.png"
+    ],
+    "Glúteos": [
+      "assets/body/masks/back/gluteos.png"
+    ],
+    "Isquiotibiales": [
+      "assets/body/masks/back/isquiotibiales.png"
+    ]
+  }
+}

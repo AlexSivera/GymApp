@@ -51,3 +51,5 @@ app.*.map.json
 
 # Archivos de trabajo de diseño (ilustración original, XCF de GIMP): solo en local
 /design/
+# Ilustración base (repo público): solo en local hasta decidir cómo distribuirla
+/assets/body/*_base.png
