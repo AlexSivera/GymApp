@@ -136,6 +136,10 @@ flutter:
   assets:
     - assets/exercises/
     - assets/branding/
+    # Flutter asset folders aren't recursive, so each mask folder is listed.
+    - assets/body/
+    - assets/body/masks/front/
+    - assets/body/masks/back/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

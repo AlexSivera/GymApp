@@ -25,7 +25,6 @@ class RankingScreen extends ConsumerWidget {
     final available = ref.watch(availableMusclesProvider);
     final grouped = groupedAvailableMuscles(available);
 
-    final emptyColor = theme.colorScheme.surfaceContainerHighest;
     final colorsByMuscle = {
       for (final entry in muscleRanks.entries) entry.key: rankTierColors[entry.value.tier]!,
     };
@@ -72,7 +71,11 @@ class RankingScreen extends ConsumerWidget {
           if (predicted == null)
             const _RankingEmptyState()
           else ...[
-            AppCard(child: BodyDiagram(colorsByMuscle: colorsByMuscle, emptyColor: emptyColor)),
+            AppCard(
+              padding: EdgeInsets.zero,
+              color: BodyDiagram.backgroundColor,
+              child: BodyDiagram(colorsByMuscle: colorsByMuscle),
+            ),
             const SizedBox(height: AppSpacing.xl),
             Text('Rankings musculares', style: theme.textTheme.titleLarge),
             for (final entry in grouped.entries) ...[
