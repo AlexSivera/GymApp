@@ -5,20 +5,34 @@ import 'package:flutter/material.dart';
 // present in the data but not listed here (e.g. a custom exercise with a
 // made-up muscle name) still shows up, tacked onto "Otros", so nothing gets
 // silently hidden.
+//
+// Exactly the 16 regions of the Rangos body diagram (one or more masks each,
+// see lib/features/ranking/widgets/body_diagram.dart). 'Espalda' is the
+// mid/upper back (rows); the lats are their own 'Dorsales'.
 const muscleGroups = {
-  'Tren superior': ['Pecho', 'Espalda', 'Hombros', 'Bíceps', 'Tríceps', 'Trapecio', 'Antebrazo', 'Cuello'],
-  'Tren inferior': ['Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Gemelos', 'Aductores', 'Abductores'],
+  'Tren superior': [
+    'Pecho', 'Espalda', 'Dorsales', 'Hombros', 'Bíceps', 'Tríceps', 'Trapecio', 'Antebrazos', 'Cuello',
+  ],
+  'Tren inferior': ['Cuádriceps', 'Isquiotibiales', 'Glúteos', 'Gemelos', 'Aductores'],
   'Core': ['Abdomen', 'Lumbares'],
+};
+
+// Names that older versions of the app let custom exercises use, mapped to
+// their current equivalent. Applied to stored exercises on every launch.
+const legacyMuscleNames = {
+  'Antebrazo': 'Antebrazos',
+  'Abductores': 'Glúteos',
 };
 
 const _muscleIcons = {
   'Pecho': Icons.fitness_center,
   'Espalda': Icons.rowing,
+  'Dorsales': Icons.open_in_full,
   'Hombros': Icons.sports_gymnastics,
   'Bíceps': Icons.front_hand,
   'Tríceps': Icons.back_hand,
   'Trapecio': Icons.expand_less,
-  'Antebrazo': Icons.pan_tool_outlined,
+  'Antebrazos': Icons.pan_tool_outlined,
   'Cuello': Icons.face_outlined,
   'Abdomen': Icons.self_improvement,
   'Lumbares': Icons.horizontal_rule,
@@ -27,7 +41,6 @@ const _muscleIcons = {
   'Glúteos': Icons.accessibility_new,
   'Gemelos': Icons.bolt,
   'Aductores': Icons.compress,
-  'Abductores': Icons.open_in_full,
 };
 
 IconData iconForMuscle(String muscle) => _muscleIcons[muscle] ?? Icons.fitness_center;

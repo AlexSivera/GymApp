@@ -34,43 +34,33 @@ class BodyDiagram extends StatelessWidget {
   }
 }
 
-class _MuscleMask {
-  const _MuscleMask(this.file, this.muscles);
+// Mask file name -> app muscle (the names in muscle_groups.dart).
+const _frontMasks = {
+  'cuello': 'Cuello',
+  'trapecio': 'Trapecio',
+  'pecho': 'Pecho',
+  'hombros': 'Hombros',
+  'biceps': 'Bíceps',
+  'antebrazo': 'Antebrazos',
+  'abdomen': 'Abdomen',
+  'aductores': 'Aductores',
+  'cuadriceps': 'Cuádriceps',
+  'gemelos': 'Gemelos',
+};
 
-  final String file;
-
-  // App muscle names that light this mask up — first one with a rank wins.
-  // Forearms accept both spellings: the exercise library says 'Antebrazos'
-  // while muscle_groups.dart says 'Antebrazo'.
-  final List<String> muscles;
-}
-
-const _frontMasks = [
-  _MuscleMask('cuello', ['Cuello']),
-  _MuscleMask('trapecio', ['Trapecio']),
-  _MuscleMask('pecho', ['Pecho']),
-  _MuscleMask('hombros', ['Hombros']),
-  _MuscleMask('biceps', ['Bíceps']),
-  _MuscleMask('antebrazo', ['Antebrazos', 'Antebrazo']),
-  _MuscleMask('abdomen', ['Abdomen']),
-  _MuscleMask('aductores', ['Aductores']),
-  _MuscleMask('cuadriceps', ['Cuádriceps']),
-  _MuscleMask('gemelos', ['Gemelos']),
-];
-
-const _backMasks = [
-  _MuscleMask('trapecio', ['Trapecio']),
-  _MuscleMask('hombros', ['Hombros']),
-  _MuscleMask('espalda', ['Espalda']),
-  _MuscleMask('dorsales', ['Espalda']),
-  _MuscleMask('triceps', ['Tríceps']),
-  _MuscleMask('antebrazo', ['Antebrazos', 'Antebrazo']),
-  _MuscleMask('lumbares', ['Lumbares']),
-  _MuscleMask('gluteos', ['Glúteos']),
-  _MuscleMask('isquiotibiales', ['Isquiotibiales']),
-  _MuscleMask('cuadriceps', ['Cuádriceps']),
-  _MuscleMask('gemelos', ['Gemelos']),
-];
+const _backMasks = {
+  'trapecio': 'Trapecio',
+  'hombros': 'Hombros',
+  'espalda': 'Espalda',
+  'dorsales': 'Dorsales',
+  'triceps': 'Tríceps',
+  'antebrazo': 'Antebrazos',
+  'lumbares': 'Lumbares',
+  'gluteos': 'Glúteos',
+  'isquiotibiales': 'Isquiotibiales',
+  'cuadriceps': 'Cuádriceps',
+  'gemelos': 'Gemelos',
+};
 
 // Source images are 610x1157; the bottom 5 rows are a lighter band left over
 // from the original screenshot, so they're clipped off when displayed.
@@ -82,16 +72,8 @@ class _BodyView extends StatelessWidget {
   const _BodyView({required this.base, required this.masks, required this.colorsByMuscle});
 
   final String base;
-  final List<_MuscleMask> masks;
+  final Map<String, String> masks;
   final Map<String, Color> colorsByMuscle;
-
-  Color? _colorFor(_MuscleMask mask) {
-    for (final muscle in mask.muscles) {
-      final color = colorsByMuscle[muscle];
-      if (color != null) return color;
-    }
-    return null;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,10 +95,10 @@ class _BodyView extends StatelessWidget {
                 children: [
                   Image.asset('assets/body/${base}_base.png',
                       cacheWidth: cacheWidth, fit: BoxFit.fill, gaplessPlayback: true),
-                  for (final mask in masks)
-                    if (_colorFor(mask) case final color?)
+                  for (final MapEntry(key: file, value: muscle) in masks.entries)
+                    if (colorsByMuscle[muscle] case final color?)
                       Image.asset(
-                        'assets/body/masks/$base/${mask.file}.png',
+                        'assets/body/masks/$base/$file.png',
                         cacheWidth: cacheWidth,
                         fit: BoxFit.fill,
                         gaplessPlayback: true,

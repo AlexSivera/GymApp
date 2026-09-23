@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart' show listEquals;
 
+import '../../core/constants/muscle_groups.dart';
 import '../database/app_database.dart';
 import 'exercise_seed_data.dart';
 
@@ -41,5 +43,24 @@ Future<void> syncSeedExercises(AppDatabase db) async {
         imagePaths: Value([seed.imageAsset]),
       ),
     );
+  }
+
+  await _renameLegacyMuscles(db);
+}
+
+// Custom exercises keep whatever muscle names the picker offered when they
+// were created; rename the ones that no longer exist (see legacyMuscleNames)
+// so they still show up under the right muscle in Rangos and the filters.
+Future<void> _renameLegacyMuscles(AppDatabase db) async {
+  List<String> rename(List<String> muscles) =>
+      [...{for (final m in muscles) legacyMuscleNames[m] ?? m}];
+
+  for (final exercise in await db.exercisesDao.getAll()) {
+    final primary = rename(exercise.primaryMuscles);
+    final secondary = [for (final m in rename(exercise.secondaryMuscles)) if (!primary.contains(m)) m];
+    if (listEquals(primary, exercise.primaryMuscles) && listEquals(secondary, exercise.secondaryMuscles)) {
+      continue;
+    }
+    await db.exercisesDao.updateMuscles(exercise.id, primary, secondary);
   }
 }

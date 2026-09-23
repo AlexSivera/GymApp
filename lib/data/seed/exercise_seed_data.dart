@@ -115,7 +115,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Pullover con mancuerna',
     primaryMuscles: ['Pecho'],
-    secondaryMuscles: ['Tríceps', 'Espalda'],
+    secondaryMuscles: ['Tríceps', 'Dorsales'],
     equipment: 'Mancuernas',
     instructions: 'Tumbado, lleva la mancuerna en arco desde el pecho hacia atrás de la cabeza y vuelve.',
     imageAsset: 'assets/exercises/vi8EhoE.gif',
@@ -269,17 +269,20 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
 
   // ==================== ESPALDA ====================
+  // Split to match the body diagram's regions: pull-ups/pulldowns/pullovers
+  // -> Dorsales; rows -> Espalda (mid/upper back) + Dorsales; shrugs ->
+  // Trapecio; hyperextensions -> Lumbares.
   ExerciseSeed(
     name: 'Dominadas',
-    primaryMuscles: ['Espalda'],
-    secondaryMuscles: ['Bíceps', 'Antebrazos'],
+    primaryMuscles: ['Dorsales'],
+    secondaryMuscles: ['Espalda', 'Bíceps', 'Antebrazos'],
     equipment: 'Peso corporal',
     instructions: 'Colgado de la barra con agarre prono, sube hasta que la barbilla la supere y baja de forma controlada.',
     imageAsset: 'assets/exercises/lBDjFxJ.gif',
   ),
   ExerciseSeed(
     name: 'Pullover con barra',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Dorsales'],
     secondaryMuscles: ['Tríceps', 'Pecho'],
     equipment: 'Barra',
     instructions: 'Tumbado, lleva la barra en arco desde el pecho hacia atrás de la cabeza y vuelve.',
@@ -287,7 +290,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Remo con barra',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Espalda', 'Dorsales'],
     secondaryMuscles: ['Bíceps', 'Antebrazos'],
     equipment: 'Barra',
     instructions: 'Con el torso inclinado hacia adelante, tira de la barra hacia el abdomen.',
@@ -295,7 +298,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Pullover declinado con barra (dorsal)',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Dorsales'],
     secondaryMuscles: ['Tríceps', 'Pecho'],
     equipment: 'Barra',
     instructions: 'En banco declinado, lleva la barra en arco desde el pecho hacia atrás de la cabeza.',
@@ -303,23 +306,23 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Dominada arquero',
-    primaryMuscles: ['Espalda'],
-    secondaryMuscles: ['Bíceps', 'Antebrazos'],
+    primaryMuscles: ['Dorsales'],
+    secondaryMuscles: ['Espalda', 'Bíceps', 'Antebrazos'],
     equipment: 'Peso corporal',
     instructions: 'Al subir en la dominada, desplaza el cuerpo hacia un lado extendiendo el brazo contrario.',
     imageAsset: 'assets/exercises/72BC5Za.gif',
   ),
   ExerciseSeed(
     name: 'Palanca dorsal (back lever)',
-    primaryMuscles: ['Espalda'],
-    secondaryMuscles: ['Bíceps', 'Abdomen'],
+    primaryMuscles: ['Dorsales'],
+    secondaryMuscles: ['Bíceps', 'Abdomen', 'Lumbares'],
     equipment: 'Peso corporal',
     instructions: 'Desde la barra, invierte el cuerpo hasta quedar horizontal boca abajo, sujeto con los brazos extendidos.',
     imageAsset: 'assets/exercises/GaSzzuh.gif',
   ),
   ExerciseSeed(
     name: 'Dominadas en banco (remo invertido)',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Espalda', 'Dorsales'],
     secondaryMuscles: ['Bíceps', 'Antebrazos'],
     equipment: 'Peso corporal',
     instructions: 'Colgado bajo una barra baja con los pies apoyados, tira del pecho hacia la barra.',
@@ -327,23 +330,23 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Jalón al pecho alterno',
-    primaryMuscles: ['Espalda'],
-    secondaryMuscles: ['Bíceps'],
+    primaryMuscles: ['Dorsales'],
+    secondaryMuscles: ['Espalda', 'Bíceps'],
     equipment: 'Polea',
     instructions: 'Sentado, tira de las asas alternando cada brazo hacia el pecho.',
     imageAsset: 'assets/exercises/4IKbhHV.gif',
   ),
   ExerciseSeed(
     name: 'Jalón al pecho',
-    primaryMuscles: ['Espalda'],
-    secondaryMuscles: ['Bíceps'],
+    primaryMuscles: ['Dorsales'],
+    secondaryMuscles: ['Espalda', 'Bíceps'],
     equipment: 'Polea',
     instructions: 'Sentado, tira de la barra hacia la parte alta del pecho controlando la subida.',
     imageAsset: 'assets/exercises/eYnzaCm.gif',
   ),
   ExerciseSeed(
     name: 'Remo sentado agarre ancho en polea',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Espalda', 'Dorsales'],
     secondaryMuscles: ['Bíceps', 'Antebrazos'],
     equipment: 'Polea',
     instructions: 'Sentado en la polea baja, tira de la barra ancha hacia el abdomen juntando los omóplatos.',
@@ -351,7 +354,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Remo sentado a una mano en polea',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Espalda', 'Dorsales'],
     secondaryMuscles: ['Bíceps', 'Antebrazos'],
     equipment: 'Polea',
     instructions: 'Sentado frente a la polea baja, tira del asa hacia la cadera con un brazo y alterna con el otro.',
@@ -359,7 +362,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Remo con mancuerna inclinado',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Espalda', 'Dorsales'],
     secondaryMuscles: ['Bíceps', 'Antebrazos'],
     equipment: 'Mancuernas',
     instructions: 'Apoyado en un banco con una rodilla, tira de la mancuerna hacia la cadera.',
@@ -367,7 +370,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Encogimientos declinados con mancuernas',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Trapecio'],
     secondaryMuscles: ['Hombros'],
     equipment: 'Mancuernas',
     instructions: 'En banco declinado, eleva los hombros hacia las orejas sujetando las mancuernas.',
@@ -375,7 +378,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Pullover tumbado con barra Z',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Dorsales'],
     secondaryMuscles: ['Tríceps', 'Pecho'],
     equipment: 'Barra Z',
     instructions: 'Tumbado, lleva la barra Z en arco desde el pecho hacia atrás de la cabeza y vuelve.',
@@ -383,7 +386,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Remo inclinado agarre invertido con barra Z',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Espalda', 'Dorsales'],
     secondaryMuscles: ['Bíceps', 'Antebrazos'],
     equipment: 'Barra Z',
     instructions: 'Inclinado hacia adelante con agarre supino, tira de la barra Z hacia el abdomen.',
@@ -391,7 +394,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Remo a dos manos con pesa rusa',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Espalda', 'Dorsales'],
     secondaryMuscles: ['Bíceps', 'Antebrazos'],
     equipment: 'Pesa rusa',
     instructions: 'Inclinado hacia adelante, tira de la pesa rusa con ambas manos hacia el abdomen.',
@@ -399,7 +402,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Remo renegado alterno con pesas rusas',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Espalda', 'Dorsales'],
     secondaryMuscles: ['Abdomen', 'Hombros'],
     equipment: 'Pesa rusa',
     instructions: 'En posición de plancha sobre las pesas rusas, tira de una hacia la cadera alternando.',
@@ -407,31 +410,31 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Dominada agarre cerrado asistida (máquina)',
-    primaryMuscles: ['Espalda'],
-    secondaryMuscles: ['Bíceps', 'Antebrazos'],
+    primaryMuscles: ['Dorsales'],
+    secondaryMuscles: ['Espalda', 'Bíceps', 'Antebrazos'],
     equipment: 'Máquina asistida',
     instructions: 'Con las rodillas apoyadas en la plataforma, sube con agarre cerrado hasta pasar la barbilla.',
     imageAsset: 'assets/exercises/vrhHa6D.gif',
   ),
   ExerciseSeed(
     name: 'Dominada asistida (máquina)',
-    primaryMuscles: ['Espalda'],
-    secondaryMuscles: ['Bíceps', 'Antebrazos'],
+    primaryMuscles: ['Dorsales'],
+    secondaryMuscles: ['Espalda', 'Bíceps', 'Antebrazos'],
     equipment: 'Máquina asistida',
     instructions: 'Con las rodillas apoyadas en la plataforma, sube hasta que la barbilla supere la barra.',
     imageAsset: 'assets/exercises/kiJ4Z2K.gif',
   ),
   ExerciseSeed(
     name: 'Dominada de pie asistida (máquina)',
-    primaryMuscles: ['Espalda'],
-    secondaryMuscles: ['Bíceps', 'Antebrazos'],
+    primaryMuscles: ['Dorsales'],
+    secondaryMuscles: ['Espalda', 'Bíceps', 'Antebrazos'],
     equipment: 'Máquina de palanca',
     instructions: 'De pie con ayuda de la máquina, tira del cuerpo hacia arriba hasta pasar la barbilla.',
     imageAsset: 'assets/exercises/7OeHptV.gif',
   ),
   ExerciseSeed(
     name: 'Encogimientos en máquina Smith',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Trapecio'],
     secondaryMuscles: ['Hombros'],
     equipment: 'Máquina Smith',
     instructions: 'De pie bajo la máquina Smith, eleva los hombros hacia las orejas sujetando la barra.',
@@ -439,7 +442,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Remo inclinado en máquina Smith',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Espalda', 'Dorsales'],
     secondaryMuscles: ['Bíceps', 'Antebrazos'],
     equipment: 'Máquina Smith',
     instructions: 'Con el torso inclinado bajo la máquina Smith, tira de la barra hacia el abdomen.',
@@ -447,23 +450,23 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Dominada con peso añadido',
-    primaryMuscles: ['Espalda'],
-    secondaryMuscles: ['Bíceps', 'Antebrazos'],
+    primaryMuscles: ['Dorsales'],
+    secondaryMuscles: ['Espalda', 'Bíceps', 'Antebrazos'],
     equipment: 'Peso añadido',
     instructions: 'Con peso extra enganchado, sube hasta que la barbilla supere la barra.',
     imageAsset: 'assets/exercises/HMzLjXx.gif',
   ),
   ExerciseSeed(
     name: 'Dominada supina agarre cerrado con peso añadido',
-    primaryMuscles: ['Espalda'],
-    secondaryMuscles: ['Bíceps', 'Antebrazos'],
+    primaryMuscles: ['Dorsales'],
+    secondaryMuscles: ['Espalda', 'Bíceps', 'Antebrazos'],
     equipment: 'Peso añadido',
     instructions: 'Con peso extra enganchado y agarre supino cerrado, sube hasta pasar la barbilla.',
     imageAsset: 'assets/exercises/Gk1r408.gif',
   ),
   ExerciseSeed(
     name: 'Hiperextensión lumbar con peso añadido',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Lumbares'],
     secondaryMuscles: ['Glúteos', 'Isquiotibiales'],
     equipment: 'Peso añadido',
     instructions: 'Con el tronco doblado sobre el banco de hiperextensiones y peso extra, eleva el torso hasta alinear con las piernas.',
@@ -472,15 +475,15 @@ const exerciseSeedData = <ExerciseSeed>[
 
   ExerciseSeed(
     name: 'Jalón al pecho en máquina de palanca',
-    primaryMuscles: ['Espalda'],
-    secondaryMuscles: ['Bíceps'],
+    primaryMuscles: ['Dorsales'],
+    secondaryMuscles: ['Espalda', 'Bíceps'],
     equipment: 'Máquina de palanca',
     instructions: 'Sentado en la máquina, tira de las asas hacia abajo hasta la altura del pecho.',
     imageAsset: 'assets/exercises/7F1DVzn.gif',
   ),
   ExerciseSeed(
     name: 'Remo sentado en máquina de palanca',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Espalda', 'Dorsales'],
     secondaryMuscles: ['Bíceps', 'Antebrazos'],
     equipment: 'Máquina de palanca',
     instructions: 'Sentado en la máquina con el pecho apoyado, tira de las asas hacia atrás juntando los omóplatos.',
@@ -488,7 +491,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Remo en T en máquina de palanca',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Espalda', 'Dorsales'],
     secondaryMuscles: ['Bíceps', 'Antebrazos'],
     equipment: 'Máquina de palanca',
     instructions: 'Con el pecho apoyado en la máquina, tira de la barra en T hacia el abdomen.',
@@ -496,7 +499,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Remo en T de pie con agarre V',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Espalda', 'Dorsales'],
     secondaryMuscles: ['Bíceps', 'Antebrazos'],
     equipment: 'Máquina de palanca',
     instructions: 'Inclinado hacia adelante frente a la máquina, tira del agarre en V hacia el abdomen.',
@@ -504,7 +507,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Pullover en máquina de palanca',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Dorsales'],
     secondaryMuscles: ['Tríceps', 'Pecho'],
     equipment: 'Máquina de palanca',
     instructions: 'Sentado en la máquina, lleva la barra desde encima de la cabeza hacia los muslos en un movimiento de arco.',
@@ -512,7 +515,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Pullover tumbado en polea alta',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Dorsales'],
     secondaryMuscles: ['Tríceps', 'Pecho'],
     equipment: 'Polea',
     instructions: 'Tumbado en un banco con la cabeza hacia la polea alta, lleva la cuerda desde encima del pecho hasta detrás de la cabeza.',
@@ -520,7 +523,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Pullover de pie en polea alta',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Dorsales'],
     secondaryMuscles: ['Tríceps', 'Pecho'],
     equipment: 'Polea',
     instructions: 'De pie frente a la polea alta con los brazos extendidos, tira de la barra hacia los muslos manteniendo los codos rectos.',
@@ -528,7 +531,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Encogimientos en máquina de palanca',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Trapecio'],
     secondaryMuscles: [],
     equipment: 'Máquina de palanca',
     instructions: 'De pie o sentado en la máquina, eleva los hombros hacia las orejas sujetando las asas.',
@@ -536,7 +539,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Hiperextensión en máquina de palanca',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Lumbares'],
     secondaryMuscles: ['Glúteos', 'Isquiotibiales'],
     equipment: 'Máquina de palanca',
     instructions: 'Con el tronco doblado sobre el respaldo de la máquina, eleva el torso hasta alinearlo con las piernas.',
@@ -545,23 +548,23 @@ const exerciseSeedData = <ExerciseSeed>[
 
   ExerciseSeed(
     name: 'Jalón agarre invertido en máquina de palanca',
-    primaryMuscles: ['Espalda'],
-    secondaryMuscles: ['Bíceps'],
+    primaryMuscles: ['Dorsales'],
+    secondaryMuscles: ['Espalda', 'Bíceps'],
     equipment: 'Máquina de palanca',
     instructions: 'Sentado en la máquina, tira de las asas hacia abajo con agarre en supinación hasta el pecho.',
     imageAsset: 'assets/exercises/ecpY0rH.gif',
   ),
   ExerciseSeed(
     name: 'Jalón lateral agarre invertido en máquina de palanca',
-    primaryMuscles: ['Espalda'],
-    secondaryMuscles: ['Bíceps'],
+    primaryMuscles: ['Dorsales'],
+    secondaryMuscles: ['Espalda', 'Bíceps'],
     equipment: 'Máquina de palanca',
     instructions: 'Con las rodillas ancladas bajo la máquina, tira de las asas hacia abajo y hacia el pecho con codos por delante.',
     imageAsset: 'assets/exercises/ky8FLU8.gif',
   ),
   ExerciseSeed(
     name: 'Remo vertical agarre invertido en máquina de palanca',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Espalda', 'Dorsales'],
     secondaryMuscles: ['Bíceps', 'Antebrazos'],
     equipment: 'Máquina de palanca',
     instructions: 'Con el pecho apoyado en la máquina y agarre en supinación, tira de las asas hacia el pecho juntando los omóplatos.',
@@ -569,7 +572,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Remo alto en máquina de palanca',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Espalda', 'Dorsales'],
     secondaryMuscles: ['Bíceps', 'Antebrazos'],
     equipment: 'Máquina de palanca',
     instructions: 'Con el pecho apoyado en la máquina, tira de las asas hacia el cuerpo por encima de la línea de los hombros.',
@@ -577,7 +580,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Remo a una mano en máquina de palanca',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Espalda', 'Dorsales'],
     secondaryMuscles: ['Bíceps', 'Antebrazos'],
     equipment: 'Máquina de palanca',
     instructions: 'De frente a la máquina, tira del asa hacia el cuerpo con un solo brazo juntando el omóplato.',
@@ -585,7 +588,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Remo sentado en máquina de palanca agarre neutro a un brazo',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Espalda', 'Dorsales'],
     secondaryMuscles: ['Bíceps', 'Antebrazos'],
     equipment: 'Máquina de palanca',
     instructions: 'Sentado en la máquina con agarre neutro (palmas enfrentadas), tira de un asa hacia el torso mientras la otra permanece fija, y alterna de brazo.',
@@ -594,7 +597,7 @@ const exerciseSeedData = <ExerciseSeed>[
 
   ExerciseSeed(
     name: 'Remo inclinado agarre invertido en máquina Smith',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Espalda', 'Dorsales'],
     secondaryMuscles: ['Bíceps', 'Antebrazos'],
     equipment: 'Máquina Smith',
     instructions: 'Inclinado hacia adelante con agarre en supinación, tira de la barra Smith hacia el pecho.',
@@ -602,7 +605,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Remo a una mano en máquina Smith',
-    primaryMuscles: ['Espalda'],
+    primaryMuscles: ['Espalda', 'Dorsales'],
     secondaryMuscles: ['Bíceps', 'Antebrazos'],
     equipment: 'Máquina Smith',
     instructions: 'Inclinado hacia adelante, tira de la barra Smith hacia la cintura con un solo brazo y repite con el otro.',
@@ -717,7 +720,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Press Arnold con pesa rusa',
     primaryMuscles: ['Hombros'],
-    secondaryMuscles: ['Tríceps', 'Espalda'],
+    secondaryMuscles: ['Tríceps', 'Trapecio'],
     equipment: 'Pesa rusa',
     instructions: 'Empieza con la palma hacia ti y rota la muñeca mientras empujas la pesa rusa hacia arriba.',
     imageAsset: 'assets/exercises/UM8mgyG.gif',
@@ -725,7 +728,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Elevación lateral en máquina de palanca',
     primaryMuscles: ['Hombros'],
-    secondaryMuscles: ['Espalda'],
+    secondaryMuscles: ['Trapecio'],
     equipment: 'Máquina de palanca',
     instructions: 'Sentado en la máquina, eleva los brazos hacia los lados hasta la altura del hombro.',
     imageAsset: 'assets/exercises/dRTfGZT.gif',
@@ -741,7 +744,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Press de hombro sentado en máquina Smith',
     primaryMuscles: ['Hombros'],
-    secondaryMuscles: ['Tríceps', 'Espalda'],
+    secondaryMuscles: ['Tríceps', 'Trapecio'],
     equipment: 'Máquina Smith',
     instructions: 'Sentado bajo la máquina Smith, empuja la barra hacia arriba desde los hombros.',
     imageAsset: 'assets/exercises/xUwnBMT.gif',
@@ -749,7 +752,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Press tras nuca en máquina Smith',
     primaryMuscles: ['Hombros'],
-    secondaryMuscles: ['Tríceps', 'Espalda'],
+    secondaryMuscles: ['Tríceps', 'Trapecio'],
     equipment: 'Máquina Smith',
     instructions: 'Sentado bajo la máquina Smith, empuja la barra hacia arriba desde detrás del cuello.',
     imageAsset: 'assets/exercises/Gpn4ADc.gif',
@@ -807,7 +810,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Remo al mentón en máquina Smith',
     primaryMuscles: ['Hombros'],
-    secondaryMuscles: ['Antebrazos'],
+    secondaryMuscles: ['Trapecio', 'Antebrazos'],
     equipment: 'Máquina Smith',
     instructions: 'De pie, tira de la barra Smith hacia arriba pegada al cuerpo hasta la altura de la barbilla.',
     imageAsset: 'assets/exercises/1DN3iz4.gif',
@@ -841,7 +844,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Dominadas agarre cerrado (bíceps)',
     primaryMuscles: ['Bíceps'],
-    secondaryMuscles: ['Antebrazos', 'Espalda'],
+    secondaryMuscles: ['Antebrazos', 'Dorsales'],
     equipment: 'Peso corporal',
     instructions: 'Con agarre supino y manos juntas, sube hasta que la barbilla supere la barra.',
     imageAsset: 'assets/exercises/50BETrz.gif',
@@ -849,7 +852,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Dominada supina para bíceps',
     primaryMuscles: ['Bíceps'],
-    secondaryMuscles: ['Antebrazos', 'Espalda'],
+    secondaryMuscles: ['Antebrazos', 'Dorsales'],
     equipment: 'Peso corporal',
     instructions: 'Con agarre supino a la anchura de los hombros, sube hasta que la barbilla supere la barra.',
     imageAsset: 'assets/exercises/guT8YnS.gif',
@@ -1301,7 +1304,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Sentadilla lateral con barra',
     primaryMuscles: ['Cuádriceps'],
-    secondaryMuscles: ['Glúteos', 'Isquiotibiales'],
+    secondaryMuscles: ['Glúteos', 'Aductores', 'Isquiotibiales'],
     equipment: 'Barra',
     instructions: 'Con la barra en la espalda, da un paso lateral y flexiona la pierna de ese lado.',
     imageAsset: 'assets/exercises/W31mMjd.gif',
@@ -1390,7 +1393,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Sentadilla sumo en máquina Smith',
     primaryMuscles: ['Cuádriceps'],
-    secondaryMuscles: ['Glúteos', 'Isquiotibiales'],
+    secondaryMuscles: ['Glúteos', 'Aductores', 'Isquiotibiales'],
     equipment: 'Máquina Smith',
     instructions: 'Con la barra Smith en la espalda y las piernas muy separadas, baja en sentadilla con las puntas hacia afuera.',
     imageAsset: 'assets/exercises/dzz6BiV.gif',
@@ -1424,7 +1427,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Buenos días con barra',
     primaryMuscles: ['Isquiotibiales'],
-    secondaryMuscles: ['Espalda'],
+    secondaryMuscles: ['Lumbares'],
     equipment: 'Barra',
     instructions: 'Con la barra en la espalda, inclina el torso hacia adelante manteniendo la espalda recta.',
     imageAsset: 'assets/exercises/XlZ4lAC.gif',
@@ -1432,7 +1435,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Peso muerto rumano',
     primaryMuscles: ['Isquiotibiales'],
-    secondaryMuscles: ['Glúteos', 'Espalda'],
+    secondaryMuscles: ['Glúteos', 'Lumbares'],
     equipment: 'Barra',
     instructions: 'Con las rodillas casi extendidas, baja la barra pegada a las piernas hasta notar estiramiento.',
     imageAsset: 'assets/exercises/hrVQWvE.gif',
@@ -1448,7 +1451,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Curl nórdico (glute-ham raise)',
     primaryMuscles: ['Isquiotibiales'],
-    secondaryMuscles: ['Glúteos', 'Espalda'],
+    secondaryMuscles: ['Glúteos', 'Lumbares'],
     equipment: 'Peso corporal',
     instructions: 'Con los pies anclados, baja el torso hacia el suelo controlando con los isquiotibiales.',
     imageAsset: 'assets/exercises/Vvwjz6N.gif',
@@ -1515,7 +1518,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Peso muerto',
     primaryMuscles: ['Glúteos'],
-    secondaryMuscles: ['Isquiotibiales', 'Espalda'],
+    secondaryMuscles: ['Isquiotibiales', 'Lumbares'],
     equipment: 'Barra',
     instructions: 'Con la espalda recta, levanta la barra del suelo extendiendo cadera y rodillas a la vez.',
     imageAsset: 'assets/exercises/ila4NZS.gif',
@@ -1531,15 +1534,15 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Peso muerto en polea',
     primaryMuscles: ['Glúteos'],
-    secondaryMuscles: ['Isquiotibiales', 'Espalda'],
+    secondaryMuscles: ['Isquiotibiales', 'Lumbares'],
     equipment: 'Polea',
     instructions: 'Con la espalda recta, levanta la barra de la polea baja extendiendo cadera y rodillas.',
     imageAsset: 'assets/exercises/eGDudUV.gif',
   ),
   ExerciseSeed(
     name: 'Aducción de cadera en polea',
-    primaryMuscles: ['Glúteos'],
-    secondaryMuscles: ['Cuádriceps'],
+    primaryMuscles: ['Aductores'],
+    secondaryMuscles: [],
     equipment: 'Polea',
     instructions: 'Con el tobillo enganchado a la polea, lleva la pierna hacia dentro cruzando el cuerpo.',
     imageAsset: 'assets/exercises/hBGWILP.gif',
@@ -1547,7 +1550,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Pull through en polea',
     primaryMuscles: ['Glúteos'],
-    secondaryMuscles: ['Isquiotibiales', 'Espalda'],
+    secondaryMuscles: ['Isquiotibiales', 'Lumbares'],
     equipment: 'Polea',
     instructions: 'De espaldas a la polea baja, empuja la cadera hacia adelante tirando de la cuerda entre las piernas.',
     imageAsset: 'assets/exercises/OM46QHm.gif',
@@ -1555,7 +1558,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Peso muerto piernas rígidas con mancuernas',
     primaryMuscles: ['Glúteos'],
-    secondaryMuscles: ['Isquiotibiales', 'Espalda'],
+    secondaryMuscles: ['Isquiotibiales', 'Lumbares'],
     equipment: 'Mancuernas',
     instructions: 'Con las rodillas casi extendidas, baja las mancuernas pegadas a las piernas hasta notar estiramiento.',
     imageAsset: 'assets/exercises/oom75KC.gif',
@@ -1619,7 +1622,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Buenos días rodilla flexionada en máquina Smith',
     primaryMuscles: ['Glúteos'],
-    secondaryMuscles: ['Isquiotibiales', 'Espalda'],
+    secondaryMuscles: ['Isquiotibiales', 'Lumbares'],
     equipment: 'Máquina Smith',
     instructions: 'Con la barra Smith en la espalda y rodillas ligeramente flexionadas, inclina el torso hacia adelante.',
     imageAsset: 'assets/exercises/1bQkKZK.gif',
@@ -1627,7 +1630,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Peso muerto en máquina Smith',
     primaryMuscles: ['Glúteos'],
-    secondaryMuscles: ['Isquiotibiales', 'Espalda'],
+    secondaryMuscles: ['Isquiotibiales', 'Lumbares'],
     equipment: 'Máquina Smith',
     instructions: 'Con la espalda recta, levanta la barra Smith extendiendo cadera y rodillas a la vez.',
     imageAsset: 'assets/exercises/UfePqpx.gif',
@@ -1643,7 +1646,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Sentadilla cosaca con peso',
     primaryMuscles: ['Glúteos'],
-    secondaryMuscles: ['Cuádriceps', 'Isquiotibiales'],
+    secondaryMuscles: ['Cuádriceps', 'Aductores', 'Isquiotibiales'],
     equipment: 'Peso añadido',
     instructions: 'Con las piernas muy separadas, desplaza el peso hacia un lado flexionando esa rodilla.',
     imageAsset: 'assets/exercises/GWoKnIm.gif',
@@ -1675,7 +1678,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ),
   ExerciseSeed(
     name: 'Aducción de cadera en máquina de palanca',
-    primaryMuscles: ['Glúteos'],
+    primaryMuscles: ['Aductores'],
     secondaryMuscles: [],
     equipment: 'Máquina de palanca',
     instructions: 'Sentado en la máquina, junta las piernas contra la resistencia apretando el interior del muslo.',
@@ -1685,7 +1688,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Buenos días sentado en máquina de palanca',
     primaryMuscles: ['Glúteos'],
-    secondaryMuscles: ['Isquiotibiales', 'Espalda'],
+    secondaryMuscles: ['Isquiotibiales', 'Lumbares'],
     equipment: 'Máquina de palanca',
     instructions: 'Sentado con la cadera más alta que las rodillas, inclina el torso hacia adelante desde la cadera y vuelve empujando con glúteos e isquiotibiales.',
     imageAsset: 'assets/exercises/XsCcxCC.gif',
@@ -1702,7 +1705,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Prensa de piernas separadas en máquina de prensa',
     primaryMuscles: ['Glúteos'],
-    secondaryMuscles: ['Cuádriceps', 'Isquiotibiales'],
+    secondaryMuscles: ['Cuádriceps', 'Aductores', 'Isquiotibiales'],
     equipment: 'Máquina de prensa',
     instructions: 'Sentado en la prensa con los pies muy separados, empuja la plataforma extendiendo las piernas.',
     imageAsset: 'assets/exercises/tj41Nu6.gif',
@@ -1901,7 +1904,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Rueda abdominal con barra',
     primaryMuscles: ['Abdomen'],
-    secondaryMuscles: ['Espalda'],
+    secondaryMuscles: ['Dorsales'],
     equipment: 'Barra',
     instructions: 'De rodillas, rueda la barra hacia adelante manteniendo el abdomen contraído y vuelve al punto inicial.',
     imageAsset: 'assets/exercises/7M66AVi.gif',
@@ -1949,7 +1952,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Rotación de tronco con mancuerna',
     primaryMuscles: ['Abdomen'],
-    secondaryMuscles: ['Espalda'],
+    secondaryMuscles: ['Lumbares'],
     equipment: 'Mancuernas',
     instructions: 'De pie con la mancuerna sujeta con ambas manos, rota el torso de un lado a otro.',
     imageAsset: 'assets/exercises/p9cCe2r.gif',
@@ -1973,7 +1976,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Giro de rodillas en máquina',
     primaryMuscles: ['Abdomen'],
-    secondaryMuscles: ['Espalda'],
+    secondaryMuscles: ['Lumbares'],
     equipment: 'Máquina de palanca',
     instructions: 'De rodillas en la máquina, gira el tronco de un lado a otro contrayendo los oblicuos.',
     imageAsset: 'assets/exercises/sZOR9EV.gif',
@@ -2032,7 +2035,7 @@ const exerciseSeedData = <ExerciseSeed>[
   ExerciseSeed(
     name: 'Giro ruso',
     primaryMuscles: ['Abdomen'],
-    secondaryMuscles: ['Espalda'],
+    secondaryMuscles: ['Lumbares'],
     equipment: 'Peso corporal',
     instructions: 'Sentado con el torso inclinado hacia atrás, gira de lado a lado tocando el suelo junto a la cadera.',
     imageAsset: 'assets/exercises/XVDdcoj.gif',

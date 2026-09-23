@@ -1,5 +1,5 @@
 {
-  "_info": "Máscaras musculares (blanco = músculo, transparente = resto) del mismo tamaño y posición que la base de su vista. Colorear en Flutter tiñendo la máscara (p. ej. ColorFiltered/srcIn) y superponiéndola a la base. \"appMuscle\" coincide con los nombres de lib/core/constants/muscle_groups.dart.",
+  "_info": "Máscaras musculares (blanco = músculo, transparente = resto) del mismo tamaño y posición que la base de su vista. Colorear en Flutter tiñendo la máscara (p. ej. ColorFiltered/srcIn) y superponiéndola a la base. \"appMuscle\" coincide con los nombres de lib/core/constants/muscle_groups.dart (16 músculos, uno o más máscaras cada uno).",
   "size": {
     "width": 610,
     "height": 1157
@@ -45,8 +45,8 @@
           "file": "assets/body/masks/front/biceps.png"
         },
         "antebrazo": {
-          "name": "Antebrazo",
-          "appMuscle": "Antebrazo",
+          "name": "Antebrazos",
+          "appMuscle": "Antebrazos",
           "side": "both",
           "view": "front",
           "file": "assets/body/masks/front/antebrazo.png"
@@ -108,7 +108,7 @@
         },
         "dorsales": {
           "name": "Dorsales",
-          "appMuscle": "Espalda",
+          "appMuscle": "Dorsales",
           "side": "both",
           "view": "back",
           "file": "assets/body/masks/back/dorsales.png"
@@ -121,8 +121,8 @@
           "file": "assets/body/masks/back/triceps.png"
         },
         "antebrazo": {
-          "name": "Antebrazo",
-          "appMuscle": "Antebrazo",
+          "name": "Antebrazos",
+          "appMuscle": "Antebrazos",
           "side": "both",
           "view": "back",
           "file": "assets/body/masks/back/antebrazo.png"
@@ -183,7 +183,7 @@
     "Bíceps": [
       "assets/body/masks/front/biceps.png"
     ],
-    "Antebrazo": [
+    "Antebrazos": [
       "assets/body/masks/front/antebrazo.png",
       "assets/body/masks/back/antebrazo.png"
     ],
@@ -202,7 +202,9 @@
       "assets/body/masks/back/gemelos.png"
     ],
     "Espalda": [
-      "assets/body/masks/back/espalda.png",
+      "assets/body/masks/back/espalda.png"
+    ],
+    "Dorsales": [
       "assets/body/masks/back/dorsales.png"
     ],
     "Tríceps": [

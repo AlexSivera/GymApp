@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:gymapp/core/constants/muscle_groups.dart';
 import 'package:gymapp/data/database/app_database.dart';
 import 'package:gymapp/data/seed/exercise_seed_data.dart';
 import 'package:gymapp/data/seed/exercise_seeder.dart';
@@ -55,5 +56,33 @@ void main() {
     final names = await db.exercisesDao.allNames();
     expect(names, contains('Mi ejercicio personalizado'));
     expect(names.length, exerciseSeedData.length + 1);
+  });
+
+  test('every seed exercise only uses muscles from the body diagram taxonomy', () {
+    final known = muscleGroups.values.expand((v) => v).toSet();
+    for (final seed in exerciseSeedData) {
+      expect(known, containsAll([...seed.primaryMuscles, ...seed.secondaryMuscles]), reason: seed.name);
+    }
+  });
+
+  test('custom exercises with legacy muscle names get renamed without duplicates', () async {
+    await db.exercisesDao.insert(ExercisesCompanion.insert(
+      name: 'Mi curl de muñeca',
+      primaryMuscles: const Value(['Antebrazo']),
+      secondaryMuscles: const Value(['Antebrazos', 'Bíceps']),
+      isCustom: const Value(true),
+    ));
+    await db.exercisesDao.insert(ExercisesCompanion.insert(
+      name: 'Mi abducción',
+      primaryMuscles: const Value(['Abductores', 'Glúteos']),
+      isCustom: const Value(true),
+    ));
+
+    await syncSeedExercises(db);
+
+    final byName = {for (final e in await db.exercisesDao.getAll()) e.name: e};
+    expect(byName['Mi curl de muñeca']!.primaryMuscles, ['Antebrazos']);
+    expect(byName['Mi curl de muñeca']!.secondaryMuscles, ['Bíceps']);
+    expect(byName['Mi abducción']!.primaryMuscles, ['Glúteos']);
   });
 }

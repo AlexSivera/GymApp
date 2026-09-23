@@ -41,4 +41,13 @@ class ExercisesDao extends DatabaseAccessor<AppDatabase> with _$ExercisesDaoMixi
   Future<void> updateSeedFields(String name, ExercisesCompanion data) {
     return (update(exercises)..where((e) => e.name.equals(name) & e.isCustom.equals(false))).write(data);
   }
+
+  Future<List<Exercise>> getAll() => select(exercises).get();
+
+  Future<void> updateMuscles(int id, List<String> primary, List<String> secondary) {
+    return (update(exercises)..where((e) => e.id.equals(id))).write(ExercisesCompanion(
+      primaryMuscles: Value(primary),
+      secondaryMuscles: Value(secondary),
+    ));
+  }
 }
