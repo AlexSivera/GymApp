@@ -29,7 +29,6 @@ class ProfileScreen extends ConsumerWidget {
     final streak = ref.watch(workoutStreakProvider).valueOrNull;
     final records = ref.watch(allPersonalRecordsProvider).valueOrNull;
     final settings = ref.watch(userSettingsProvider).valueOrNull;
-    final insight = ref.watch(insightOfDayProvider).valueOrNull;
 
     final bodyWeightText = bodyWeightLog == null ? null : formatWeight(bodyWeightLog.weightKg, unit);
 
@@ -38,13 +37,42 @@ class ProfileScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xl),
         children: [
-          if (name != null && name.isNotEmpty) ...[
-            Text(
-              'Hola, $name',
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: AppSpacing.md),
-          ],
+          // Who this profile is: an initial avatar + name, instead of a
+          // small grey "Hola, X" line that read like leftover copy.
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.18),
+                child: Text(
+                  name == null || name.isEmpty ? '?' : name.characters.first.toUpperCase(),
+                  style: theme.textTheme.headlineMedium?.copyWith(color: theme.colorScheme.primary),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name == null || name.isEmpty ? 'Tu perfil' : name,
+                      style: theme.textTheme.headlineMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (totalWorkouts != null)
+                      Text(
+                        totalWorkouts == 0
+                            ? 'Aún sin entrenamientos'
+                            : '$totalWorkouts entrenamiento${totalWorkouts == 1 ? '' : 's'} completado${totalWorkouts == 1 ? '' : 's'}',
+                        style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
 
           // Resumen — a quick read of where things stand, not a set of
           // destinations. Three plain numbers instead of two big icon cards,
@@ -89,7 +117,9 @@ class ProfileScreen extends ConsumerWidget {
             _ProfileTile(
               icon: Icons.insights_outlined,
               title: 'Estadísticas',
-              subtitle: insight?.message,
+              // A fixed description — the day's tip used to sit here and
+              // read as the screen's content (and went stale).
+              subtitle: 'Volumen, frecuencia y músculos',
               onTap: () =>
                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => const InsightsScreen())),
             ),

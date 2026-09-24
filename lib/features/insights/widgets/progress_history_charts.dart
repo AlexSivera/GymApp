@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/weight_unit.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/chart_axis.dart';
 import '../../../services/insights_engine/progress_history.dart';
 
 // Shared x-axis label — "d MMM" for the Monday each week starts on, showing
@@ -32,7 +33,7 @@ class VolumeHistoryChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     final values = [for (final v in history.volume) kgToDisplayUnit(v.volume, unit)];
-    final maxY = values.fold<double>(0, (a, b) => b > a ? b : a);
+    final axis = ChartValueAxis.forMax(values.fold<double>(0, (a, b) => b > a ? b : a));
 
     return AppCard(
       child: SizedBox(
@@ -40,13 +41,13 @@ class VolumeHistoryChart extends StatelessWidget {
         child: LineChart(
           LineChartData(
             minY: 0,
-            maxY: maxY <= 0 ? 1 : maxY * 1.2,
-            gridData: const FlGridData(show: false),
+            maxY: axis.max,
+            gridData: axis.grid(context),
             borderData: FlBorderData(show: false),
             titlesData: FlTitlesData(
               topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
               rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              leftTitles: axis.titles(context),
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
@@ -59,6 +60,9 @@ class VolumeHistoryChart extends StatelessWidget {
               LineChartBarData(
                 spots: [for (var i = 0; i < values.length; i++) FlSpot(i.toDouble(), values[i])],
                 isCurved: true,
+                // Without this the smoothed line dipped below zero between a
+                // flat stretch and a jump — volume can't be negative.
+                preventCurveOverShooting: true,
                 color: colors.accent,
                 barWidth: 3,
                 dotData: const FlDotData(show: true),
@@ -81,19 +85,21 @@ class FrequencyHistoryChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     final maxSessions = history.frequency.fold<int>(0, (a, b) => b.sessions > a ? b.sessions : a);
+    // Never below 2, so the steps stay whole sessions (no "0,5" labels).
+    final axis = ChartValueAxis.forMax(maxSessions < 2 ? 2 : maxSessions.toDouble());
 
     return AppCard(
       child: SizedBox(
         height: 160,
         child: BarChart(
           BarChartData(
-            maxY: (maxSessions <= 0 ? 1 : maxSessions).toDouble() + 1,
-            gridData: const FlGridData(show: false),
+            maxY: axis.max,
+            gridData: axis.grid(context),
             borderData: FlBorderData(show: false),
             titlesData: FlTitlesData(
               topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
               rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              leftTitles: axis.titles(context),
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
@@ -144,9 +150,9 @@ class MuscleTrendChart extends StatelessWidget {
         ),
       );
     }
-    final maxY = history.muscleTrends
+    final axis = ChartValueAxis.forMax(history.muscleTrends
         .expand((t) => t.weeklyVolumes)
-        .fold<double>(0, (a, b) => b > a ? b : a);
+        .fold<double>(0, (a, b) => b > a ? b : a));
 
     return AppCard(
       child: Column(
@@ -157,13 +163,13 @@ class MuscleTrendChart extends StatelessWidget {
             child: LineChart(
               LineChartData(
                 minY: 0,
-                maxY: maxY <= 0 ? 1 : maxY * 1.2,
-                gridData: const FlGridData(show: false),
+                maxY: axis.max,
+                gridData: axis.grid(context),
                 borderData: FlBorderData(show: false),
                 titlesData: FlTitlesData(
                   topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  leftTitles: axis.titles(context),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
@@ -180,6 +186,7 @@ class MuscleTrendChart extends StatelessWidget {
                           FlSpot(i.toDouble(), history.muscleTrends[t].weeklyVolumes[i]),
                       ],
                       isCurved: true,
+                      preventCurveOverShooting: true,
                       color: trendColors[t % trendColors.length],
                       barWidth: 2.5,
                       dotData: const FlDotData(show: false),

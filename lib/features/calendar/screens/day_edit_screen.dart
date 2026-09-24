@@ -121,6 +121,7 @@ class _DayEditScreenState extends ConsumerState<DayEditScreen> {
                     final value = i + 1;
                     final selected = _feeling == value;
                     return IconButton(
+                      tooltip: 'Sensación $value de 5',
                       iconSize: 32,
                       onPressed: () => setState(() => _feeling = selected ? null : value),
                       icon: Icon(

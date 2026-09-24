@@ -30,7 +30,12 @@ jobs:
       - run: flutter pub get
       # Served at https://<user>.github.io/GymApp/ — base-href must match
       # the repo name or every asset/route resolves to the wrong path.
-      - run: flutter build web --release --base-href /GymApp/
+      # --no-web-resources-cdn serves the rendering engine (CanvasKit) from
+      # this site instead of Google's CDN, so the offline service worker can
+      # cache it — otherwise the app still needs the internet to start.
+      - run: flutter build web --release --base-href /GymApp/ --no-web-resources-cdn
+      # Offline support: writes build/web/sw.js with this build's file list.
+      - run: dart run tool/generate_service_worker.dart
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build/web

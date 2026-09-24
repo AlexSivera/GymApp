@@ -58,6 +58,16 @@ class SessionLoggingDao extends DatabaseAccessor<AppDatabase>
         .watch();
   }
 
+  // Every set of a session, across all of its exercises — for session-wide
+  // numbers (series progress in Entreno, "N ejercicios" on a finished one).
+  Stream<List<WorkoutSet>> watchSetsForSession(int workoutSessionId) {
+    final query = select(workoutSets).join([
+      innerJoin(sessionExercises, sessionExercises.id.equalsExp(workoutSets.sessionExerciseId)),
+    ])
+      ..where(sessionExercises.workoutSessionId.equals(workoutSessionId));
+    return query.watch().map((rows) => [for (final row in rows) row.readTable(workoutSets)]);
+  }
+
   Future<List<WorkoutSet>> getSets(int sessionExerciseId) {
     return (select(workoutSets)
           ..where((s) => s.sessionExerciseId.equals(sessionExerciseId))

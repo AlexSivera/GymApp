@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -18,8 +18,11 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Planifica tus rutinas, registra tus entrenamientos y sigue tu progreso.">
-  <meta name="theme-color" content="#1E1B18">
+  <!-- Matches the app's default (dark) background; the app updates it at
+       runtime to whichever palette is active. -->
+  <meta name="theme-color" content="#0A0C0E">
 
   <!-- iOS "Add to Home Screen" support — apple-mobile-web-app-capable is the
        one Safari has honored the longest; mobile-web-app-capable is the
@@ -37,8 +40,89 @@
 
   <title>GymApp</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    /* Loading screen shown while the engine and app code start up — before,
+       this was a few seconds of plain white page in front of a dark app. */
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #0A0C0E;
+    }
+    #splash {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      background: #0A0C0E;
+      transition: opacity 280ms ease-out;
+      z-index: 10;
+    }
+    #splash.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #splash img {
+      width: 132px;
+      height: 132px;
+      animation: splash-breathe 1.6s ease-in-out infinite;
+    }
+    #splash .bar {
+      width: 120px;
+      height: 4px;
+      border-radius: 4px;
+      background: #1C2024;
+      overflow: hidden;
+    }
+    #splash .bar::after {
+      content: "";
+      display: block;
+      width: 40%;
+      height: 100%;
+      border-radius: 4px;
+      background: #5EEAD4;
+      animation: splash-slide 1.1s ease-in-out infinite;
+    }
+    @keyframes splash-breathe {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+    @keyframes splash-slide {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(250%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #splash img, #splash .bar::after { animation: none; }
+    }
+  </style>
 </head>
 <body>
+  <div id="splash" aria-label="Cargando GymApp" role="progressbar">
+    <img src="icons/Icon-192.png" alt="">
+    <div class="bar"></div>
+  </div>
+  <script>
+    // Hide the loading screen as soon as Flutter has painted its first frame.
+    window.addEventListener('flutter-first-frame', function () {
+      var splash = document.getElementById('splash');
+      if (!splash) return;
+      splash.classList.add('hidden');
+      setTimeout(function () { splash.remove(); }, 400);
+    });
+
+    // Offline support (see tool/sw_template.js). updateViaCache 'none' makes
+    // the browser always check sw.js itself for a new deploy.
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker
+          .register('sw.js', { updateViaCache: 'none' })
+          .catch(function (error) { console.warn('Service worker no registrado:', error); });
+      });
+    }
+  </script>
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader

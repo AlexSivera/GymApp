@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../core/theme/app_motion.dart';
 import '../features/calendar/screens/calendar_screen.dart';
+import '../features/dashboard/providers/dashboard_scroll.dart';
 import '../features/dashboard/screens/dashboard_screen.dart';
 import '../features/onboarding/screens/onboarding_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
@@ -27,8 +29,10 @@ GoRouter buildAppRouter({required String initialLocation}) => GoRouter(
   initialLocation: initialLocation,
   routes: [
     GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
-    StatefulShellRoute.indexedStack(
+    StatefulShellRoute(
       builder: (context, state, navigationShell) => _AppShell(navigationShell: navigationShell),
+      navigatorContainerBuilder: (context, navigationShell, children) =>
+          _FadingBranchContainer(currentIndex: navigationShell.currentIndex, children: children),
       branches: [
         StatefulShellBranch(routes: [
           GoRoute(path: '/dashboard', builder: (context, state) => const DashboardScreen()),
@@ -56,13 +60,88 @@ GoRouter buildAppRouter({required String initialLocation}) => GoRouter(
   ],
 );
 
-class _AppShell extends ConsumerWidget {
+// Keeps every tab alive like IndexedStack does (each keeps its own scroll
+// position and navigation stack), but cross-fades between them instead of
+// swapping instantly.
+class _FadingBranchContainer extends StatelessWidget {
+  const _FadingBranchContainer({required this.currentIndex, required this.children});
+
+  final int currentIndex;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        for (var i = 0; i < children.length; i++)
+          _branch(i, i == currentIndex, reduceMotion),
+      ],
+    );
+  }
+
+  Widget _branch(int index, bool active, bool reduceMotion) {
+    return IgnorePointer(
+      ignoring: !active,
+      child: ExcludeSemantics(
+        excluding: !active,
+        // The fade itself sits outside TickerMode: muting tickers above it
+        // froze the outgoing tab's fade-out at full opacity, leaving it drawn
+        // on top of the tab being switched to.
+        child: AnimatedOpacity(
+          opacity: active ? 1 : 0,
+          duration: reduceMotion ? Duration.zero : AppMotion.normal,
+          curve: active ? AppMotion.curve : Curves.easeIn,
+          child: TickerMode(
+            enabled: active,
+            child: FocusScope(canRequestFocus: active, child: children[index]),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AppShell extends ConsumerStatefulWidget {
   const _AppShell({required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<_AppShell> {
+  late final AppLifecycleListener _lifecycle;
+
+  @override
+  void initState() {
+    super.initState();
+    // Browsers drop a screen wake lock whenever the page is hidden (switching
+    // apps, locking the phone), so it's re-requested on every return.
+    _lifecycle = AppLifecycleListener(onResume: () => _syncWakeLock(ref.read(activeSessionProvider).valueOrNull));
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
+  // The screen stays on for as long as a workout is in progress — otherwise
+  // it dims and locks between sets, and on the web the page (and the rest
+  // timer with it) gets frozen in the background.
+  void _syncWakeLock(Object? activeSession) {
+    WakelockPlus.toggle(enable: activeSession != null).catchError((_) {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final navigationShell = widget.navigationShell;
+    ref.listen(activeSessionProvider, (previous, next) {
+      if (previous?.valueOrNull?.id != next.valueOrNull?.id) _syncWakeLock(next.valueOrNull);
+    });
     final hasActiveSession = ref.watch(activeSessionProvider).valueOrNull != null;
     // Deliberately no auto-redirect when the session ends: the user may
     // still be looking at the just-finished session's summary screen,
@@ -78,8 +157,11 @@ class _AppShell extends ConsumerWidget {
       bottomNavigationBar: _BottomNav(
         currentIndex: navigationShell.currentIndex,
         showWorkoutTab: hasActiveSession || onWorkoutBranch,
-        onSelect: (index) =>
-            navigationShell.goBranch(index, initialLocation: index == navigationShell.currentIndex),
+        onSelect: (index) {
+          final reselected = index == navigationShell.currentIndex;
+          if (reselected && index == _dashboardBranch) scrollDashboardToTop(ref);
+          navigationShell.goBranch(index, initialLocation: reselected);
+        },
       ),
     );
   }

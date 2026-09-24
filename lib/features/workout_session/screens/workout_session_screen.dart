@@ -12,6 +12,9 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/error_retry_view.dart';
 import '../../../core/widgets/exercise_thumbnail.dart';
+import '../../../core/widgets/fade_slide_in.dart';
+import '../../../core/widgets/top_toast.dart';
+import '../../../core/utils/set_format.dart';
 import '../../../core/utils/superset_grouping.dart';
 import '../../../core/utils/weight_unit.dart';
 import '../../../core/utils/weight_unit_provider.dart';
@@ -88,9 +91,41 @@ class WorkoutSessionScreen extends ConsumerWidget {
             final allDone = sessionExercises.isNotEmpty && completedCount == sessionExercises.length;
             final supersetLabels = supersetGroupLabels(sessionExercises, (e) => e.supersetGroup);
 
+            // Progress by series, not just whole exercises: ticking off a set
+            // should visibly move the bar. Planned = the routine's target
+            // sets (or however many exist, if more were added).
+            final sessionSets = ref.watch(setsForSessionProvider(sessionId)).valueOrNull ?? const [];
+            final doneSets = sessionSets.where((s) => s.isCompleted).length;
+            var plannedSets = 0;
+            for (final sessionExercise in sessionExercises) {
+              if (sessionExercise.status == SessionExerciseStatus.skipped) continue;
+              final created = sessionSets.where((s) => s.sessionExerciseId == sessionExercise.id).length;
+              final target = targetsByExercise[sessionExercise.exerciseId]?.sets ?? 0;
+              plannedSets += created > target ? created : target;
+            }
+            final progress = plannedSets > 0
+                ? (doneSets / plannedSets).clamp(0.0, 1.0)
+                : sessionExercises.isEmpty
+                    ? 0.0
+                    : completedCount / sessionExercises.length;
+
             return Scaffold(
               appBar: AppBar(
                 title: Text(title),
+                // Finishing is always one tap away, but no longer the biggest
+                // button on screen while there's still work left — that's
+                // what made it easy to end a session by accident. Once
+                // everything is done it moves to the big bottom button.
+                actions: [
+                  if (!allDone)
+                    Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.sm),
+                      child: TextButton(
+                        onPressed: () => _completeSession(context, ref, session, sessionExercises),
+                        child: const Text('Finalizar'),
+                      ),
+                    ),
+                ],
               ),
               // No FAB here: it floated right on top of "Finalizar
               // entrenamiento". Adding an exercise lives at the end of the
@@ -107,7 +142,9 @@ class WorkoutSessionScreen extends ConsumerWidget {
                           children: [
                             Expanded(child: _ElapsedTime(startedAt: session.startedAt)),
                             Text(
-                              '$completedCount de ${sessionExercises.length} ejercicios',
+                              plannedSets > 0
+                                  ? '$doneSets/$plannedSets series · $completedCount/${sessionExercises.length} ejercicios'
+                                  : '$completedCount de ${sessionExercises.length} ejercicios',
                               style: Theme.of(context)
                                   .textTheme
                                   .bodyMedium
@@ -119,10 +156,16 @@ class WorkoutSessionScreen extends ConsumerWidget {
                           const SizedBox(height: AppSpacing.sm),
                           ClipRRect(
                             borderRadius: BorderRadius.circular(AppSpacing.xs),
-                            child: LinearProgressIndicator(
-                              value: completedCount / sessionExercises.length,
-                              minHeight: 6,
-                              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            // Glides to the new value instead of jumping.
+                            child: TweenAnimationBuilder<double>(
+                              tween: Tween(end: progress),
+                              duration: AppMotion.slow,
+                              curve: AppMotion.curve,
+                              builder: (context, value, _) => LinearProgressIndicator(
+                                value: value,
+                                minHeight: 6,
+                                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                              ),
                             ),
                           ),
                         ],
@@ -132,7 +175,8 @@ class WorkoutSessionScreen extends ConsumerWidget {
                   if (allDone)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                      child: AppCard(
+                      child: FadeSlideIn(
+                        child: AppCard(
                         child: Row(
                           children: [
                             Icon(Icons.check_circle_rounded,
@@ -144,6 +188,7 @@ class WorkoutSessionScreen extends ConsumerWidget {
                             ),
                           ],
                         ),
+                      ),
                       ),
                     ),
                   Expanded(
@@ -198,16 +243,26 @@ class WorkoutSessionScreen extends ConsumerWidget {
                             ),
                           ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.lg),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => _completeSession(context, ref, session, sessionExercises),
-                        child: const Text('Finalizar entrenamiento'),
-                      ),
-                    ),
+                  AnimatedSize(
+                    duration: AppMotion.normal,
+                    curve: AppMotion.curve,
+                    alignment: Alignment.bottomCenter,
+                    child: allDone
+                        ? Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                                AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.lg),
+                            child: FadeSlideIn(
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _completeSession(context, ref, session, sessionExercises),
+                                  icon: const Icon(Icons.flag_rounded),
+                                  label: const Text('Finalizar entrenamiento'),
+                                ),
+                              ),
+                            ),
+                          )
+                        : const SizedBox(width: double.infinity),
                   ),
                 ],
               ),
@@ -309,7 +364,11 @@ class WorkoutSessionScreen extends ConsumerWidget {
     final achievements = await computeNewRankAchievements(db, sessionId: sessionId);
 
     navigator.push(
-      MaterialPageRoute(builder: (_) => SessionSummaryScreen(summary: summary)),
+      MaterialPageRoute(
+        // The rank-up screen (pushed on top) already throws confetti — the
+        // summary underneath only celebrates when it's the first thing shown.
+        builder: (_) => SessionSummaryScreen(summary: summary, celebrate: achievements.isEmpty),
+      ),
     );
     if (achievements.isNotEmpty) {
       navigator.push(
@@ -438,6 +497,23 @@ class _ExerciseRow extends ConsumerWidget {
     final sets = ref.watch(setsForExerciseProvider(sessionExercise.id)).valueOrNull ?? const [];
     final isExpanded = ref.watch(expandedSessionExerciseIdProvider) == sessionExercise.id;
     final unit = ref.watch(weightUnitProvider);
+    // Whenever this card opens — tapped, or auto-advanced to after the
+    // previous exercise was finished — bring it on screen. Waits for the
+    // card that just closed above it to finish collapsing, otherwise the
+    // scroll target moves mid-animation.
+    ref.listen(expandedSessionExerciseIdProvider, (previous, next) {
+      if (next != sessionExercise.id || previous == sessionExercise.id) return;
+      _ensurePlannedSets(ref);
+      Future.delayed(AppMotion.normal + const Duration(milliseconds: 30), () {
+        if (!context.mounted) return;
+        Scrollable.ensureVisible(
+          context,
+          alignment: 0.02,
+          duration: AppMotion.slow,
+          curve: AppMotion.curve,
+        );
+      });
+    });
 
     return AppCard(
       padding: EdgeInsets.zero,
@@ -455,7 +531,7 @@ class _ExerciseRow extends ConsumerWidget {
             title: Text(exerciseName),
             subtitle: Text(_setsSummary(sets, unit)),
             trailing: _StatusIcon(status: sessionExercise.status),
-            onTap: () => _toggleExpanded(ref, sets),
+            onTap: () => _toggleExpanded(ref),
           ),
           AnimatedSize(
             duration: AppMotion.normal,
@@ -477,16 +553,23 @@ class _ExerciseRow extends ConsumerWidget {
     );
   }
 
-  // Opening a routine-backed exercise for the first time pre-creates all of
-  // its target sets (prefilled from last time / the suggested weight) so
-  // the checklist matches the plan immediately, instead of starting empty.
-  Future<void> _toggleExpanded(WidgetRef ref, List<WorkoutSet> currentSets) async {
+  void _toggleExpanded(WidgetRef ref) {
     final notifier = ref.read(expandedSessionExerciseIdProvider.notifier);
-    final opening = notifier.state != sessionExercise.id;
-    notifier.state = opening ? sessionExercise.id : null;
-    if (!opening || currentSets.isNotEmpty || targets == null) return;
+    notifier.state = notifier.state != sessionExercise.id ? sessionExercise.id : null;
+  }
 
+  // Opening a routine-backed exercise for the first time — by tapping it, or
+  // by being auto-advanced to — pre-creates all of its target sets
+  // (prefilled from last time / the suggested weight) so the checklist
+  // matches the plan immediately, instead of starting empty.
+  Future<void> _ensurePlannedSets(WidgetRef ref) async {
+    if (targets == null) return;
+    // Everything from ref is read before the first await: this row can be
+    // rebuilt (or scrolled away) while the inserts below are in flight.
     final db = ref.read(appDatabaseProvider);
+    final dao = ref.read(sessionLoggingDaoProvider);
+    if ((await dao.getSets(sessionExercise.id)).isNotEmpty) return;
+
     final previousSets = await getPreviousSetsForExercise(
       db,
       exerciseId: sessionExercise.exerciseId,
@@ -505,7 +588,6 @@ class _ExerciseRow extends ConsumerWidget {
             targetRepsMax: targets!.repsMax,
           );
 
-    final dao = ref.read(sessionLoggingDaoProvider);
     for (var i = 0; i < targets!.sets; i++) {
       final matchingPrevious = i < previousSets.length ? previousSets[i] : null;
       await dao.addSet(WorkoutSetsCompanion.insert(
@@ -537,9 +619,7 @@ class _ExerciseRow extends ConsumerWidget {
     }
     final valid = sets.where((s) => s.weightKg != null && s.reps != null).toList();
     if (valid.isEmpty) return '${sets.length} serie${sets.length == 1 ? '' : 's'}';
-    final parts = valid.take(3).map((s) => '${formatWeightValue(s.weightKg!, unit)}×${s.reps}');
-    final suffix = valid.length > 3 ? ' +${valid.length - 3}' : '';
-    return '${parts.join(' · ')}$suffix ${weightUnitLabel(unit)}';
+    return summarizeStrengthSets([for (final s in valid) (weightKg: s.weightKg!, reps: s.reps!)], unit);
   }
 
   String _plannedSummary(int createdSets) {
@@ -653,7 +733,7 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
                       children: [
                         if (previousSets.isNotEmpty)
                           Text(
-                            'Última vez: ${previousSets.map((s) => isStrength ? '${formatWeightValue(s.weightKg ?? 0, unit)}×${s.reps ?? '—'}' : _fmtDuration(s)).join(', ')}',
+                            'Última vez: ${_lastTimeSummary(previousSets, unit)}',
                             style: theme.textTheme.bodySmall
                                 ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                           ),
@@ -677,22 +757,43 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
               alignment: Alignment.centerRight,
               child: _OverflowMenu(onSelected: (action) => _handleMenuAction(context, ref, action)),
             ),
-          if (activeSet != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
-              child: _ActiveSetCard(
-                key: ValueKey('active-${activeSet.id}'),
-                set: activeSet,
-                category: category,
-                onComplete: (result) => _completeSet(context, ref, activeSet, result),
+          // The next set slides in as the one just logged moves down into
+          // the list below, so it reads as "that one's done, here's the next".
+          AnimatedSwitcher(
+            duration: AppMotion.normal,
+            switchInCurve: AppMotion.curve,
+            switchOutCurve: Curves.easeIn,
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween(begin: const Offset(0.06, 0), end: Offset.zero).animate(animation),
+                child: child,
               ),
             ),
+            layoutBuilder: (current, previous) => Stack(
+              alignment: Alignment.topCenter,
+              children: [...previous, ?current],
+            ),
+            child: activeSet == null
+                ? const SizedBox(width: double.infinity, key: ValueKey('no-active'))
+                : Padding(
+                    key: ValueKey('active-${activeSet.id}'),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: _ActiveSetCard(
+                      set: activeSet,
+                      category: category,
+                      onComplete: (result) => _completeSet(context, ref, activeSet, result),
+                    ),
+                  ),
+          ),
           for (final set in otherSets)
-            _CompactSetRow(
-              key: ValueKey('row-${set.id}'),
-              set: set,
-              category: category,
-              onDelete: () => _deleteSet(context, ref, set.id),
+            FadeSlideIn(
+              key: ValueKey('row-${set.id}-${set.isCompleted}'),
+              child: _CompactSetRow(
+                set: set,
+                category: category,
+                onDelete: () => _deleteSet(context, ref, set.id),
+              ),
             ),
           if (otherSets.isNotEmpty) const SizedBox(height: AppSpacing.sm),
           Align(
@@ -710,7 +811,7 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
                 child: OutlinedButton.icon(
                   onPressed: () => _changeExercise(context, ref),
                   icon: const Icon(Icons.swap_horiz, size: 18),
-                  label: const Text('Cambiar por otro'),
+                  label: const Text('Cambiar'),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -726,6 +827,13 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  String _lastTimeSummary(List<WorkoutSet> previousSets, WeightUnit unit) {
+    if (!isStrength) return previousSets.map(_fmtDuration).join(', ');
+    final valid = previousSets.where((s) => s.weightKg != null && s.reps != null);
+    if (valid.isEmpty) return '—';
+    return summarizeStrengthSets([for (final s in valid) (weightKg: s.weightKg!, reps: s.reps!)], unit);
   }
 
   Future<void> _addSet(WidgetRef ref, List<WorkoutSet> existingSets, LoadSuggestion? suggestion) async {
@@ -750,6 +858,12 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
   ) async {
     final setId = set.id;
     final dao = ref.read(sessionLoggingDaoProvider);
+    final db = ref.read(appDatabaseProvider);
+    // Finishing an exercise's last set auto-advances to the next one, which
+    // unmounts this detail view mid-way through the method — so the overlay
+    // the record toast goes on is looked up now, while it's still mounted.
+    final toastOverlay = Overlay.of(context, rootOverlay: true);
+    final recordColor = AppColors.of(context).statusPlanned;
     // Carry over *before* marking this set done: marking it done is what
     // turns the next set into the active card, and that card reads its
     // starting weight/reps only once, when it's created. Doing it the other
@@ -778,7 +892,6 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
     await _syncExerciseStatus(ref);
 
     if (result.weight != null && result.reps != null) {
-      final db = ref.read(appDatabaseProvider);
       final achieved = await checkAndRecordPRs(
         db,
         exerciseId: exerciseId,
@@ -792,40 +905,38 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
       final hasHistory = achieved.isNotEmpty &&
           (await getPreviousSetsForExercise(db, exerciseId: exerciseId, excludeSessionId: sessionId))
               .isNotEmpty;
-      if (hasHistory && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.emoji_events_rounded, color: AppColors.of(context).statusPlanned, size: 20),
-              const SizedBox(width: AppSpacing.sm),
-              const Text('¡Nuevo récord personal!'),
-            ],
-          ),
-        ));
+      if (hasHistory) {
+        HapticFeedback.heavyImpact();
+        showTopToast(
+          toastOverlay,
+          icon: Icons.emoji_events_rounded,
+          iconColor: recordColor,
+          message: '¡Nuevo récord personal en $exerciseName!',
+        );
       }
     }
   }
 
-  // Pre-fills the next not-yet-completed set with whatever was just logged,
-  // so the user only has to touch the fields when they actually change
-  // weight/reps (or duration/distance) between sets.
+  // Pre-fills every later not-yet-completed set with whatever was just
+  // logged, so the user only has to touch the fields when they actually
+  // change weight/reps (or duration/distance) between sets. All of them, not
+  // just the next one: the queued rows below show these values too, and a
+  // stale "12.5 kg" under a set just done at 15 kg looked like a mistake.
   Future<void> _carryOverToNextSet(
     SessionLoggingDao dao,
     WorkoutSet completedSet,
     _SetResult result,
   ) async {
-    final next = sets
-        .where((s) => s.setNumber == completedSet.setNumber + 1 && !s.isCompleted)
-        .firstOrNull;
-    if (next == null) return;
-
+    final later = sets.where((s) => s.setNumber > completedSet.setNumber && !s.isCompleted);
     final isCardio = category == ExerciseCategory.cardio;
-    await dao.updateSet(next.copyWith(
-          weightKg: Value(isStrength ? result.weight : null),
-          reps: Value(isStrength ? result.reps : null),
-          durationSeconds: Value(isStrength ? null : result.durationSeconds),
-          distanceMeters: Value(isCardio ? result.distanceMeters : null),
-        ));
+    for (final next in later) {
+      await dao.updateSet(next.copyWith(
+            weightKg: Value(isStrength ? result.weight : null),
+            reps: Value(isStrength ? result.reps : null),
+            durationSeconds: Value(isStrength ? null : result.durationSeconds),
+            distanceMeters: Value(isCardio ? result.distanceMeters : null),
+          ));
+    }
   }
 
   // Null if this exercise isn't in a superset, or every partner already has
@@ -858,7 +969,10 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
   Future<void> _syncExerciseStatus(WidgetRef ref) async {
     final currentSets = await ref.read(sessionLoggingDaoProvider).getSets(sessionExercise.id);
     final completedCount = currentSets.where((s) => s.isCompleted).length;
-    final current = ref.read(sessionExerciseByIdProvider(sessionExercise.id)).valueOrNull;
+    // Straight from the database: reading the (unwatched) stream provider
+    // here returned "still loading" the first time after an app start, so
+    // the first set logged never updated the exercise's status.
+    final current = await ref.read(sessionLoggingDaoProvider).watchById(sessionExercise.id).first;
     if (current == null || current.status == SessionExerciseStatus.skipped) return;
 
     final next = targetSets != null && completedCount >= targetSets!
@@ -873,7 +987,17 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
     if (next == SessionExerciseStatus.completed) {
       final expandedNotifier = ref.read(expandedSessionExerciseIdProvider.notifier);
       if (expandedNotifier.state == sessionExercise.id) {
-        expandedNotifier.state = null;
+        // Auto-advance: open the next exercise still to do (in the day's
+        // order, wrapping around to earlier ones left pending), so the user
+        // doesn't have to find and tap it between sets.
+        final all = [...ref.read(sessionExercisesProvider(sessionId)).valueOrNull ?? const <SessionExercise>[]]
+          ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
+        bool pending(SessionExercise e) =>
+            e.id != sessionExercise.id &&
+            (e.status == SessionExerciseStatus.pending || e.status == SessionExerciseStatus.inProgress);
+        final after = all.where((e) => e.orderIndex > sessionExercise.orderIndex && pending(e));
+        final nextUp = after.isNotEmpty ? after.first : all.where(pending).firstOrNull;
+        expandedNotifier.state = nextUp?.id;
       }
     }
   }
@@ -1016,7 +1140,7 @@ class _OverflowMenu extends StatelessWidget {
 // +/- steppers instead of raw text fields — matches "no abrir una ventana
 // con teclado para poner los kilos".
 class _ActiveSetCard extends ConsumerStatefulWidget {
-  const _ActiveSetCard({super.key, required this.set, required this.category, required this.onComplete});
+  const _ActiveSetCard({required this.set, required this.category, required this.onComplete});
 
   final WorkoutSet set;
   final ExerciseCategory category;
@@ -1342,7 +1466,7 @@ class _StepperButton extends StatelessWidget {
 // A set that isn't the active one — either already completed, or queued
 // further down the plan. Shown as a plain summary row with a way to remove it.
 class _CompactSetRow extends ConsumerWidget {
-  const _CompactSetRow({super.key, required this.set, required this.category, required this.onDelete});
+  const _CompactSetRow({required this.set, required this.category, required this.onDelete});
 
   final WorkoutSet set;
   final ExerciseCategory category;
@@ -1357,10 +1481,18 @@ class _CompactSetRow extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Icon(
-            set.isCompleted ? Icons.check_circle : Icons.circle_outlined,
-            size: 16,
-            color: set.isCompleted ? AppColors.of(context).statusCompleted : mutedColor,
+          // A just-completed set's check pops in (rows are keyed by their
+          // completion state, so this plays once, right when it's ticked).
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: set.isCompleted ? 0.3 : 1, end: 1),
+            duration: const Duration(milliseconds: 450),
+            curve: Curves.elasticOut,
+            builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
+            child: Icon(
+              set.isCompleted ? Icons.check_circle : Icons.circle_outlined,
+              size: 16,
+              color: set.isCompleted ? AppColors.of(context).statusCompleted : mutedColor,
+            ),
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
@@ -1377,6 +1509,7 @@ class _CompactSetRow extends ConsumerWidget {
             style: theme.textTheme.bodyMedium?.copyWith(color: set.isCompleted ? null : mutedColor),
           ),
           IconButton(
+            tooltip: 'Eliminar serie',
             icon: const Icon(Icons.close, size: 18),
             visualDensity: VisualDensity.compact,
             onPressed: onDelete,

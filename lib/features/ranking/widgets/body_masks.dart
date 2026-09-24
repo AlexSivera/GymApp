@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_colors.dart';
+
 // The user's own licensed anatomy illustration, split into a front and a
 // back view (assets/body/{front,back}_base.png, 610x1157), plus one
 // white-on-transparent mask per muscle region with exactly the same size
@@ -9,8 +11,42 @@ enum BodyView { front, back }
 
 const bodyImageSize = Size(610, 1157);
 
-// Background of the illustration, so panels around it blend in.
-const bodyBackgroundColor = Color(0xFF121212);
+// The illustration is white line-art on a near-black (#121212) background
+// baked into the PNGs, which looked like black boxes on the light and pastel
+// themes. The base layer is recolored per theme instead: a color matrix maps
+// that background to the theme's surface and the white lines to a theme ink
+// color, and anything painted around the drawing uses [bodyPanelColor] so
+// the seams disappear.
+const _sourceBackground = 18.0; // 0x12
+const _sourceLines = 255.0;
+
+Color bodyPanelColor(BuildContext context) => AppColors.of(context).surface;
+
+ColorFilter _baseLayerFilter(BuildContext context) {
+  final colors = AppColors.of(context);
+  final dark = Theme.of(context).brightness == Brightness.dark;
+  final background = colors.surface;
+  // Softer ink on the light palettes: full-strength dark outlines on white
+  // read much heavier than white outlines on black.
+  final ink = dark ? colors.textColor : Color.lerp(colors.mutedTextColor, colors.textColor, 0.35)!;
+
+  List<double> row(double from, double to, int channel) {
+    final scale = (to - from) / (_sourceLines - _sourceBackground);
+    final offset = from - scale * _sourceBackground;
+    return [
+      for (var i = 0; i < 4; i++) i == channel ? scale : 0,
+      offset,
+    ];
+  }
+
+  double c(double unit) => unit * 255;
+  return ColorFilter.matrix([
+    ...row(c(background.r), c(ink.r), 0),
+    ...row(c(background.g), c(ink.g), 1),
+    ...row(c(background.b), c(ink.b), 2),
+    0, 0, 0, 1, 0,
+  ]);
+}
 
 // Every body image is decoded at this one width, whatever size it's shown
 // at, so the diagram and all the Rangos thumbnails share one cached copy of
@@ -116,7 +152,10 @@ class BodyLayers extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        _layer('assets/body/${view.name}_base.png'),
+        ColorFiltered(
+          colorFilter: _baseLayerFilter(context),
+          child: _layer('assets/body/${view.name}_base.png'),
+        ),
         for (final MapEntry(key: file, value: color) in tints.entries)
           // srcIn keeps the mask's soft alpha edges and swaps its white for
           // the tint.

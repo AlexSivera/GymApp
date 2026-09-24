@@ -144,6 +144,7 @@ class ExerciseProgressSummary extends ConsumerWidget {
                       LineChartBarData(
                         spots: spots,
                         isCurved: true,
+                        preventCurveOverShooting: true,
                         color: theme.colorScheme.primary,
                         barWidth: 3,
                         dotData: const FlDotData(show: true),

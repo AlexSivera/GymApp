@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/exercise_thumbnail.dart';
 import '../../../data/database/app_database.dart';
 
 class ExerciseDetailScreen extends StatelessWidget {
@@ -19,18 +20,14 @@ class ExerciseDetailScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           if (exercise.imagePaths.isNotEmpty) ...[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.asset(
-                exercise.imagePaths.first,
-                width: double.infinity,
-                height: 220,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  height: 220,
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  child: Icon(Icons.fitness_center,
-                      size: 48, color: theme.colorScheme.onSurfaceVariant),
+            // The one place the animation plays in full: square, uncropped
+            // (a wide 220px-tall box used to cut off head and feet).
+            Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: SizedBox.square(
+                  dimension: 280,
+                  child: ExerciseImage(imagePaths: exercise.imagePaths, iconSize: 48, animated: true),
                 ),
               ),
             ),

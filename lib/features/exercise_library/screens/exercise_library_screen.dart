@@ -57,16 +57,21 @@ class ExerciseLibraryScreen extends ConsumerWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, 0),
-            child: Wrap(
-              spacing: AppSpacing.sm,
-              children: [
-                for (final t in ExerciseLibraryTab.values)
-                  ChoiceChip(
-                    label: Text(_tabLabel(t)),
-                    selected: tab == t,
-                    onSelected: (_) => ref.read(exerciseLibraryTabProvider.notifier).state = t,
-                  ),
-              ],
+            // Full width + left-aligned like the search field and "Músculos"
+            // chip below (the Column was centering it on its own).
+            child: SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                spacing: AppSpacing.sm,
+                children: [
+                  for (final t in ExerciseLibraryTab.values)
+                    ChoiceChip(
+                      label: Text(_tabLabel(t)),
+                      selected: tab == t,
+                      onSelected: (_) => ref.read(exerciseLibraryTabProvider.notifier).state = t,
+                    ),
+                ],
+              ),
             ),
           ),
           if (tab == ExerciseLibraryTab.all) ...[
@@ -426,7 +431,7 @@ class _ExerciseListView extends ConsumerWidget {
               ],
             ),
             title: Text(exercise.name),
-            subtitle: Text(exercise.primaryMuscles.join(', ')),
+            subtitle: Text(_exerciseSubtitle(exercise)),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -536,7 +541,7 @@ class _ExerciseGridView extends ConsumerWidget {
                 style: theme.textTheme.bodyMedium,
               ),
               Text(
-                exercise.primaryMuscles.join(', '),
+                _exerciseSubtitle(exercise),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall
@@ -606,3 +611,10 @@ class _RoundIconButton extends StatelessWidget {
     );
   }
 }
+
+// Cardio is filed under the muscle it mostly loads (running → Cuádriceps)
+// so it still counts towards muscle balance, but listing "Correr" as a
+// quad exercise read like a mistake — the library just calls it cardio.
+String _exerciseSubtitle(Exercise exercise) => exercise.category == ExerciseCategory.cardio
+    ? 'Cardio'
+    : exercise.primaryMuscles.join(', ');

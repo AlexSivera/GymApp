@@ -33,10 +33,6 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
-
   # Estado de la app
   flutter_riverpod: ^2.6.1
 
@@ -65,15 +61,23 @@ dependencies:
   table_calendar: ^3.1.3
   intl: ^0.20.2
 
-  # Tipografía de marca
-  google_fonts: ^6.2.1
-
   # Celebración al completar un entrenamiento
   confetti: ^0.8.0
 
   # Abrir enlaces externos (vídeo de ejercicio)
   url_launcher: ^6.3.1
   health: ^13.3.2
+
+  # Mantener la pantalla encendida durante el entreno (nativo y web)
+  wakelock_plus: ^1.8.0
+
+  # APIs del navegador (sonido/vibración del descanso, color de la barra
+  # de estado) — solo se usa desde lib/core/platform/web_bridge_web.dart
+  web: ^1.1.1
+
+  # Some Flutter/package widgets reference the Cupertino icon font; without
+  # it the web build warns about (and would draw) missing glyphs.
+  cupertino_icons: ^1.0.8
 
 dev_dependencies:
   flutter_test:
@@ -96,6 +100,10 @@ dev_dependencies:
   # Solo usado por test/data/migration_test.dart para construir rutas de
   # bases de datos temporales
   path: ^1.9.1
+
+  # Solo usado por tool/generate_thumbnails.dart (miniaturas estáticas de
+  # los GIF de ejercicios)
+  image: ^4.10.1
 
 # Icono de la app (se genera con: dart run flutter_launcher_icons)
 flutter_launcher_icons:
@@ -135,11 +143,42 @@ flutter:
 
   assets:
     - assets/exercises/
+    # Still first frames of the GIFs, for lists (tool/generate_thumbnails.dart)
+    - assets/exercises/thumbs/
     - assets/branding/
     # Flutter asset folders aren't recursive, so each mask folder is listed.
     - assets/body/
     - assets/body/masks/front/
     - assets/body/masks/back/
+
+  # Tipografías de marca, incluidas en la app (antes se descargaban de
+  # Google Fonts al arrancar: sin conexión no cargaban y el texto saltaba de
+  # Roboto a la fuente buena). Display: Outfit. Texto: Plus Jakarta Sans.
+  fonts:
+    - family: Outfit
+      fonts:
+        - asset: assets/fonts/Outfit-400.ttf
+          weight: 400
+        - asset: assets/fonts/Outfit-500.ttf
+          weight: 500
+        - asset: assets/fonts/Outfit-600.ttf
+          weight: 600
+        - asset: assets/fonts/Outfit-700.ttf
+          weight: 700
+        - asset: assets/fonts/Outfit-800.ttf
+          weight: 800
+    - family: PlusJakartaSans
+      fonts:
+        - asset: assets/fonts/PlusJakartaSans-400.ttf
+          weight: 400
+        - asset: assets/fonts/PlusJakartaSans-500.ttf
+          weight: 500
+        - asset: assets/fonts/PlusJakartaSans-600.ttf
+          weight: 600
+        - asset: assets/fonts/PlusJakartaSans-700.ttf
+          weight: 700
+        - asset: assets/fonts/PlusJakartaSans-800.ttf
+          weight: 800
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

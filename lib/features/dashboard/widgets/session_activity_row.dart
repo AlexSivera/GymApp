@@ -46,7 +46,7 @@ class SessionActivityRow extends ConsumerWidget {
                   Text(
                     [
                       if (duration != null) formatWorkoutDuration(duration),
-                      if (exerciseCount != null) '$exerciseCount ejercicios',
+                      if (exerciseCount != null) '$exerciseCount ${exerciseCount == 1 ? 'ejercicio' : 'ejercicios'}',
                     ].join(' · '),
                     style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),

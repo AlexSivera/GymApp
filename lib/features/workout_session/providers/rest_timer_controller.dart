@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/platform/web_bridge.dart';
 import '../../../services/notifications/notification_service.dart';
 
 class RestTimerState {
@@ -35,7 +36,13 @@ class RestTimerController extends StateNotifier<RestTimerState> {
 
   Timer? _ticker;
 
-  void start(int seconds) => _restart(remaining: seconds, total: seconds);
+  void start(int seconds) {
+    // Runs inside the tap that finished the set, which is what lets the web
+    // build play its end-of-rest beep later (browsers block audio that isn't
+    // unlocked by a user gesture).
+    primeRestAlertAudio();
+    _restart(remaining: seconds, total: seconds);
+  }
 
   // +15/-15 buttons on the rest timer bar. Adjusts whichever clock is live
   // (the wall-clock endTime while running, or the frozen pausedRemaining)
@@ -103,6 +110,9 @@ class RestTimerController extends StateNotifier<RestTimerState> {
     _ticker?.cancel();
     NotificationService.cancelRestTimerNotification();
     HapticFeedback.mediumImpact();
+    // The PWA can't schedule a system notification like the native build
+    // does, so it beeps and vibrates instead (no-op on native).
+    playRestFinishedAlert();
     state = const RestTimerState(totalSeconds: 0);
   }
 

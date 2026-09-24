@@ -82,6 +82,10 @@ final _recentCompletedSessionsProvider = StreamProvider<List<WorkoutSession>>((r
 });
 
 final insightOfDayProvider = FutureProvider<DailyInsight>((ref) {
+  // Recomputed whenever a session is completed — otherwise the tip was
+  // worked out once per app launch and kept suggesting a weight the user
+  // had already lifted that same day.
+  ref.watch(_recentCompletedSessionsProvider);
   final unit = weightUnitFromSetting(ref.watch(userSettingsProvider).valueOrNull?.units);
   return computeDailyInsight(ref.watch(appDatabaseProvider), unit: unit);
 });
@@ -118,11 +122,13 @@ final sessionHistoryProvider = StreamProvider<List<WorkoutSession>>((ref) {
   return ref.watch(_workoutSessionsDaoProvider).watchRecentCompletedSessions();
 });
 
+// Exercises actually performed (at least one set ticked off) — a finished
+// session also keeps the planned exercises that were never touched, so
+// counting its rows said "6 ejercicios" after doing just one.
 final sessionExerciseCountProvider = StreamProvider.family<int, int>((ref, sessionId) {
-  return ref
-      .watch(_sessionLoggingDaoProvider)
-      .watchSessionExercises(sessionId)
-      .map((exercises) => exercises.length);
+  return ref.watch(_sessionLoggingDaoProvider).watchSetsForSession(sessionId).map(
+        (sets) => {for (final s in sets) if (s.isCompleted) s.sessionExerciseId}.length,
+      );
 });
 
 // Re-derives whenever a session completes, so the weekly volume trend on the

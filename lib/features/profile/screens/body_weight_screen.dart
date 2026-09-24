@@ -68,6 +68,7 @@ class BodyWeightScreen extends ConsumerWidget {
                           ),
                         ),
                         IconButton(
+                          tooltip: 'Eliminar registro',
                           icon: const Icon(Icons.delete_outline),
                           onPressed: () => ref.read(appDatabaseProvider).bodyWeightDao.deleteLog(log.id),
                         ),
@@ -161,6 +162,7 @@ class _WeightChart extends StatelessWidget {
               LineChartBarData(
                 spots: spots,
                 isCurved: true,
+                preventCurveOverShooting: true,
                 color: theme.colorScheme.primary,
                 barWidth: 3,
                 dotData: const FlDotData(show: true),

@@ -38,11 +38,13 @@ class RecentActivityCard extends ConsumerWidget {
           const SizedBox(height: AppSpacing.sm),
           Align(
             alignment: Alignment.centerLeft,
-            child: TextButton(
+            child: TextButton.icon(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const SessionHistoryScreen()),
               ),
-              child: const Text('Ver historial →'),
+              iconAlignment: IconAlignment.end,
+              icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+              label: const Text('Ver historial'),
             ),
           ),
         ],

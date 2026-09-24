@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/count_up_text.dart';
 
 // Gives the streak the "achievement" presence the old 2x2 stat grid didn't:
 // a big number plus a row of pips echoing the current run, capped at 7 so a
@@ -36,7 +37,12 @@ class StreakCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          Text('$streak ${streak == 1 ? 'día' : 'días'}', style: theme.textTheme.displaySmall),
+          CountUpText(
+            value: streak.toDouble(),
+            duration: const Duration(milliseconds: 600),
+            format: (v) => '${v.round()} ${streak == 1 ? 'día' : 'días'}',
+            style: theme.textTheme.displaySmall,
+          ),
           const SizedBox(height: AppSpacing.sm),
           Text(_message(streak), style: theme.textTheme.bodyMedium),
           const SizedBox(height: AppSpacing.md),
@@ -44,12 +50,18 @@ class StreakCard extends StatelessWidget {
             children: [
               for (var i = 0; i < 7; i++)
                 Expanded(
-                  child: Container(
-                    height: 4,
-                    margin: EdgeInsets.only(right: i == 6 ? 0 : 4),
-                    decoration: BoxDecoration(
-                      color: i < filledPips ? color : color.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
+                  // Pips light up one after another on first show.
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: i < filledPips ? 1 : 0),
+                    duration: Duration(milliseconds: 250 + 90 * i),
+                    curve: Curves.easeOut,
+                    builder: (context, t, _) => Container(
+                      height: 4,
+                      margin: EdgeInsets.only(right: i == 6 ? 0 : 4),
+                      decoration: BoxDecoration(
+                        color: Color.lerp(color.withValues(alpha: 0.15), color, t),
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                      ),
                     ),
                   ),
                 ),

@@ -89,6 +89,7 @@ class CalendarScreen extends ConsumerWidget {
       floatingActionButton: selectionMode
           ? null
           : FloatingActionButton(
+              tooltip: 'Crear rutina',
               onPressed: () => showRoutineCreationSheet(context, ref),
               child: const Icon(Icons.add),
             ),
@@ -135,6 +136,10 @@ class CalendarScreen extends ConsumerWidget {
                     onPageChanged: (focused) => ref.read(focusedMonthProvider.notifier).state = focused,
                     headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
                     rowHeight: 58,
+                    // Week ↔ month grows/shrinks visibly instead of snapping.
+                    formatAnimationDuration: AppMotion.slow,
+                    formatAnimationCurve: AppMotion.curve,
+                    pageAnimationCurve: AppMotion.curve,
                     calendarBuilders: CalendarBuilders(
                       defaultBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
                       todayBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
@@ -475,6 +480,7 @@ class _SelectionActionBar extends ConsumerWidget {
             children: [
               Text('${selectedDays.length} días seleccionados', style: theme.textTheme.titleMedium),
               IconButton(
+                tooltip: 'Cancelar selección',
                 icon: const Icon(Icons.close),
                 onPressed: () {
                   ref.read(calendarSelectionModeProvider.notifier).state = false;

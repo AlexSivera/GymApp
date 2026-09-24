@@ -221,6 +221,7 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
             title: Text(routine.name),
             actions: [
               IconButton(
+                tooltip: 'Editar',
                 onPressed: () => _renameRoutine(routine),
                 icon: const Icon(Icons.edit_outlined),
               ),
@@ -230,6 +231,7 @@ class _RoutineEditorScreenState extends ConsumerState<RoutineEditorScreen> {
                 icon: const Icon(Icons.archive_outlined),
               ),
               IconButton(
+                tooltip: 'Eliminar',
                 onPressed: _deleteRoutine,
                 icon: const Icon(Icons.delete_outline),
               ),

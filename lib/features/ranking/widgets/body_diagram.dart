@@ -11,8 +11,6 @@ class BodyDiagram extends StatelessWidget {
 
   final Map<String, Color> colorsByMuscle;
 
-  static const backgroundColor = bodyBackgroundColor;
-
   @override
   Widget build(BuildContext context) {
     final tints = {
@@ -21,7 +19,7 @@ class BodyDiagram extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppRadius.md),
       child: ColoredBox(
-        color: backgroundColor,
+        color: bodyPanelColor(context),
         child: Row(
           children: [
             for (final view in BodyView.values)

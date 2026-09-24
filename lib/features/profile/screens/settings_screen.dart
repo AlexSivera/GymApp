@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart' hide Column;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -156,42 +157,60 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 Text('Apariencia', style: theme.textTheme.titleMedium),
                 const SizedBox(height: AppSpacing.sm),
-                Wrap(
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.sm,
-                  children: [
-                    for (final mode in AppThemeMode.values)
-                      _ThemeSwatch(
-                        mode: mode,
-                        selected: mode == _themeMode,
-                        onTap: () => _selectTheme(mode),
-                      ),
-                  ],
-                ),
+                // Equal-width tiles, three per row, so the grid lines up
+                // instead of wrapping into ragged rows of different widths.
+                LayoutBuilder(builder: (context, constraints) {
+                  const perRow = 3;
+                  final tileWidth = (constraints.maxWidth - AppSpacing.sm * (perRow - 1)) / perRow;
+                  return Wrap(
+                    spacing: AppSpacing.sm,
+                    runSpacing: AppSpacing.sm,
+                    children: [
+                      for (final mode in AppThemeMode.values)
+                        SizedBox(
+                          width: tileWidth,
+                          child: _ThemeSwatch(
+                            mode: mode,
+                            selected: mode == _themeMode,
+                            onTap: () => _selectTheme(mode),
+                          ),
+                        ),
+                    ],
+                  );
+                }),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
-          AppCard(
-            child: SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Recordatorios'),
-              subtitle: const Text('Avisarme si hoy toca entrenar o si mi racha está en riesgo'),
-              value: _remindersEnabled,
-              onChanged: (value) => setState(() => _remindersEnabled = value),
+          // Reminders are local notifications and Health Connect is an
+          // Android service — neither exists in the web version, so the PWA
+          // doesn't show switches that would silently do nothing.
+          if (!kIsWeb) ...[
+            const SizedBox(height: AppSpacing.lg),
+            AppCard(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+              child: SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                title: const Text('Recordatorios'),
+                subtitle: const Text('Avisarme si hoy toca entrenar o si mi racha está en riesgo'),
+                value: _remindersEnabled,
+                onChanged: (value) => setState(() => _remindersEnabled = value),
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          AppCard(
-            child: SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Health Connect'),
-              subtitle: const Text(
-                  'Usar las calorías registradas por tu pulsera/reloj (Mi Fitness, etc.) en vez de la estimación de Machoke'),
-              value: _healthConnectEnabled,
-              onChanged: _healthConnectBusy ? null : _toggleHealthConnect,
+          ],
+          if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) ...[
+            const SizedBox(height: AppSpacing.lg),
+            AppCard(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+              child: SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                title: const Text('Health Connect'),
+                subtitle: const Text(
+                    'Usar las calorías registradas por tu pulsera o reloj (Mi Fitness, etc.) en vez de la estimación de la app'),
+                value: _healthConnectEnabled,
+                onChanged: _healthConnectBusy ? null : _toggleHealthConnect,
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: AppSpacing.xl),
           SizedBox(
             width: double.infinity,
@@ -221,8 +240,9 @@ class _ThemeSwatch extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppRadius.sm),
-      child: Container(
-        width: 84,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        height: 68,
         padding: const EdgeInsets.all(AppSpacing.sm),
         decoration: BoxDecoration(
           color: colors.background,
@@ -245,11 +265,15 @@ class _ThemeSwatch extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.xs),
+            const Spacer(),
             Text(
               mode.label,
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodySmall?.copyWith(color: colors.textColor, fontWeight: FontWeight.w600),
             ),
+            const Spacer(),
           ],
         ),
       ),

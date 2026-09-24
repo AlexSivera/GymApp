@@ -26,6 +26,9 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
+  // A welcome screen comes first, so the very first thing a new user sees is
+  // what the app is, not a bare "¿Cómo te llamas?".
+  bool _welcome = true;
   int _step = 0;
   bool _saving = false;
 
@@ -68,7 +71,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     setState(() => _step++);
   }
 
-  void _back() => setState(() => _step--);
+  void _back() => setState(() {
+        if (_step == 0) {
+          _welcome = true;
+        } else {
+          _step--;
+        }
+      });
 
   Future<void> _finish() async {
     setState(() => _saving = true);
@@ -96,60 +105,75 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        child: AnimatedSwitcher(
+          duration: AppMotion.slow,
+          switchInCurve: AppMotion.curve,
+          child: _welcome
+              ? _WelcomeView(key: const ValueKey('welcome'), onStart: () => setState(() => _welcome = false))
+              : KeyedSubtree(key: const ValueKey('questions'), child: _buildQuestions(theme)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuestions(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  if (_step > 0)
-                    IconButton(onPressed: _back, icon: const Icon(Icons.arrow_back))
-                  else
-                    const SizedBox(width: 48),
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(AppSpacing.xs),
-                      child: LinearProgressIndicator(
-                        value: (_step + 1) / _totalSteps,
-                        minHeight: 6,
-                        backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 48),
-                ],
-              ),
+              // Always a back button (the first question goes back to
+              // the welcome screen) — a missing one used to shrink the
+              // row and make the progress bar jump between steps.
+              IconButton(tooltip: 'Atrás', onPressed: _back, icon: const Icon(Icons.arrow_back)),
               Expanded(
-                child: AnimatedSwitcher(
-                  duration: AppMotion.normal,
-                  switchInCurve: AppMotion.curve,
-                  transitionBuilder: (child, animation) => FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
-                      position: Tween(begin: const Offset(0.05, 0), end: Offset.zero).animate(animation),
-                      child: child,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppSpacing.xs),
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(end: (_step + 1) / _totalSteps),
+                    duration: AppMotion.slow,
+                    curve: AppMotion.curve,
+                    builder: (context, value, _) => LinearProgressIndicator(
+                      value: value,
+                      minHeight: 6,
+                      backgroundColor: theme.colorScheme.surfaceContainerHighest,
                     ),
                   ),
-                  child: KeyedSubtree(
-                    key: ValueKey(_step),
-                    child: _buildStep(theme),
-                  ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.lg),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _saving || !_canContinue ? null : _next,
-                  child: _saving
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                      : Text(_step == _totalSteps - 1 ? 'Finalizar' : 'Continuar'),
-                ),
-              ),
+              const SizedBox(width: 48),
             ],
           ),
-        ),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: AppMotion.normal,
+              switchInCurve: AppMotion.curve,
+              transitionBuilder: (child, animation) => FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween(begin: const Offset(0.05, 0), end: Offset.zero).animate(animation),
+                  child: child,
+                ),
+              ),
+              child: KeyedSubtree(
+                key: ValueKey(_step),
+                child: _buildStep(theme),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _saving || !_canContinue ? null : _next,
+              child: _saving
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  : Text(_step == _totalSteps - 1 ? 'Finalizar' : 'Continuar'),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -174,6 +198,132 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           onChanged: (value) => setState(() => _weightKg = value),
         );
     }
+  }
+}
+
+class _WelcomeView extends StatefulWidget {
+  const _WelcomeView({super.key, required this.onStart});
+
+  final VoidCallback onStart;
+
+  @override
+  State<_WelcomeView> createState() => _WelcomeViewState();
+}
+
+// Logo pops in, then the copy and the three feature lines follow one after
+// another (all at once with "reduce motion" on).
+class _WelcomeViewState extends State<_WelcomeView> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 1100));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_controller.value > 0 || _controller.isAnimating) return;
+    if (MediaQuery.of(context).disableAnimations) {
+      _controller.value = 1;
+    } else {
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Widget _stagger(double start, Widget child) {
+    final animation = CurvedAnimation(
+      parent: _controller,
+      curve: Interval(start, (start + 0.4).clamp(0, 1), curve: AppMotion.curve),
+    );
+    return FadeTransition(
+      opacity: animation,
+      child: SlideTransition(
+        position: Tween(begin: const Offset(0, 0.15), end: Offset.zero).animate(animation),
+        child: child,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final logoScale = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0, 0.55, curve: Curves.easeOutBack),
+    );
+    const features = [
+      (Icons.calendar_month_rounded, 'Planifica tu semana con tus propias rutinas'),
+      (Icons.check_circle_rounded, 'Registra cada serie en segundos, sin teclado'),
+      (Icons.military_tech_rounded, 'Sube de rango a medida que ganas fuerza'),
+    ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.lg),
+      child: Column(
+        children: [
+          const Spacer(),
+          ScaleTransition(
+            scale: logoScale,
+            child: FadeTransition(
+              opacity: logoScale,
+              child: Image.asset('assets/branding/logo.png', height: 190, cacheHeight: 570),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          _stagger(
+            0.25,
+            Text('Bienvenido a GymApp', style: theme.textTheme.headlineLarge, textAlign: TextAlign.center),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _stagger(
+            0.32,
+            Text(
+              'Tu entreno, tu progreso y tus récords, todo en un sitio.',
+              style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xxl),
+          for (var i = 0; i < features.length; i++)
+            _stagger(
+              0.42 + i * 0.1,
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(AppRadius.sm - 2),
+                      ),
+                      child: Icon(features[i].$1, size: 20, color: theme.colorScheme.primary),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(child: Text(features[i].$2, style: theme.textTheme.bodyMedium)),
+                  ],
+                ),
+              ),
+            ),
+          const Spacer(),
+          _stagger(
+            0.6,
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: widget.onStart,
+                iconAlignment: IconAlignment.end,
+                icon: const Icon(Icons.arrow_forward_rounded),
+                label: const Text('Empezar'),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

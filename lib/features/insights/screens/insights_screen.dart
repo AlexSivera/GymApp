@@ -25,6 +25,7 @@ class InsightsScreen extends ConsumerWidget {
         title: const Text('Estadísticas'),
         actions: [
           IconButton(
+            tooltip: 'Actualizar',
             icon: const Icon(Icons.refresh),
             onPressed: () {
               ref.invalidate(weeklySummaryProvider);

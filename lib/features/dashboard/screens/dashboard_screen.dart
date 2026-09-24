@@ -8,6 +8,7 @@ import '../../../core/widgets/shimmer_box.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../services/notifications/reminder_scheduler.dart';
 import '../providers/dashboard_providers.dart';
+import '../providers/dashboard_scroll.dart';
 import '../widgets/calories_today_card.dart';
 import '../widgets/dashboard_header.dart';
 import '../widgets/hero_today_card.dart';
@@ -45,6 +46,7 @@ class DashboardScreen extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         child: ListView(
+          controller: ref.watch(dashboardScrollControllerProvider),
           padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xl),
           children: [
             const FadeSlideIn(index: 0, child: DashboardHeader()),

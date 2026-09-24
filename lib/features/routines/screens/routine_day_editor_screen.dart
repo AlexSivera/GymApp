@@ -302,10 +302,10 @@ class _RoutineExerciseRow extends ConsumerWidget {
 
   String _summarize(RoutineExercise entry, {required bool isStrength, required WeightUnit unit}) {
     final parts = <String>[
-      '${entry.targetSets} series',
+      '${entry.targetSets}\u00A0series',
       if (isStrength) '${entry.targetRepsMin}-${entry.targetRepsMax} reps',
       if (entry.targetWeight != null) formatWeight(entry.targetWeight!, unit),
-      if (entry.restSeconds != null) 'descanso ${entry.restSeconds}s',
+      if (entry.restSeconds != null) 'descanso\u00A0${entry.restSeconds}\u00A0s',
     ];
     return parts.join(' · ');
   }

@@ -1,3 +1,4 @@
+import '../../core/utils/set_format.dart';
 import '../../core/utils/weight_unit.dart';
 import '../../data/database/app_database.dart';
 import '../calories_engine/estimate_calories_burned.dart';
@@ -27,6 +28,8 @@ class SessionSummary {
     required this.volumeThisSession,
     required this.volumeChangePercent,
     required this.caloriesBurned,
+    required this.durationSeconds,
+    required this.setsCompleted,
   });
 
   final String? routineDayName;
@@ -36,6 +39,8 @@ class SessionSummary {
   final double volumeThisSession;
   final double? volumeChangePercent;
   final double caloriesBurned;
+  final int? durationSeconds;
+  final int setsCompleted;
 }
 
 String _fmtNumber(double value) =>
@@ -75,6 +80,7 @@ Future<SessionSummary> computeSessionSummary(
   final newPRs = <String>{};
   final exerciseLogs = <ExerciseLog>[];
   var sessionVolume = 0.0;
+  var setsCompleted = 0;
 
   for (final sessionExercise in sessionExercises) {
     final sets = await db.sessionLoggingDao.watchSets(sessionExercise.id).first;
@@ -86,6 +92,7 @@ Future<SessionSummary> computeSessionSummary(
       // volume/improvements/PRs, which are strength-specific.
       final durationSets = sets.where((s) => s.durationSeconds != null || s.distanceMeters != null).toList();
       if (durationSets.isNotEmpty) {
+        setsCompleted += durationSets.length;
         exerciseLogs.add(ExerciseLog(
           exerciseName: exercisesById[sessionExercise.exerciseId]?.name ?? 'Ejercicio',
           setsSummary: durationSets.map(_fmtDuration).join(', '),
@@ -95,10 +102,11 @@ Future<SessionSummary> computeSessionSummary(
     }
 
     sessionVolume += validSets.fold(0.0, (sum, s) => sum + s.weightKg! * s.reps!);
+    setsCompleted += validSets.length;
     final exerciseName = exercisesById[sessionExercise.exerciseId]?.name ?? 'Ejercicio';
     exerciseLogs.add(ExerciseLog(
       exerciseName: exerciseName,
-      setsSummary: validSets.map((s) => '${formatWeightValue(s.weightKg!, unit)}${weightUnitLabel(unit)}×${s.reps}').join(', '),
+      setsSummary: summarizeStrengthSets([for (final s in validSets) (weightKg: s.weightKg!, reps: s.reps!)], unit),
     ));
 
     final previousSets = await getPreviousSetsForExercise(
@@ -134,9 +142,14 @@ Future<SessionSummary> computeSessionSummary(
       excludeSessionId: sessionId,
     );
     if (previousSessions.isNotEmpty) {
-      final prevDate = previousSessions.first.date;
-      final prevVolume = await db.progressDao
-          .totalVolumeInRange(prevDate, prevDate.add(const Duration(days: 1)));
+      // That one session's own volume — summing the whole day it happened on
+      // also counted any other workout that day (today's included, when the
+      // routine was repeated the same day), which gave e.g. "-42%" for a
+      // session that had actually lifted more.
+      final prevSets = await db.sessionLoggingDao.watchSetsForSession(previousSessions.first.id).first;
+      final prevVolume = prevSets
+          .where((s) => s.isCompleted && s.weightKg != null && s.reps != null)
+          .fold(0.0, (sum, s) => sum + s.weightKg! * s.reps!);
       if (prevVolume > 0) {
         volumeChangePercent = (sessionVolume - prevVolume) / prevVolume * 100;
       }
@@ -157,6 +170,8 @@ Future<SessionSummary> computeSessionSummary(
     volumeThisSession: sessionVolume,
     volumeChangePercent: volumeChangePercent,
     caloriesBurned: caloriesBurned,
+    durationSeconds: session?.durationSeconds,
+    setsCompleted: setsCompleted,
   );
 }
 

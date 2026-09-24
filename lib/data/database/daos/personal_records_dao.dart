@@ -55,11 +55,20 @@ class PersonalRecordsDao extends DatabaseAccessor<AppDatabase>
 
   Future<int> insert(PersonalRecordsCompanion entry) => into(personalRecords).insert(entry);
 
+  // How many of the *current* records (best per exercise+type, the same
+  // list the Récords personales screen shows) were set in the range. Counting
+  // every row instead double-counted a record beaten twice in one week, so
+  // Inicio said "4 récords nuevos" while Perfil listed 2 in total.
   Future<int> countAchievedInRange(DateTime start, DateTime end) async {
-    final rows = await (select(personalRecords)
-          ..where((p) =>
-              p.achievedAt.isBiggerOrEqualValue(start) & p.achievedAt.isSmallerThanValue(end)))
-        .get();
-    return rows.length;
+    final rows = await select(personalRecords).get();
+    final best = <String, PersonalRecord>{};
+    for (final record in rows) {
+      final key = '${record.exerciseId}-${record.type.index}';
+      final current = best[key];
+      if (current == null || record.value > current.value) best[key] = record;
+    }
+    return best.values
+        .where((r) => !r.achievedAt.isBefore(start) && r.achievedAt.isBefore(end))
+        .length;
   }
 }

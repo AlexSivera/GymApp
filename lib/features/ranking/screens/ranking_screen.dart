@@ -77,11 +77,11 @@ class RankingScreen extends ConsumerWidget {
           else ...[
             AppCard(
               padding: EdgeInsets.zero,
-              color: BodyDiagram.backgroundColor,
+              color: bodyPanelColor(context),
               child: BodyDiagram(colorsByMuscle: colorsByMuscle),
             ),
             const SizedBox(height: AppSpacing.xl),
-            Text('Rankings musculares', style: theme.textTheme.titleLarge),
+            Text('Rangos por músculo', style: theme.textTheme.titleLarge),
             const SizedBox(height: AppSpacing.md),
             for (final MapEntry(key: group, value: muscles) in grouped.entries)
               Padding(
@@ -145,9 +145,10 @@ class _RankingEmptyState extends StatelessWidget {
 }
 
 // Highlight for a muscle in the list thumbnails: its rank color, or a faint
-// white when unranked so it's still clear which muscle the row is about.
-Color _thumbnailColor(Rank? rank) =>
-    rank == null ? Colors.white.withValues(alpha: 0.28) : rankTierColors[rank.tier]!;
+// ink tint when unranked so it's still clear which muscle the row is about
+// (theme ink, not white — white vanished on the light palettes).
+Color _thumbnailColor(BuildContext context, Rank? rank) =>
+    rank == null ? AppColors.of(context).textColor.withValues(alpha: 0.28) : rankTierColors[rank.tier]!;
 
 // Card tinted by a rank's color (plain surface when there's no rank).
 class _RankTintedCard extends StatelessWidget {
@@ -187,12 +188,19 @@ class _RankLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final base = theme.textTheme.bodyMedium;
+    var tierColor = rank == null ? null : rankTierColors[rank!.tier]!;
+    // The pale metal tiers (Hierro, Plata…) are drawn for dark backgrounds;
+    // as text on the light palettes they're nudged toward the ink color so
+    // they stay readable, while keeping their hue.
+    if (tierColor != null && theme.brightness == Brightness.light) {
+      tierColor = Color.lerp(tierColor, theme.colorScheme.onSurface, 0.4);
+    }
     return Text.rich(
       TextSpan(children: [
         TextSpan(
           text: rank?.label.toUpperCase() ?? 'SIN RANGO',
           style: base?.copyWith(
-            color: rank == null ? theme.colorScheme.onSurfaceVariant : rankTierColors[rank!.tier],
+            color: tierColor ?? theme.colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -248,7 +256,7 @@ class _MuscleCard extends StatelessWidget {
         children: [
           _Thumbnail(
             frame: muscleFrames[muscle],
-            colorsByMuscle: {muscle: _thumbnailColor(rank)},
+            colorsByMuscle: {muscle: _thumbnailColor(context, rank)},
             shape: standalone ? BodyThumbnailShape.hexagon : BodyThumbnailShape.circle,
             icon: iconForMuscle(muscle),
           ),
@@ -264,6 +272,10 @@ class _MuscleCard extends StatelessWidget {
             ),
           ),
           if (!standalone && rank != null) RankBadge(rank: rank!, size: 36),
+          // Every row opens its muscle's detail — the chevron says so, like
+          // the expandable group rows say it with theirs.
+          if (standalone || rank == null)
+            Icon(Icons.chevron_right_rounded, color: theme.colorScheme.onSurfaceVariant),
         ],
       ),
     );
@@ -301,7 +313,7 @@ class _MuscleGroupCardState extends State<_MuscleGroupCard> {
             children: [
               _Thumbnail(
                 frame: bestGroupFrame(widget.group, [for (final m in widget.muscles) if (widget.ranks.containsKey(m)) m]),
-                colorsByMuscle: {for (final m in widget.muscles) m: _thumbnailColor(widget.ranks[m])},
+                colorsByMuscle: {for (final m in widget.muscles) m: _thumbnailColor(context, widget.ranks[m])},
                 shape: BodyThumbnailShape.hexagon,
                 icon: Icons.category_outlined,
               ),

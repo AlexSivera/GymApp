@@ -72,9 +72,11 @@ class HeroTodayCard extends ConsumerWidget {
               const SizedBox(height: AppSpacing.lg),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: ElevatedButton.icon(
                   onPressed: () => context.go('/calendar'),
-                  child: const Text('CREAR RUTINA'),
+                  iconAlignment: IconAlignment.end,
+                  icon: const Icon(Icons.arrow_forward_rounded),
+                  label: const Text('Crear rutina'),
                 ),
               ),
             ],
@@ -101,9 +103,11 @@ class HeroTodayCard extends ConsumerWidget {
               const SizedBox(height: AppSpacing.lg),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: ElevatedButton.icon(
                   onPressed: () => _pickRoutine(context, ref, existingSession: null),
-                  child: const Text('ELEGIR RUTINA →'),
+                  iconAlignment: IconAlignment.end,
+                  icon: const Icon(Icons.arrow_forward_rounded),
+                  label: const Text('Elegir rutina'),
                 ),
               ),
             ],
@@ -153,7 +157,7 @@ class HeroTodayCard extends ConsumerWidget {
               Text(
                 [
                   if (duration != null) formatWorkoutDuration(duration),
-                  if (exerciseCount != null) '$exerciseCount ejercicios',
+                  if (exerciseCount != null) '$exerciseCount ${exerciseCount == 1 ? 'ejercicio' : 'ejercicios'}',
                 ].join(' · '),
                 style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               ),
@@ -162,9 +166,11 @@ class HeroTodayCard extends ConsumerWidget {
             if (isCompleted)
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: ElevatedButton.icon(
                   onPressed: () => _viewSession(context, ref, session),
-                  child: const Text('VER ENTRENAMIENTO →'),
+                  iconAlignment: IconAlignment.end,
+                  icon: const Icon(Icons.arrow_forward_rounded),
+                  label: const Text('Ver entrenamiento'),
                 ),
               ),
             SizedBox(
@@ -236,13 +242,15 @@ class HeroTodayCard extends ConsumerWidget {
           const SizedBox(height: AppSpacing.lg),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            child: ElevatedButton.icon(
               onPressed: session.status == SessionStatus.inProgress
                   ? () => context.go('/workout')
                   : () => _startSession(context, ref, session),
-              child: Text(session.status == SessionStatus.inProgress
-                  ? 'CONTINUAR ENTRENAMIENTO →'
-                  : 'EMPEZAR ENTRENAMIENTO →'),
+              iconAlignment: IconAlignment.end,
+              icon: const Icon(Icons.arrow_forward_rounded),
+              label: Text(session.status == SessionStatus.inProgress
+                  ? 'Continuar entrenamiento'
+                  : 'Empezar entrenamiento'),
             ),
           ),
         ],

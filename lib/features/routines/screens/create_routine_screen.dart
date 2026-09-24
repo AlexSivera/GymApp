@@ -280,6 +280,7 @@ class _StagedExerciseCardState extends ConsumerState<_StagedExerciseCard> {
             title: Text(widget.exercise.name),
             subtitle: Text(_summary(unit)),
             trailing: IconButton(
+              tooltip: 'Quitar ejercicio',
               icon: const Icon(Icons.delete_outline),
               onPressed: widget.onRemove,
             ),
@@ -386,7 +387,7 @@ class _StagedExerciseCardState extends ConsumerState<_StagedExerciseCard> {
       '${e.sets} series',
       if (e.category == ExerciseCategory.strength) '${e.repsMin}-${e.repsMax} reps',
       if (e.weight != null) formatWeight(e.weight!, unit),
-      if (e.restSeconds != null) 'descanso ${e.restSeconds}s',
+      if (e.restSeconds != null) 'descanso\u00A0${e.restSeconds}\u00A0s',
     ];
     return parts.join(' · ');
   }

@@ -89,7 +89,7 @@ class _RotationRoutinePickerSheetState extends ConsumerState<RotationRoutinePick
                     if (_routineIds.isNotEmpty) ...[
                       const SizedBox(height: AppSpacing.sm),
                       Text(
-                        'Se repetirá: ${_routineIds.map((id) => routinesById[id]?.name ?? '?').join(' → ')}',
+                        'Se repetirá: ${_routineIds.map((id) => routinesById[id]?.name ?? '?').join(' › ')}',
                         style: theme.textTheme.bodySmall
                             ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                       ),

@@ -27,7 +27,22 @@ class _FadeSlideInState extends State<FadeSlideIn> with SingleTickerProviderStat
     _fade = CurvedAnimation(parent: _controller, curve: AppMotion.curve);
     _slide = Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero)
         .animate(CurvedAnimation(parent: _controller, curve: AppMotion.curve));
+  }
 
+  bool _started = false;
+
+  // Started here rather than in initState because it needs MediaQuery: with
+  // the system's "reduce motion" / "remove animations" setting on, content
+  // simply appears.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (MediaQuery.of(context).disableAnimations) {
+      _controller.value = 1;
+      return;
+    }
     final delay = Duration(milliseconds: (widget.index * 40).clamp(0, 240));
     if (delay == Duration.zero) {
       _controller.forward();

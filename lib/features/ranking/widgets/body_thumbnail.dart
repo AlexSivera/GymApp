@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_colors.dart';
+
 import 'body_masks.dart';
 
 enum BodyThumbnailShape { circle, hexagon }
@@ -31,7 +33,7 @@ class BodyThumbnail extends StatelessWidget {
     final image = SizedBox.square(
       dimension: size,
       child: ColoredBox(
-        color: bodyBackgroundColor,
+        color: bodyPanelColor(context),
         child: Stack(
           clipBehavior: Clip.hardEdge,
           children: [
@@ -47,7 +49,7 @@ class BodyThumbnail extends StatelessWidget {
       ),
     );
 
-    final outline = borderColor ?? Colors.white.withValues(alpha: 0.12);
+    final outline = borderColor ?? AppColors.of(context).border;
     return switch (shape) {
       BodyThumbnailShape.circle => DecoratedBox(
           position: DecorationPosition.foreground,

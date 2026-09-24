@@ -69,7 +69,8 @@ class WorkoutSessionsDao extends DatabaseAccessor<AppDatabase>
               s.routineDayId.equals(routineDayId) &
               s.id.equals(excludeSessionId).not() &
               s.status.equalsValue(SessionStatus.completed))
-          ..orderBy([(s) => OrderingTerm.desc(s.date)])
+          // Same-day sessions are told apart by id (creation order).
+          ..orderBy([(s) => OrderingTerm.desc(s.date), (s) => OrderingTerm.desc(s.id)])
           ..limit(1))
         .get();
   }
