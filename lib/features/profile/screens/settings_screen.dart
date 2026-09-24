@@ -205,7 +205,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                 title: const Text('Health Connect'),
                 subtitle: const Text(
-                    'Usar las calorías registradas por tu pulsera o reloj (Mi Fitness, etc.) en vez de la estimación de la app'),
+                    'Usar las calorías registradas por tu pulsera o reloj (Mi Fitness, etc.) en vez de la estimación de Machoke'),
                 value: _healthConnectEnabled,
                 onChanged: _healthConnectBusy ? null : _toggleHealthConnect,
               ),

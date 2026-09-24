@@ -20,14 +20,14 @@ class ExerciseDetailScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           if (exercise.imagePaths.isNotEmpty) ...[
-            // The one place the animation plays in full: square, uncropped
-            // (a wide 220px-tall box used to cut off head and feet).
+            // Square and uncropped (a wide 220px-tall box used to cut off
+            // head and feet).
             Center(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: SizedBox.square(
                   dimension: 280,
-                  child: ExerciseImage(imagePaths: exercise.imagePaths, iconSize: 48, animated: true),
+                  child: ExerciseImage(imagePaths: exercise.imagePaths, iconSize: 48),
                 ),
               ),
             ),

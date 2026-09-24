@@ -1,11 +1,10 @@
 // Generates a still thumbnail (first frame, JPEG) for every animated GIF in
 // assets/exercises/, into assets/exercises/thumbs/<same name>.jpg.
 //
-// Lists and grids show these instead of the GIFs: a screen of 10+ GIFs all
-// animating at once was distracting, slow to decode, and ~30 MB to download
-// — the stills are ~3 MB in total, so the web build can keep all of them
-// cached for offline use. The animated GIF is still shown where it helps
-// (the exercise's detail screen).
+// ExerciseImage draws the still underneath the animated GIF: the stills are
+// ~2 MB in total, so the web build keeps all of them in its offline cache —
+// they show up instantly, and stand in for any GIF (~30 MB altogether) that
+// hasn't been downloaded yet when there's no connection.
 //
 // Run from the project root after adding or replacing exercise GIFs:
 //   dart run tool/generate_thumbnails.dart

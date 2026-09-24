@@ -1,7 +1,7 @@
 {
     "id": "./",
-    "name": "GymApp",
-    "short_name": "GymApp",
+    "name": "Machoke",
+    "short_name": "Machoke",
     "start_url": "./",
     "scope": "./",
     "display": "standalone",

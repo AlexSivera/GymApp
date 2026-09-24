@@ -11,8 +11,8 @@ import 'dart:io';
 const _buildDir = 'build/web';
 
 // Left out of the precache:
-// - the animated exercise GIFs (~30 MB): lists use still thumbnails, and each
-//   GIF is cached the first time its detail screen is opened;
+// - the animated exercise GIFs (~30 MB): each is cached the first time it's
+//   shown, and until then its precached still thumbnail stands in for it;
 // - both CanvasKit engines: the service worker precaches only the one the
 //   browser will use (see engineFiles in the template);
 // - other renderers' engines, debug symbols/maps and Flutter's own

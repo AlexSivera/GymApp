@@ -274,7 +274,7 @@ class _WelcomeViewState extends State<_WelcomeView> with SingleTickerProviderSta
           const SizedBox(height: AppSpacing.xl),
           _stagger(
             0.25,
-            Text('Bienvenido a GymApp', style: theme.textTheme.headlineLarge, textAlign: TextAlign.center),
+            Text('Bienvenido a Machoke', style: theme.textTheme.headlineLarge, textAlign: TextAlign.center),
           ),
           const SizedBox(height: AppSpacing.sm),
           _stagger(

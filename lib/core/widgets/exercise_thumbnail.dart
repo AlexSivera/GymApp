@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import '../theme/app_motion.dart';
 
 // Still first-frame JPEG generated for each animated GIF by
-// tool/generate_thumbnails.dart. Lists and grids use it; only screens that
-// are about one exercise play the actual animation.
+// tool/generate_thumbnails.dart. Shown underneath the GIF: it's part of the
+// offline cache, so it appears instantly (and offline, before that GIF has
+// ever been downloaded) while the animation loads on top of it.
 String _stillFor(String path) {
   if (!path.toLowerCase().endsWith('.gif')) return path;
   final slash = path.lastIndexOf('/');
@@ -17,12 +18,12 @@ String _stillFor(String path) {
 // Fills whatever space its parent gives it (wrap in a SizedBox/AspectRatio
 // to control the size).
 class ExerciseImage extends StatelessWidget {
-  const ExerciseImage({super.key, required this.imagePaths, this.iconSize = 24, this.animated = false});
+  const ExerciseImage({super.key, required this.imagePaths, this.iconSize = 24, this.animated = true});
 
   final List<String> imagePaths;
   final double iconSize;
 
-  // Play the GIF itself instead of its still thumbnail.
+  // false shows only the still thumbnail (no GIF download or decoding).
   final bool animated;
 
   @override
@@ -38,28 +39,46 @@ class ExerciseImage extends StatelessWidget {
 
     if (imagePath == null) return placeholder();
 
-    final path = animated ? imagePath : _stillFor(imagePath);
-    Widget image = Image.asset(
-      path,
-      fit: BoxFit.cover,
-      gaplessPlayback: true,
-      // Fades in once decoded instead of popping into an empty slot while
-      // scrolling; instant when the image was already in memory.
-      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-        if (wasSynchronouslyLoaded) return child;
-        return AnimatedOpacity(
-          opacity: frame == null ? 0 : 1,
-          duration: AppMotion.normal,
-          curve: AppMotion.curve,
-          child: child,
-        );
-      },
-      // A missing still (e.g. a GIF added without re-running the thumbnail
-      // tool) falls back to the original file.
-      errorBuilder: (context, error, stackTrace) => path == imagePath
-          ? placeholder()
-          : Image.asset(imagePath, fit: BoxFit.cover, errorBuilder: (_, _, _) => placeholder()),
-    );
+    // Fades in once decoded instead of popping into an empty slot while
+    // scrolling; instant when the image was already in memory.
+    Widget fadeIn(BuildContext context, Widget child, int? frame, bool wasSynchronouslyLoaded) {
+      if (wasSynchronouslyLoaded) return child;
+      return AnimatedOpacity(
+        opacity: frame == null ? 0 : 1,
+        duration: AppMotion.normal,
+        curve: AppMotion.curve,
+        child: child,
+      );
+    }
+
+    final still = _stillFor(imagePath);
+    final hasStill = still != imagePath;
+    Widget image;
+    if (!hasStill) {
+      // Not a GIF (e.g. the few JPEG-only exercises).
+      image = Image.asset(imagePath, fit: BoxFit.cover, frameBuilder: fadeIn,
+          errorBuilder: (_, _, _) => placeholder());
+    } else {
+      final stillImage = Image.asset(still, fit: BoxFit.cover, frameBuilder: fadeIn,
+          // A GIF added without re-running the thumbnail tool has no still.
+          errorBuilder: (_, _, _) => const SizedBox.expand());
+      image = !animated
+          ? stillImage
+          : Stack(
+              fit: StackFit.expand,
+              children: [
+                stillImage,
+                Image.asset(
+                  imagePath,
+                  fit: BoxFit.cover,
+                  gaplessPlayback: true,
+                  frameBuilder: fadeIn,
+                  // Offline and never downloaded yet: the still stays.
+                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                ),
+              ],
+            );
+    }
 
     // The illustrations are drawn on pure white, which glared on the dark
     // palette; dimmed slightly there so they sit in the UI instead of
