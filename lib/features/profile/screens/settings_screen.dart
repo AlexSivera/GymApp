@@ -149,6 +149,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               onChanged: (value) => ref.read(zStateActionsProvider).setSoundEnabled(value),
             ),
           ),
+          const SizedBox(height: AppSpacing.lg),
+          AppCard(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            child: SwitchListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              title: const Text('Episodios'),
+              subtitle: const Text('«¡En el próximo episodio!» al terminar y «Anteriormente en GymZ…» cada semana'),
+              value: ref.watch(zStateValueProvider).episodesEnabled,
+              onChanged: (value) => ref.read(zStateActionsProvider).setEpisodesEnabled(value),
+            ),
+          ),
           // Reminders are local notifications and Health Connect is an
           // Android service — neither exists in the web version, so the PWA
           // doesn't show switches that would silently do nothing.

@@ -12,6 +12,10 @@ import '../../../services/ranking_engine/compute_new_rank_achievements.dart';
 import '../../../services/ranking_engine/rank_tier.dart';
 import '../../../services/ranking_engine/strength_standards.dart';
 import '../../../services/z/z_sound.dart';
+import '../../../services/z/masters.dart';
+import '../../../services/z/mentor_lines.dart';
+import '../../z/providers/z_providers.dart';
+import '../../z/widgets/campaign_widgets.dart';
 import '../../z/widgets/z_media.dart';
 import '../../z/widgets/z_visuals.dart';
 import '../widgets/rank_badge.dart';
@@ -181,6 +185,21 @@ class _RankAchievementScreenState extends ConsumerState<RankAchievementScreen>
                                   '${previous.label.toUpperCase()}  →  ${rank.label.toUpperCase()}',
                                   textAlign: TextAlign.center,
                                   style: ZText.hud(size: 11, color: Colors.white70),
+                                ),
+                              ],
+                              // Goku's cameo, once he's on your side.
+                              if (transformation && ref.watch(zStateValueProvider).unlockedMasterIds.contains('goku')) ...[
+                                const SizedBox(height: AppSpacing.md),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    MentorPortrait(master: masterById('goku'), mood: MentorMood.riendo, size: 36),
+                                    const SizedBox(width: AppSpacing.sm),
+                                    Flexible(
+                                      child: Text(gokuTransformCameo,
+                                          style: const TextStyle(color: Colors.white, fontStyle: FontStyle.italic)),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ],

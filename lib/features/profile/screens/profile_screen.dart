@@ -7,6 +7,8 @@ import '../../../core/utils/weight_unit_provider.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../dashboard/providers/dashboard_providers.dart';
 import '../../insights/screens/insights_screen.dart';
+import '../../z/providers/z_providers.dart';
+import '../../z/screens/masters_screen.dart';
 import '../../z/screens/media_pack_screen.dart';
 import '../../z/widgets/warrior_card.dart';
 import '../providers/profile_providers.dart';
@@ -68,6 +70,12 @@ class ProfileScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.xxl),
           _ProfileSectionHeader('Entrenamiento'),
           _ProfileSection(tiles: [
+            _ProfileTile(
+              icon: Icons.sports_martial_arts_outlined,
+              title: 'Maestros y ataques',
+              subtitle: '${ref.watch(mainMasterProvider).name} · ${ref.watch(equippedAttackProvider).name}',
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MastersScreen())),
+            ),
             _ProfileTile(
               icon: Icons.monitor_weight_outlined,
               title: 'Peso corporal',

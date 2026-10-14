@@ -30,7 +30,12 @@ import '../../exercise_library/providers/exercise_library_providers.dart';
 import '../../exercise_library/screens/exercise_library_screen.dart';
 import '../../ranking/screens/rank_achievement_screen.dart';
 import '../../routines/providers/routines_providers.dart';
+import '../../z/providers/z_providers.dart';
+import '../../z/screens/boss_fight_screen.dart';
+import '../../z/widgets/campaign_widgets.dart';
 import '../../z/widgets/kamehameha_button.dart';
+import '../../../services/z/campaign_service.dart';
+import '../../../services/z/masters.dart';
 import '../../../core/theme/z_palette.dart';
 import '../../../services/z/z_sound.dart';
 import '../providers/rest_timer_controller.dart';
@@ -182,6 +187,10 @@ class WorkoutSessionScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
+                    child: WeeklyBossBanner(),
+                  ),
                   if (allDone)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -192,7 +201,7 @@ class WorkoutSessionScreen extends ConsumerWidget {
                             const Icon(Icons.bolt_rounded, color: ZColors.kiBlue, size: 26),
                             const SizedBox(width: AppSpacing.md),
                             Expanded(
-                              child: Text('¡Todas las técnicas superadas! Carga el Kamehameha para terminar.',
+                              child: Text('¡Todas las técnicas superadas! Carga tu ataque para terminar.',
                                   style: Theme.of(context).textTheme.titleMedium),
                             ),
                           ],
@@ -261,10 +270,22 @@ class WorkoutSessionScreen extends ConsumerWidget {
                             padding: const EdgeInsets.fromLTRB(
                                 AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.lg),
                             child: FadeSlideIn(
-                              child: KamehamehaButton(
-                                onFire: () =>
-                                    _completeSession(context, ref, session, sessionExercises, kamehameha: true),
-                              ),
+                              child: Builder(builder: (context) {
+                                final attack = ref.watch(equippedAttackProvider);
+                                final week = ref.watch(weekProgressProvider);
+                                final rival = ref.watch(campaignProvider)?.current;
+                                final combatToday = rival != null && !week.resolved && week.done + 1 >= week.target;
+                                return KamehamehaButton(
+                                  label: combatToday
+                                      ? 'Mantén para lanzar ${attackWithArticle(attack)} contra ${rival.villain}'
+                                      : 'Mantén para lanzar ${attackWithArticle(attack)}',
+                                  shout: '¡${attack.name.toUpperCase()}!',
+                                  colors: attack.colors,
+                                  soundSlot: 'ataque_${attack.id}',
+                                  onFire: () =>
+                                      _completeSession(context, ref, session, sessionExercises, kamehameha: true),
+                                );
+                              }),
                             ),
                           )
                         : const SizedBox(width: double.infinity),
@@ -343,6 +364,7 @@ class WorkoutSessionScreen extends ConsumerWidget {
     // marked completed below, this widget is unmounted and ref stops working.
     final db = ref.read(appDatabaseProvider);
     final unit = ref.read(weightUnitProvider);
+    final attack = ref.read(equippedAttackProvider);
     final durationSeconds = session.startedAt != null
         ? DateTime.now().difference(session.startedAt!).inSeconds
         : null;
@@ -357,7 +379,7 @@ class WorkoutSessionScreen extends ConsumerWidget {
     // from the best-set query, which only looks at completed sessions.
     final navigator = Navigator.of(context);
     // The beam crosses the screen while the session is saved underneath.
-    final beam = kamehameha ? KamehamehaBeamRoute() : null;
+    final beam = kamehameha ? KamehamehaBeamRoute(colors: attack.colors) : null;
     if (beam != null) navigator.push(beam);
     final beamStarted = DateTime.now();
 
@@ -372,6 +394,8 @@ class WorkoutSessionScreen extends ConsumerWidget {
 
     final summary = await computeSessionSummary(db, sessionId: sessionId, unit: unit);
     final achievements = await computeNewRankAchievements(db, sessionId: sessionId);
+    // The weekly combat, when this session completes the week's target.
+    final combat = await campaignAfterSession(db);
 
     if (beam != null) {
       final elapsed = DateTime.now().difference(beamStarted);
@@ -384,7 +408,13 @@ class WorkoutSessionScreen extends ConsumerWidget {
       MaterialPageRoute(
         // The rank-up screen (pushed on top) already throws confetti — the
         // summary underneath only celebrates when it's the first thing shown.
-        builder: (_) => SessionSummaryScreen(summary: summary, celebrate: achievements.isEmpty, justFinished: true),
+        builder: (_) => SessionSummaryScreen(
+          summary: summary,
+          celebrate: achievements.isEmpty && combat.event == null,
+          justFinished: true,
+          combat: combat.event,
+          extraHit: combat.extraHit,
+        ),
       ),
     );
     if (achievements.isNotEmpty) {
@@ -392,6 +422,9 @@ class WorkoutSessionScreen extends ConsumerWidget {
         MaterialPageRoute(builder: (_) => RankAchievementScreen(achievements: achievements)),
       );
     }
+    // Shown first (top of the stack): the combat, then transformations,
+    // then the summary.
+    if (combat.event != null) navigator.push(BossFightScreen.route(combat.event!, attack));
   }
 
   Future<void> _addExercise(BuildContext context, WidgetRef ref, int currentCount) async {

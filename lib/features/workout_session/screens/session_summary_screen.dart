@@ -16,11 +16,25 @@ import '../../../core/theme/z_palette.dart';
 import '../../../services/z/z_sound.dart';
 import '../../dashboard/providers/dashboard_providers.dart';
 import '../../dashboard/providers/dashboard_scroll.dart';
+import '../../../services/z/campaign.dart';
+import '../../../services/z/episodes.dart';
+import '../../../services/z/masters.dart';
+import '../../../services/z/mentor_lines.dart';
 import '../../z/providers/z_providers.dart';
+import '../../z/screens/episode_screens.dart';
+import '../../z/widgets/campaign_widgets.dart';
+import '../../z/widgets/z_moments_watcher.dart';
 import '../../z/widgets/z_visuals.dart';
 
 class SessionSummaryScreen extends ConsumerWidget {
-  const SessionSummaryScreen({super.key, required this.summary, this.celebrate = false, this.justFinished = false});
+  const SessionSummaryScreen({
+    super.key,
+    required this.summary,
+    this.celebrate = false,
+    this.justFinished = false,
+    this.combat,
+    this.extraHit = 0,
+  });
 
   final SessionSummary summary;
 
@@ -32,6 +46,11 @@ class SessionSummaryScreen extends ConsumerWidget {
   // Opened right after finishing (not reopened from history) — the only
   // time the "esfera conseguida" panel can apply.
   final bool justFinished;
+
+  // This session's weekly combat (it completed the target), if any.
+  final CampaignEvent? combat;
+  // Advance damage on the next form from a session beyond the target.
+  final double extraHit;
 
   // This screen is pushed imperatively on top of whichever tab's own
   // navigator was active (Inicio, Calendario o Entreno), and that navigator
@@ -48,6 +67,17 @@ class SessionSummaryScreen extends ConsumerWidget {
     // wherever it was last scrolled to. Scheduled first, while this screen's
     // ref is certainly still alive.
     scrollDashboardToTop(ref);
+    // Right after a combat: "¡En el próximo episodio!" first, then home.
+    if (justFinished && ref.read(zStateValueProvider).episodesEnabled) {
+      final text = nextEpisode(buildNextEpisodeInput(ref, combat: combat, extraHit: extraHit));
+      final sagaSlot = ref.read(sagaProvider).mediaSlot;
+      Navigator.of(context).push(NextEpisodeScreen.route(text, sagaSlot)).then((_) {
+        if (!context.mounted) return;
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        context.go('/dashboard');
+      });
+      return;
+    }
     Navigator.of(context).popUntil((route) => route.isFirst);
     context.go('/dashboard');
   }
@@ -89,6 +119,30 @@ class SessionSummaryScreen extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xl),
             children: [
               reveal(_MangaBurst(subtitle: summary.routineDayName)),
+              if (extraHit > 0 && ref.watch(campaignProvider)?.current != null) ...[
+                const SizedBox(height: AppSpacing.md),
+                reveal(AppCard(
+                  borderColor: ZColors.kaioken.withValues(alpha: 0.6),
+                  child: Row(
+                    children: [
+                      VillainPortrait(fight: ref.watch(campaignProvider)!.current!, width: 48, height: 56),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('GOLPE DE VENTAJA', style: theme.textTheme.labelMedium?.copyWith(color: ZColors.kaioken)),
+                            Text(
+                              '−${(extraHit * 100).round()} % a ${ref.watch(campaignProvider)!.current!.displayName} antes de su combate',
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+              ],
               if (earnedBall) ...[
                 const SizedBox(height: AppSpacing.md),
                 reveal(_EarnedBallPanel(stars: balls.count)),
@@ -170,6 +224,21 @@ class SessionSummaryScreen extends ConsumerWidget {
                           padding: const EdgeInsets.only(bottom: 2),
                           child: Text(name, style: theme.textTheme.titleMedium),
                         ),
+                      // Vegeta's cameo, once he's on your side.
+                      if (justFinished && ref.watch(zStateValueProvider).unlockedMasterIds.contains('vegeta')) ...[
+                        const SizedBox(height: AppSpacing.md),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            MentorPortrait(master: masterById('vegeta'), mood: MentorMood.serio, size: 40),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: Text(vegetaRecordCameo,
+                                  style: theme.textTheme.bodyMedium?.copyWith(fontStyle: FontStyle.italic)),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 )),

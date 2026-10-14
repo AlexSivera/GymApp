@@ -4,6 +4,9 @@ import 'package:archive/archive.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'campaign.dart';
+import 'masters.dart';
+
 // GymZ's "pack de recursos": the anime images, clips and sounds live only on
 // the phone, never in the (public) git repo. The user builds a .zip whose
 // files are named after the slots below (shenlong.mp4, kaio.png,
@@ -42,7 +45,7 @@ const _stock = 'assets/z/stock';
 
 // Every slot the app knows about — also the checklist shown on the
 // "Pack de recursos" screen and in docs/dragon-ball/pack-de-recursos.md.
-const zMediaSlots = <ZMediaSlot>[
+const _baseSlots = <ZMediaSlot>[
   ZMediaSlot('saga_saiyan', {ZMediaKind.image}, 'Cielo de la Kame House en la Saga Saiyan', stockAsset: '$_stock/saga_saiyan.jpg'),
   ZMediaSlot('saga_namek', {ZMediaKind.image}, 'Cielo en la Saga de Namek', stockAsset: '$_stock/saga_namek.jpg'),
   ZMediaSlot('saga_androides', {ZMediaKind.image}, 'Cielo en la Saga de los Androides', stockAsset: '$_stock/saga_androides.jpg'),
@@ -76,7 +79,34 @@ const zMediaSlots = <ZMediaSlot>[
   ZMediaSlot('wish', {ZMediaKind.audio}, 'Deseo concedido', group: 'Sonidos'),
 ];
 
+// Fase 2: villains, masters, attacks, scenes and the narrator.
+final zMediaSlots = <ZMediaSlot>[
+  ..._baseSlots,
+  ZMediaSlot('ko', {ZMediaKind.audio}, 'Golpe final del combate semanal', group: 'Sonidos'),
+  for (final fight in campaignFights)
+    ZMediaSlot('jefe_${fight.id}', {ZMediaKind.image, ZMediaKind.video}, '${fight.displayName} (recorte; vídeo = su aparición o transformación)', group: 'Villanos'),
+  for (final villain in {for (final f in campaignFights) f.villainId})
+    ZMediaSlot('jefe_$villain', {ZMediaKind.image}, 'Imagen genérica del villano si falta la de una forma', group: 'Villanos'),
+  for (final master in masters) ...[
+    for (final mood in const ['contento', 'serio', 'riendo', 'preocupado'])
+      ZMediaSlot('maestro_${master.id}_$mood', {ZMediaKind.image}, '${master.name}, cara $mood (recorte)', group: 'Maestros'),
+    ZMediaSlot('maestro_${master.id}_combate', {ZMediaKind.image, ZMediaKind.video}, 'Combate de entrenamiento con ${master.name}', group: 'Maestros'),
+  ],
+  for (final attack in zAttacks)
+    ZMediaSlot('ataque_${attack.id}', {ZMediaKind.video, ZMediaKind.audio}, '${attack.name} (clip y grito)', group: 'Ataques'),
+  for (var i = 1; i <= 20; i++)
+    ZMediaSlot('escena_${i.toString().padLeft(2, '0')}', {ZMediaKind.image}, 'Escena del anime para los episodios', group: 'Episodios'),
+  for (var i = 1; i <= 5; i++)
+    ZMediaSlot('narrador_$i', {ZMediaKind.audio}, 'Voz del narrador (se alternan)', group: 'Episodios'),
+  ZMediaSlot('anteriormente', {ZMediaKind.audio}, 'Narrador: «Anteriormente en…»', group: 'Episodios'),
+  ZMediaSlot('proximo_episodio', {ZMediaKind.audio}, 'Narrador: «En el próximo episodio…»', group: 'Episodios'),
+];
+
 final _knownNames = {for (final slot in zMediaSlots) slot.name};
+
+// Pack slots of a kind that are filled, e.g. every escena_XX image.
+List<String> filledSlots(String prefix, ZMediaKind kind) =>
+    [for (final slot in zMediaSlots) if (slot.name.startsWith(prefix) && MediaPack.has(slot.name, kind)) slot.name];
 
 String? stockAssetFor(String slot) =>
     zMediaSlots.where((s) => s.name == slot && s.stockAsset != null).firstOrNull?.stockAsset;

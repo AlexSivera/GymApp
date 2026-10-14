@@ -209,3 +209,7 @@ const zAttacks = <ZAttack>[
 ];
 
 ZAttack attackById(String? id) => zAttacks.firstWhere((a) => a.id == id, orElse: () => zAttacks.first);
+
+// "el Galick Gun", "la Genkidama".
+String attackWithArticle(ZAttack attack) =>
+    '${const {'rafaga', 'genkidama', 'barrera_explosiva', 'explosion_final'}.contains(attack.id) ? 'la' : 'el'} ${attack.name}';

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/z_palette.dart';
+import '../../../services/z/campaign.dart';
 import '../../../services/z/power_level.dart';
 import '../../../services/z/saga.dart';
 import '../../../services/z/z_state.dart';
@@ -104,9 +105,11 @@ class SagaProgressCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final completed = ref.watch(completedSessionsCountProvider);
+    final campaign = ref.watch(campaignProvider);
     final saga = ref.watch(sagaProvider);
-    final next = saga.next;
+    final current = campaign?.current;
+    final defeated = campaign?.defeated ?? const <CampaignFight>[];
+    final sagaFinal = campaignFights.lastWhere((f) => f.saga == saga);
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -120,10 +123,10 @@ class SagaProgressCard extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Text('PROGRESO DE SAGA', style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 0.6)),
+              Text('LA CAMPAÑA', style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 0.6)),
               const Spacer(),
               Text(
-                next == null ? '$completed combates' : '$completed de ${next.startsAt} combates',
+                current == null ? 'Completada' : 'Combate ${defeated.length + 1} de ${campaignFights.length}',
                 style: ZText.hud(size: 11, color: ZColors.muted),
               ),
             ],
@@ -138,7 +141,7 @@ class SagaProgressCard extends ConsumerWidget {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(3),
                         child: LinearProgressIndicator(
-                          value: s.index < saga.index ? 1 : s == saga ? saga.progress(completed) : 0,
+                          value: defeated.where((f) => f.saga == s).length / campaignFights.where((f) => f.saga == s).length,
                           minHeight: 6,
                           color: s.color,
                           backgroundColor: ZColors.panelRaised,
@@ -162,10 +165,11 @@ class SagaProgressCard extends ConsumerWidget {
               ],
             ],
           ),
-          if (next != null) ...[
+          if (current != null) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Te ${next.startsAt - completed == 1 ? 'falta 1 combate' : 'faltan ${next.startsAt - completed} combates'} para la ${next.label}.',
+              'Rival actual: ${current.displayName}. '
+              '${saga.next == null ? 'Último jefe de la campaña: ${sagaFinal.displayName}.' : 'Para viajar a la ${saga.next!.label}, derrota a ${sagaFinal.displayName}.'}',
               style: theme.textTheme.bodySmall?.copyWith(color: ZColors.muted),
             ),
           ],
@@ -199,7 +203,7 @@ class WishRewardsCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('DESEOS DE SHENLONG', style: theme.textTheme.labelMedium?.copyWith(color: ZColors.namek)),
+          Text('TUS RECOMPENSAS', style: theme.textTheme.labelMedium?.copyWith(color: ZColors.namek)),
           if (auras.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
             Text('Aura', style: theme.textTheme.titleSmall),

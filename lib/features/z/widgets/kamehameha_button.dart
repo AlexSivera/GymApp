@@ -2,16 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core/theme/z_palette.dart';
+import '../../../services/z/media_pack.dart';
 import '../../../services/z/z_sound.dart';
 
 // "Mantén para lanzar el Kamehameha": hold to charge, release once full to
 // fire. Letting go early just drains the charge — which is also what makes
 // it impossible to end a workout by accident.
 class KamehamehaButton extends StatefulWidget {
-  const KamehamehaButton({super.key, required this.onFire, this.label = 'Mantén para lanzar el Kamehameha'});
+  const KamehamehaButton({
+    super.key,
+    required this.onFire,
+    this.label = 'Mantén para lanzar el Kamehameha',
+    this.shout = '¡KAMEHAMEHA!',
+    this.colors = const [Color(0xFF3CC8FF), Color(0xFFE6FAFF)],
+    this.soundSlot = 'kamehameha',
+  });
 
   final VoidCallback onFire;
   final String label;
+  // What it reads once fully charged.
+  final String shout;
+  // The equipped attack's beam (outer → core).
+  final List<Color> colors;
+  // Pack sound to play on release (falls back to the Kamehameha one).
+  final String soundSlot;
 
   @override
   State<KamehamehaButton> createState() => _KamehamehaButtonState();
@@ -39,7 +53,7 @@ class _KamehamehaButtonState extends State<KamehamehaButton> with SingleTickerPr
     if (status == AnimationStatus.completed && !_fired) {
       _fired = true;
       HapticFeedback.heavyImpact();
-      ZSound.play('kamehameha');
+      ZSound.play(MediaPack.has(widget.soundSlot, ZMediaKind.audio) ? widget.soundSlot : 'kamehameha');
       widget.onFire();
     }
   }
@@ -80,9 +94,9 @@ class _KamehamehaButtonState extends State<KamehamehaButton> with SingleTickerPr
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 color: const Color(0xFF0B1B3A),
-                border: Border.all(color: ZColors.kiBlue.withValues(alpha: 0.4 + 0.6 * v), width: 1.5),
+                border: Border.all(color: widget.colors.first.withValues(alpha: 0.4 + 0.6 * v), width: 1.5),
                 boxShadow: [
-                  BoxShadow(color: ZColors.kiBlue.withValues(alpha: 0.15 + 0.5 * v), blurRadius: 10 + 24 * v),
+                  BoxShadow(color: widget.colors.first.withValues(alpha: 0.15 + 0.5 * v), blurRadius: 10 + 24 * v),
                 ],
               ),
               clipBehavior: Clip.antiAlias,
@@ -91,10 +105,14 @@ class _KamehamehaButtonState extends State<KamehamehaButton> with SingleTickerPr
                   FractionallySizedBox(
                     widthFactor: v,
                     child: Container(
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Color(0x223CC8FF), Color(0xCC3CC8FF), Color(0xFFE6FAFF)],
-                          stops: [0, 0.85, 1],
+                          colors: [
+                            widget.colors.first.withValues(alpha: 0.13),
+                            widget.colors.first.withValues(alpha: 0.8),
+                            widget.colors.last,
+                          ],
+                          stops: const [0, 0.85, 1],
                         ),
                       ),
                     ),
@@ -106,7 +124,7 @@ class _KamehamehaButtonState extends State<KamehamehaButton> with SingleTickerPr
                         children: [
                           Expanded(
                             child: Text(
-                              v >= 1 ? '¡KAMEHAMEHA!' : widget.label,
+                              v >= 1 ? widget.shout : widget.label,
                               style: ZText.display(size: v >= 1 ? 18 : 14, color: ZColors.ink),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -130,20 +148,21 @@ class _KamehamehaButtonState extends State<KamehamehaButton> with SingleTickerPr
 // The beam that crosses the screen right after firing — a white-blue flash
 // sweeping left to right, then fading. Pushed as a transparent route.
 class KamehamehaBeamRoute extends PageRouteBuilder<void> {
-  KamehamehaBeamRoute()
+  KamehamehaBeamRoute({List<Color> colors = const [Color(0xFF3CC8FF), Colors.white]})
       : super(
           opaque: false,
           barrierDismissible: false,
           transitionDuration: const Duration(milliseconds: 650),
           reverseTransitionDuration: const Duration(milliseconds: 250),
-          pageBuilder: (context, animation, _) => _Beam(animation: animation),
+          pageBuilder: (context, animation, _) => _Beam(animation: animation, colors: colors),
         );
 }
 
 class _Beam extends StatelessWidget {
-  const _Beam({required this.animation});
+  const _Beam({required this.animation, required this.colors});
 
   final Animation<double> animation;
+  final List<Color> colors;
 
   @override
   Widget build(BuildContext context) {
@@ -160,13 +179,19 @@ class _Beam extends StatelessWidget {
                 child: FractionallySizedBox(
                   widthFactor: v,
                   heightFactor: 0.22 + 0.2 * v,
-                  child: const DecoratedBox(
+                  child: DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Color(0x003CC8FF), Color(0xFF3CC8FF), Colors.white, Color(0xFF3CC8FF), Color(0x003CC8FF)],
-                        stops: [0, 0.3, 0.5, 0.7, 1],
+                        colors: [
+                          colors.first.withValues(alpha: 0),
+                          colors.first,
+                          colors.last,
+                          colors.first,
+                          colors.first.withValues(alpha: 0),
+                        ],
+                        stops: const [0, 0.3, 0.5, 0.7, 1],
                       ),
                     ),
                   ),

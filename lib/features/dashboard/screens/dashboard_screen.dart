@@ -9,7 +9,9 @@ import '../../../core/widgets/shimmer_box.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../services/notifications/reminder_scheduler.dart';
 import '../../z/providers/z_providers.dart';
+import '../../z/widgets/campaign_widgets.dart';
 import '../../z/widgets/kame_house_cards.dart';
+import '../../z/widgets/z_moments_watcher.dart';
 import '../../z/widgets/over_9000.dart';
 import '../../z/widgets/z_media.dart';
 import '../providers/dashboard_providers.dart';
@@ -88,6 +90,7 @@ class DashboardScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xl),
               children: [
                 const Over9000Watcher(),
+                const ZMomentsWatcher(),
                 const FadeSlideIn(index: 0, child: KameHouseHeader()),
                 const SizedBox(height: AppSpacing.lg),
                 const FadeSlideIn(index: 1, child: PowerLevelCard()),
@@ -103,6 +106,8 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: AppSpacing.md),
+                const FadeSlideIn(index: 3, child: BossWeekCard()),
                 const SizedBox(height: AppSpacing.md),
                 const FadeSlideIn(index: 3, child: DragonBallsCard()),
                 const SizedBox(height: AppSpacing.md),
@@ -133,10 +138,10 @@ class DashboardScreen extends ConsumerWidget {
                 FadeSlideIn(
                   index: 5,
                   child: insight.when(
-                    data: (value) => KaioCard(message: value.message),
+                    data: (value) => MentorPeekCard(insight: value),
                     loading: () => const ShimmerBox(height: 90),
                     error: (e, _) => ErrorRetryCard(
-                      message: 'Kaio-sama no responde. Prueba otra vez.',
+                      message: 'Tu maestro no responde. Prueba otra vez.',
                       onRetry: () => ref.invalidate(insightOfDayProvider),
                     ),
                   ),
