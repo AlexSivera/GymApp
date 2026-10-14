@@ -13,6 +13,7 @@ import '../../exercise_library/providers/exercise_library_providers.dart';
 import '../../z/providers/z_providers.dart';
 import '../../z/widgets/kame_house_cards.dart';
 import '../../z/widgets/over_9000.dart';
+import '../../z/screens/general_transformation_screen.dart';
 import '../../z/widgets/scouter_number.dart';
 import '../../z/widgets/z_visuals.dart';
 import '../providers/ranking_providers.dart';
@@ -45,6 +46,7 @@ class RankingScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
+          const GeneralTransformationWatcher(),
           const Over9000Watcher(),
           ScouterFrame(
             child: Row(

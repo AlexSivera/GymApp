@@ -36,7 +36,10 @@ class _Over9000WatcherState extends ConsumerState<Over9000Watcher> {
         state != null &&
         !state.over9000Seen &&
         reading != null &&
-        reading.level > over9000Threshold) {
+        reading.level > over9000Threshold &&
+        // The overall transformation (its clip) goes first.
+        state.generalTierSeen != null &&
+        reading.rank.tier.index <= state.generalTierSeen!) {
       _shownThisRun = true;
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await ref.read(zStateActionsProvider).markOver9000Seen();

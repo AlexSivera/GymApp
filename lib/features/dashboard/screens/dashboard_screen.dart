@@ -13,6 +13,7 @@ import '../../z/widgets/campaign_widgets.dart';
 import '../../z/widgets/kame_house_cards.dart';
 import '../../z/widgets/z_moments_watcher.dart';
 import '../../z/widgets/over_9000.dart';
+import '../../z/screens/general_transformation_screen.dart';
 import '../../z/widgets/z_media.dart';
 import '../providers/dashboard_providers.dart';
 import '../providers/dashboard_scroll.dart';
@@ -90,6 +91,7 @@ class DashboardScreen extends ConsumerWidget {
               controller: ref.watch(dashboardScrollControllerProvider),
               padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xl),
               children: [
+                const GeneralTransformationWatcher(),
                 const Over9000Watcher(),
                 const ZMomentsWatcher(),
                 const FadeSlideIn(index: 0, child: KameHouseHeader()),

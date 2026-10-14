@@ -11,6 +11,9 @@ class ZKeys {
 
   static const sound = 'sound_enabled';
   static const over9000Seen = 'over9000_seen';
+  // Index of the last overall transformation celebrated (average of all
+  // muscles), so each new form plays its clip once.
+  static const generalTier = 'general_tier';
   static const title = 'title';
   static const aura = 'aura';
   static const wishes = 'wishes';
@@ -102,6 +105,7 @@ class ZState {
 
   bool get soundEnabled => raw[ZKeys.sound] != 'false';
   bool get over9000Seen => raw[ZKeys.over9000Seen] == 'true';
+  int? get generalTierSeen => int.tryParse(raw[ZKeys.generalTier] ?? '');
   String? get title => raw[ZKeys.title];
   // Chosen cosmetic aura id; null = follow the current transformation.
   String? get auraId => raw[ZKeys.aura];

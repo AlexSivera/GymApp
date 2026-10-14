@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../ranking_engine/rank_tier.dart';
 import 'campaign.dart';
 import 'masters.dart';
 
@@ -85,6 +86,9 @@ const _baseSlots = <ZMediaSlot>[
 final zMediaSlots = <ZMediaSlot>[
   ..._baseSlots,
   ZMediaSlot('ko', {ZMediaKind.audio}, 'Golpe final del combate semanal', group: 'Sonidos'),
+  for (final tier in RankTier.values.skip(1))
+    ZMediaSlot('forma_${tier.slug}', {ZMediaKind.video}, 'Transformación general: ${tier.label} (clip con sonido)',
+        group: 'Transformaciones'),
   for (final fight in campaignFights)
     ZMediaSlot('jefe_${fight.id}', {ZMediaKind.image, ZMediaKind.video}, '${fight.displayName} (recorte; vídeo = su aparición o transformación)', group: 'Villanos'),
   for (final villain in {for (final f in campaignFights) f.villainId})

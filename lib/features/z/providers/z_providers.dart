@@ -178,6 +178,8 @@ class ZStateActions {
 
   Future<void> markOver9000Seen() => _write(ZKeys.over9000Seen, 'true');
 
+  Future<void> setGeneralTierSeen(int tierIndex) => _write(ZKeys.generalTier, '$tierIndex');
+
   Future<void> setTitle(String title) => _write(ZKeys.title, title);
 
   Future<void> setMainMaster(String id) => _write(ZKeys.mainMaster, id);
