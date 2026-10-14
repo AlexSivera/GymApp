@@ -11,9 +11,9 @@ class ZKeys {
 
   static const sound = 'sound_enabled';
   static const over9000Seen = 'over9000_seen';
-  // Index of the last overall transformation celebrated (average of all
-  // muscles), so each new form plays its clip once.
-  static const generalTier = 'general_tier';
+  // Highest overall transformation reached (whole-body average), so each
+  // form plays its clip once and a dip never replays one.
+  static const generalTier = 'general_tier_max';
   static const title = 'title';
   static const aura = 'aura';
   static const wishes = 'wishes';

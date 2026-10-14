@@ -77,7 +77,7 @@ class RankingScreen extends ConsumerWidget {
                       Text(
                         predicted == null
                             ? 'Termina un entrenamiento para que el rastreador lea tu poder.'
-                            : 'Media de la transformación de tus músculos. Solo se compara contigo mismo.',
+                            : 'Media de todo tu cuerpo: lo que aún no has entrenado cuenta como Saiyan ★. Solo se compara contigo mismo.',
                         style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                       ),
                     ],

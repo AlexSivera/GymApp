@@ -32,6 +32,21 @@ void main() {
       expect(reading.nextTier, RankTier.platino);
     });
 
+    test('untrained muscles count as Saiyan, so one strong lift is not enough', () {
+      final body = ['Pecho', 'Bíceps', 'Espalda', 'Cuádriceps'];
+      // One exercise at SSJ Blue (score 19) and nothing else.
+      final reading = computePowerReading({'Pecho': [19]}, allMuscles: body)!;
+      expect(reading.averageScore, (19 + 1 + 1 + 1) / 4);
+      expect(reading.rank.tier, RankTier.bronce);
+      // Without the whole body it would already be SSJ Blue.
+      expect(computePowerReading({'Pecho': [19]})!.rank.tier, RankTier.diamante);
+    });
+
+    test('a custom muscle outside the body list still counts', () {
+      final reading = computePowerReading({'Pecho': [7], 'Mandíbula': [1]}, allMuscles: ['Pecho'])!;
+      expect(reading.averageScore, 4);
+    });
+
     test('no ranked exercises means no reading', () {
       expect(computePowerReading({}), isNull);
     });

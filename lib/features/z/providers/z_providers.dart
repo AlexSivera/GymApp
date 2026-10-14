@@ -22,7 +22,8 @@ final zStateValueProvider = Provider<ZState>((ref) {
   return ref.watch(zStateProvider).valueOrNull ?? const ZState({});
 });
 
-// The scouter reading — null until at least one exercise has been ranked.
+// The scouter reading over the whole body (see computePowerReading) — null
+// until at least one exercise has been ranked.
 final powerReadingProvider = Provider<PowerReading?>((ref) {
   final revealed = ref.watch(revealedRankedExercisesProvider);
   final byMuscle = <String, List<double>>{};
@@ -31,7 +32,7 @@ final powerReadingProvider = Provider<PowerReading?>((ref) {
       byMuscle.putIfAbsent(muscle, () => []).add(info.rank.score);
     }
   }
-  return computePowerReading(byMuscle);
+  return computePowerReading(byMuscle, allMuscles: muscleGroups.values.expand((m) => m));
 });
 
 final dragonBallsProvider = Provider<DragonBallProgress>((ref) {
