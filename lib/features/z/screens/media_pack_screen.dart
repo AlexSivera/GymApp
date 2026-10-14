@@ -91,7 +91,7 @@ class _MediaPackScreenState extends State<MediaPackScreen> {
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   if (!MediaPack.supported)
-                    Text('El pack solo funciona en la app de Android.',
+                    Text(MediaPack.installedCount > 0 ? 'Modo pruebas: usando el pack copiado junto a la web (${MediaPack.installedCount} archivos).' : 'El pack solo funciona en la app de Android.',
                         style: theme.textTheme.bodyMedium?.copyWith(color: ZColors.kaioken))
                   else ...[
                     SizedBox(

@@ -18,7 +18,8 @@ class ZSound {
   static Future<void> play(String slot, {double volume = 1}) async {
     if (!enabled) return;
     final file = MediaPack.file(slot, ZMediaKind.audio);
-    if (file == null) return;
+    final url = MediaPack.webUrl(slot, ZMediaKind.audio);
+    if (file == null && url == null) return;
     try {
       // A small pool so overlapping effects (punch + rest end) don't cut
       // each other off.
@@ -31,7 +32,7 @@ class ZSound {
         },
       );
       await player.setVolume(volume);
-      await player.play(DeviceFileSource(file.path));
+      await player.play(file != null ? DeviceFileSource(file.path) : UrlSource(url!));
     } catch (_) {
       // A broken file in the pack must never break the workout flow.
     }

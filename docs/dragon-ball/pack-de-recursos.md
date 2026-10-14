@@ -159,3 +159,13 @@ Cuatro caras por maestro y, opcionalmente, una imagen o vídeo para su combate d
 | `narrador_1` … `narrador_5` | Voces cortas del narrador que se alternan (sonido) |
 | `anteriormente` | Narrador diciendo «Anteriormente en…» (sonido; si está, tiene prioridad) |
 | `proximo_episodio` | Narrador diciendo «En el próximo episodio…» (sonido; si está, tiene prioridad) |
+
+## Probar el pack en el ordenador (localhost)
+
+La importación solo existe en Android, pero la versión web tiene un modo pruebas:
+
+1. `flutter build web`
+2. `bash tool/pack_to_web.sh` (copia `~/Desktop/GymZ-pack` a `build/web/assets/gymz_pack/` y crea `index.json`)
+3. Servir `build/web` en localhost (configuración `gymz-web`).
+
+La carpeta copiada vive solo dentro de `build/`, que nunca se sube a git.

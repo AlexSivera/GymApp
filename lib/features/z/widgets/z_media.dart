@@ -35,6 +35,8 @@ class ZImage extends StatelessWidget {
 ImageProvider? zImageProvider(String slot) {
   final file = MediaPack.file(slot, ZMediaKind.image);
   if (file != null) return FileImage(file);
+  final url = MediaPack.webUrl(slot, ZMediaKind.image);
+  if (url != null) return NetworkImage(url);
   final stock = stockAssetFor(slot);
   return stock == null ? null : AssetImage(stock);
 }
@@ -68,8 +70,9 @@ class _ZMomentBackgroundState extends State<ZMomentBackground> {
   Future<void> _initVideo() async {
     for (final slot in widget.slots) {
       final file = MediaPack.file(slot, ZMediaKind.video);
-      if (file == null) continue;
-      final controller = VideoPlayerController.file(file);
+      final url = MediaPack.webUrl(slot, ZMediaKind.video);
+      if (file == null && url == null) continue;
+      final controller = file != null ? VideoPlayerController.file(file) : VideoPlayerController.networkUrl(Uri.parse(url!));
       try {
         await controller.initialize();
         await controller.setLooping(widget.loop);

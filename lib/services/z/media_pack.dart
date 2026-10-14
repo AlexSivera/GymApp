@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'campaign.dart';
@@ -131,7 +133,7 @@ class MediaPack {
   static bool get supported => !kIsWeb;
 
   static Future<void> init() async {
-    if (!supported) return;
+    if (kIsWeb) return _loadWebTestPack();
     try {
       final base = await getApplicationSupportDirectory();
       _dir = Directory('${base.path}/gymz_pack');
@@ -173,11 +175,48 @@ class MediaPack {
     return (name: name, kind: kind, ext: ext);
   }
 
+  // Web test build only: a pack copied next to the app (build/web/assets/
+  // gymz_pack/ plus an index.json listing its files) is used as if it had
+  // been imported, so the pack can be tried on localhost. Never deployed.
+  static final Map<String, String> _webFiles = {};
+
+  static Future<void> _loadWebTestPack() async {
+    try {
+      final names = (jsonDecode(await rootBundle.loadString('gymz_pack/index.json')) as List).cast<String>();
+      for (final fileName in names) {
+        final parsed = _parse(fileName);
+        if (parsed != null) _webFiles[_key(parsed.name, parsed.kind)] = fileName;
+      }
+    } catch (_) {
+      // No test pack next to the app: stock fallbacks, as without a pack.
+    }
+  }
+
+  static String? _webAssetKey(String name, ZMediaKind kind) {
+    final fileName = _webFiles[_key(name, kind)];
+    return fileName == null ? null : 'gymz_pack/$fileName';
+  }
+
+  // URL of a pack file in the web test build (relative to the app).
+  static String? webUrl(String name, ZMediaKind kind) {
+    final key = _webAssetKey(name, kind);
+    return key == null ? null : 'assets/$key';
+  }
+
   static File? file(String name, ZMediaKind kind) => _files[_key(name, kind)];
 
-  static bool has(String name, ZMediaKind kind) => _files.containsKey(_key(name, kind));
+  static bool has(String name, ZMediaKind kind) =>
+      _files.containsKey(_key(name, kind)) || _webFiles.containsKey(_key(name, kind));
 
-  static int get installedCount => _files.length;
+  static Future<Uint8List?> bytes(String name, ZMediaKind kind) async {
+    final file = MediaPack.file(name, kind);
+    if (file != null) return file.readAsBytes();
+    final key = _webAssetKey(name, kind);
+    if (key == null) return null;
+    return (await rootBundle.load(key)).buffer.asUint8List();
+  }
+
+  static int get installedCount => _files.length + _webFiles.length;
 
   // Pass [path] when the picker gives one (streams big zips from disk
   // instead of loading the whole thing into memory), [bytes] otherwise.

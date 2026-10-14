@@ -138,11 +138,13 @@ final _shapeCache = <String, Future<PackImageShape>>{};
 
 Future<PackImageShape> packImageShape(String slot) {
   const notCutout = PackImageShape(cutout: false);
-  final file = MediaPack.file(slot, ZMediaKind.image);
-  if (file == null) return Future.value(notCutout);
-  return _shapeCache.putIfAbsent(file.path, () async {
+  final source = MediaPack.file(slot, ZMediaKind.image)?.path ?? MediaPack.webUrl(slot, ZMediaKind.image);
+  if (source == null) return Future.value(notCutout);
+  return _shapeCache.putIfAbsent(source, () async {
     try {
-      final codec = await ui.instantiateImageCodec(await file.readAsBytes(), targetWidth: 64);
+      final bytes = await MediaPack.bytes(slot, ZMediaKind.image);
+      if (bytes == null) return notCutout;
+      final codec = await ui.instantiateImageCodec(bytes, targetWidth: 64);
       final image = (await codec.getNextFrame()).image;
       final data = await image.toByteData();
       if (data == null) return notCutout;
