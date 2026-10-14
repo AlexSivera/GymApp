@@ -61,10 +61,10 @@ class DashboardScreen extends ConsumerWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [Colors.white, Colors.transparent],
-                stops: [0.25, 1],
+                stops: [0.55, 1],
               ).createShader(rect),
               blendMode: BlendMode.dstIn,
-              child: Opacity(opacity: 0.55, child: ZImage(saga.mediaSlot)),
+              child: Opacity(opacity: 0.9, child: ZImage(saga.mediaSlot)),
             ),
           ),
           Positioned(
@@ -78,7 +78,8 @@ class DashboardScreen extends ConsumerWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [ZColors.night.withValues(alpha: 0.15), ZColors.night.withValues(alpha: 0.55)],
+                    colors: [ZColors.night.withValues(alpha: 0.35), ZColors.night.withValues(alpha: 0.05), ZColors.night.withValues(alpha: 0.6)],
+                    stops: const [0, 0.3, 1],
                   ),
                 ),
               ),
@@ -92,7 +93,8 @@ class DashboardScreen extends ConsumerWidget {
                 const Over9000Watcher(),
                 const ZMomentsWatcher(),
                 const FadeSlideIn(index: 0, child: KameHouseHeader()),
-                const SizedBox(height: AppSpacing.lg),
+                // Leaves the saga scene visible above the cards.
+                const SizedBox(height: 150),
                 const FadeSlideIn(index: 1, child: PowerLevelCard()),
                 const SizedBox(height: AppSpacing.md),
                 FadeSlideIn(

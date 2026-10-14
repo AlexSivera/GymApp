@@ -104,10 +104,21 @@ class _RankAchievementScreenState extends ConsumerState<RankAchievementScreen>
                 radius: 1.1,
                 colors: [
                   color.withValues(alpha: transformation ? 0.35 : 0.2),
-                  Colors.black.withValues(alpha: 0.75),
-                  Colors.black.withValues(alpha: 0.92),
+                  Colors.black.withValues(alpha: 0.4),
+                  Colors.black.withValues(alpha: 0.8),
                 ],
                 stops: const [0, 0.6, 1],
+              ),
+            ),
+          ),
+          // The scene stays bright up top; the texts below sit on darkness.
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.transparent, Color(0x26000000), Color(0xC7000000), Color(0xE6000000)],
+                stops: [0, 0.3, 0.5, 1],
               ),
             ),
           ),
