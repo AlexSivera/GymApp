@@ -14,6 +14,7 @@ import '../../../services/ranking_engine/rank_tier.dart';
 import '../../../services/z/dragon_balls.dart';
 import '../../dashboard/providers/dashboard_providers.dart';
 import '../../ranking/widgets/rank_badge.dart';
+import '../../../services/z/power_level.dart';
 import '../providers/z_providers.dart';
 import '../screens/shenlong_screen.dart';
 import 'scouter_number.dart';
@@ -186,7 +187,7 @@ class PowerLevelCard extends ConsumerWidget {
                     Text('Sin lectura', style: theme.textTheme.headlineMedium),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
-                      'Termina un entrenamiento y el rastreador leerá tu poder.',
+                      scouterWaitingText(ref.watch(missingMainGroupsProvider)),
                       style: theme.textTheme.bodyMedium?.copyWith(color: ZColors.muted),
                     ),
                   ],

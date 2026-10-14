@@ -47,6 +47,24 @@ void main() {
       expect(reading.averageScore, 4);
     });
 
+    test('no reading until arms, legs, back, chest and shoulders each have a rank', () {
+      const groups = {
+        'Brazos': ['Bíceps'],
+        'Piernas': ['Cuádriceps'],
+        'Espalda': ['Dorsales'],
+        'Pecho': ['Pecho'],
+        'Hombros': ['Hombros'],
+        'Abdominales': ['Abdominales'],
+      };
+      final partial = {'Pecho': [10.0], 'Bíceps': [10.0], 'Dorsales': [10.0]};
+      expect(computePowerReading(partial, groups: groups), isNull);
+      expect(missingMainGroups(partial.keys, groups), ['Piernas', 'Hombros']);
+      expect(scouterWaitingText(['Piernas', 'Hombros']), contains('de piernas y hombros'));
+      final full = {...partial, 'Cuádriceps': [10.0], 'Hombros': [10.0]};
+      expect(missingMainGroups(full.keys, groups), isEmpty);
+      expect(computePowerReading(full, groups: groups), isNotNull);
+    });
+
     test('no ranked exercises means no reading', () {
       expect(computePowerReading({}), isNull);
     });

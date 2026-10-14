@@ -37,16 +37,44 @@ class PowerReading {
 // Score a muscle with no ranked exercise yet counts as (Saiyan ★).
 const untrainedMuscleScore = 1.0;
 
+// The groups the scouter needs at least one ranked exercise in before it
+// reads anything: the big ones.
+const mainMuscleGroups = ['Brazos', 'Piernas', 'Espalda', 'Pecho', 'Hombros'];
+
+// Main groups (of [groups], name → muscles) with no ranked muscle yet.
+List<String> missingMainGroups(Iterable<String> trainedMuscles, Map<String, List<String>> groups) {
+  final trained = trainedMuscles.toSet();
+  return [
+    for (final name in mainMuscleGroups)
+      if (!(groups[name] ?? const <String>[]).any(trained.contains)) name,
+  ];
+}
+
+// "Piernas", "Piernas y Hombros", "Brazos, Piernas y Hombros".
+String joinSpanish(List<String> items) =>
+    items.length <= 1 ? items.join() : '${items.sublist(0, items.length - 1).join(', ')} y ${items.last}';
+
+// What the power cards say while there's no reading yet.
+String scouterWaitingText(List<String> missing) => missing.isEmpty
+    ? 'Termina un entrenamiento y el rastreador leerá tu poder.'
+    : 'El rastreador necesita al menos un ejercicio con rango de ${joinSpanish([for (final g in missing) g.toLowerCase()])} para leer tu poder.';
+
 // [scoresByMuscle]: every revealed exercise score, grouped by muscle.
 // [allMuscles]: the whole body — any of these without a score counts as
 // [untrainedMuscleScore], so one strong lift doesn't make you a Super Saiyan
 // Blue; you have to be one everywhere.
-PowerReading? computePowerReading(Map<String, List<double>> scoresByMuscle, {Iterable<String> allMuscles = const []}) {
+// [groups]: when given, no reading until every main group has a score.
+PowerReading? computePowerReading(
+  Map<String, List<double>> scoresByMuscle, {
+  Iterable<String> allMuscles = const [],
+  Map<String, List<String>>? groups,
+}) {
   final trained = {
     for (final entry in scoresByMuscle.entries)
       if (entry.value.isNotEmpty) entry.key: entry.value.reduce((a, b) => a + b) / entry.value.length,
   };
   if (trained.isEmpty) return null;
+  if (groups != null && missingMainGroups(trained.keys, groups).isNotEmpty) return null;
   final muscleAverages = [
     ...trained.values,
     for (final muscle in allMuscles)

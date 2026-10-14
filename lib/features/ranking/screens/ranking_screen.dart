@@ -10,6 +10,7 @@ import '../../../core/widgets/exercise_thumbnail.dart';
 import '../../../services/ranking_engine/rank_tier.dart';
 import '../../../core/theme/z_palette.dart';
 import '../../exercise_library/providers/exercise_library_providers.dart';
+import '../../../services/z/power_level.dart';
 import '../../z/providers/z_providers.dart';
 import '../../z/widgets/kame_house_cards.dart';
 import '../../z/widgets/over_9000.dart';
@@ -77,7 +78,7 @@ class RankingScreen extends ConsumerWidget {
                       const SizedBox(height: AppSpacing.sm),
                       Text(
                         predicted == null
-                            ? 'Termina un entrenamiento para que el rastreador lea tu poder.'
+                            ? scouterWaitingText(ref.watch(missingMainGroupsProvider))
                             : 'Media de todo tu cuerpo: lo que aún no has entrenado cuenta como Saiyan ★. Solo se compara contigo mismo.',
                         style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                       ),

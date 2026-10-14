@@ -16,8 +16,7 @@ import '../widgets/z_media.dart';
 // (forma_<form>.mp4), or the form's image if there's no clip. The highest
 // form reached is stored: a dip (a new, weaker exercise) never replays a
 // clip, and jumping several forms at once plays every skipped one in order.
-// The first reading is stored silently so existing users don't get a
-// backlog of clips.
+// The first reading plays every form already reached, from SSJ up.
 class GeneralTransformationWatcher extends ConsumerStatefulWidget {
   const GeneralTransformationWatcher({super.key});
 
@@ -37,14 +36,17 @@ class _GeneralTransformationWatcherState extends ConsumerState<GeneralTransforma
     if (!visible || state == null || reading == null) return const SizedBox.shrink();
 
     final tier = reading.rank.tier.index;
-    final best = state.generalTierSeen;
+    // Nothing celebrated yet = you start as a plain Saiyan, so the first
+    // reading plays every form you've already reached, in order.
+    final best = state.generalTierSeen ?? 0;
     if (_handledTier != null && tier <= _handledTier!) return const SizedBox.shrink();
-    if (best == null) {
-      _handledTier = tier;
-      WidgetsBinding.instance.addPostFrameCallback((_) => ref.read(zStateActionsProvider).setGeneralTierSeen(tier));
+    if (tier <= best) {
+      if (state.generalTierSeen == null) {
+        _handledTier = tier;
+        WidgetsBinding.instance.addPostFrameCallback((_) => ref.read(zStateActionsProvider).setGeneralTierSeen(tier));
+      }
       return const SizedBox.shrink();
     }
-    if (tier <= best) return const SizedBox.shrink();
 
     _handledTier = tier;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
