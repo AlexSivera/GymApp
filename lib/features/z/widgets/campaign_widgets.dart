@@ -57,14 +57,40 @@ class MentorPortrait extends StatelessWidget {
     if (circle) {
       return SizedBox.square(
         dimension: size,
-        child: ClipOval(child: ZImage(slot, fit: BoxFit.cover, alignment: const Alignment(0, -0.4), fallback: orb)),
+        child: ClipOval(
+          child: FutureBuilder<PackImageShape>(
+            future: packImageShape(slot),
+            builder: (context, snapshot) {
+              final face = snapshot.data?.face;
+              if (face == null) return ZImage(slot, fit: BoxFit.cover, alignment: const Alignment(0, -0.4), fallback: orb);
+              // A full-body cut-out: zoom on the head over a dark orb.
+              return DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(colors: [master.color, Color.lerp(master.color, Colors.black, 0.7)!]),
+                ),
+                child: Stack(
+                  clipBehavior: Clip.hardEdge,
+                  children: [
+                    Positioned(
+                      left: -face.left * size / face.width,
+                      top: -face.top * size / face.height,
+                      width: size / face.width,
+                      height: size / face.height,
+                      child: ZImage(slot, fit: BoxFit.fill),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
       );
     }
     return SizedBox.square(
       dimension: size,
-      child: FutureBuilder<bool>(
-        future: packImageIsCutout(slot),
-        builder: (context, snapshot) => snapshot.data == true
+      child: FutureBuilder<PackImageShape>(
+        future: packImageShape(slot),
+        builder: (context, snapshot) => snapshot.data?.cutout == true
             ? ZImage(slot, fit: BoxFit.contain, alignment: Alignment.bottomCenter, fallback: orb)
             : _TelepathyWindow(
                 color: master.color,
@@ -95,25 +121,72 @@ class _TelepathyWindow extends StatelessWidget {
   }
 }
 
-// Whether a pack image has a transparent background (a cut-out): looks at
-// the corners of a tiny decoded copy. Cached per file.
-final _cutoutCache = <String, Future<bool>>{};
+// What a pack image is: a cut-out (transparent background) or a screen
+// capture. For a cut-out also where the head is, so round portraits can
+// zoom on the face instead of showing a tiny full body.
+class PackImageShape {
+  const PackImageShape({required this.cutout, this.face});
 
-Future<bool> packImageIsCutout(String slot) {
+  final bool cutout;
+  // A square around the head, in fractions of the image's width and height.
+  final Rect? face;
+}
+
+// Looks at a tiny decoded copy: transparent corners mean a cut-out; the
+// head sits at the top of the opaque figure. Cached per file.
+final _shapeCache = <String, Future<PackImageShape>>{};
+
+Future<PackImageShape> packImageShape(String slot) {
+  const notCutout = PackImageShape(cutout: false);
   final file = MediaPack.file(slot, ZMediaKind.image);
-  if (file == null) return Future.value(false);
-  return _cutoutCache.putIfAbsent(file.path, () async {
+  if (file == null) return Future.value(notCutout);
+  return _shapeCache.putIfAbsent(file.path, () async {
     try {
-      final codec = await ui.instantiateImageCodec(await file.readAsBytes(), targetWidth: 24);
+      final codec = await ui.instantiateImageCodec(await file.readAsBytes(), targetWidth: 64);
       final image = (await codec.getNextFrame()).image;
       final data = await image.toByteData();
-      if (data == null) return false;
+      if (data == null) return notCutout;
       final w = image.width;
       final h = image.height;
       int alphaAt(int x, int y) => data.getUint8((y * w + x) * 4 + 3);
-      return [alphaAt(0, 0), alphaAt(w - 1, 0), alphaAt(0, h - 1), alphaAt(w - 1, h - 1)].any((a) => a < 200);
+      final cutout = [alphaAt(0, 0), alphaAt(w - 1, 0), alphaAt(0, h - 1), alphaAt(w - 1, h - 1)].any((a) => a < 200);
+      if (!cutout) return notCutout;
+
+      var top = -1;
+      var bottom = -1;
+      for (var y = 0; y < h; y++) {
+        for (var x = 0; x < w; x++) {
+          if (alphaAt(x, y) > 128) {
+            if (top < 0) top = y;
+            bottom = y;
+            break;
+          }
+        }
+      }
+      final figure = bottom - top;
+      if (top < 0 || figure < 8) return const PackImageShape(cutout: true);
+      // Horizontal centre of the top of the figure (hair and head).
+      var sumX = 0;
+      var count = 0;
+      for (var y = top; y < top + figure * 0.18; y++) {
+        for (var x = 0; x < w; x++) {
+          if (alphaAt(x, y) > 128) {
+            sumX += x;
+            count++;
+          }
+        }
+      }
+      final side = figure * 0.30;
+      return PackImageShape(
+        cutout: true,
+        face: Rect.fromCenter(
+          center: Offset(sumX / count / w, (top + figure * 0.13) / h),
+          width: side / w,
+          height: side / h,
+        ),
+      );
     } catch (_) {
-      return false;
+      return notCutout;
     }
   });
 }

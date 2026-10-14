@@ -141,6 +141,14 @@ class MediaPack {
     }
   }
 
+  // Tests point the pack at a folder of their own.
+  @visibleForTesting
+  static Future<void> initWithDirectory(Directory dir) async {
+    _dir = dir;
+    await _scan();
+    revision.value++;
+  }
+
   static String _key(String name, ZMediaKind kind) => '$name.${kind.name}';
 
   static Future<void> _scan() async {
