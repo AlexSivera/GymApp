@@ -44,20 +44,20 @@ class _RoutineCreationSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Crear rutina', style: theme.textTheme.titleLarge),
+            Text('Nueva cápsula', style: theme.textTheme.titleLarge),
             const SizedBox(height: AppSpacing.md),
             AppCard(
               padding: EdgeInsets.zero,
               child: ListTile(
                 leading: Icon(Icons.edit_note, color: theme.colorScheme.primary),
                 title: const Text('Desde cero'),
-                subtitle: const Text('Elige tus propios ejercicios'),
+                subtitle: const Text('Elige tus propias técnicas'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => Navigator.of(context).pop('scratch'),
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text('O empieza desde una plantilla',
+            Text('O abre una cápsula de fábrica',
                 style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
             const SizedBox(height: AppSpacing.sm),
             for (final template in routineTemplates)

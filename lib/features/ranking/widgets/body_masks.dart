@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -142,10 +144,13 @@ Map<String, Color> maskTints(BodyView view, Map<String, Color> colorsByMuscle) =
 // One view of the illustration with the given masks tinted on top. Fills
 // whatever box it's given — callers keep the 610:1157 aspect ratio.
 class BodyLayers extends StatelessWidget {
-  const BodyLayers({super.key, required this.view, required this.tints});
+  const BodyLayers({super.key, required this.view, required this.tints, this.glow = false});
 
   final BodyView view;
   final Map<String, Color> tints;
+  // GymZ: ranked muscles also radiate their aura (a blurred copy of the
+  // tinted mask under the sharp one). Off for the small list thumbnails.
+  final bool glow;
 
   @override
   Widget build(BuildContext context) {
@@ -156,6 +161,12 @@ class BodyLayers extends StatelessWidget {
           colorFilter: _baseLayerFilter(context),
           child: _layer('assets/body/${view.name}_base.png'),
         ),
+        if (glow)
+          for (final MapEntry(key: file, value: color) in tints.entries)
+            ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: 9, sigmaY: 9),
+              child: _layer('assets/body/masks/${view.name}/$file.png', tint: color),
+            ),
         for (final MapEntry(key: file, value: color) in tints.entries)
           // srcIn keeps the mask's soft alpha edges and swaps its white for
           // the tint.

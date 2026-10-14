@@ -27,7 +27,7 @@ class AboutScreen extends StatelessWidget {
                 child: Icon(Icons.fitness_center, size: 28, color: theme.colorScheme.primary),
               ),
               const SizedBox(height: AppSpacing.md),
-              Text('Machoke', style: theme.textTheme.headlineMedium),
+              Text('GymZ', style: theme.textTheme.headlineMedium),
               const SizedBox(height: AppSpacing.xs),
               Text(
                 'Versión 1.0.0',

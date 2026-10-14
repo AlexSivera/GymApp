@@ -255,9 +255,9 @@ class _WelcomeViewState extends State<_WelcomeView> with SingleTickerProviderSta
       curve: const Interval(0, 0.55, curve: Curves.easeOutBack),
     );
     const features = [
-      (Icons.calendar_month_rounded, 'Planifica tu semana con tus propias rutinas'),
-      (Icons.check_circle_rounded, 'Registra cada serie en segundos, sin teclado'),
-      (Icons.military_tech_rounded, 'Sube de rango a medida que ganas fuerza'),
+      (Icons.radar_rounded, 'Planifica tus combates en el radar con tus propias cápsulas'),
+      (Icons.local_fire_department_rounded, 'Transfórmate: de Terrícola a Ultra Instinto, músculo a músculo'),
+      (Icons.auto_awesome_rounded, 'Reúne las 7 esferas cumpliendo tus semanas y pide un deseo'),
     ];
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.lg),
@@ -274,13 +274,13 @@ class _WelcomeViewState extends State<_WelcomeView> with SingleTickerProviderSta
           const SizedBox(height: AppSpacing.xl),
           _stagger(
             0.25,
-            Text('Bienvenido a Machoke', style: theme.textTheme.headlineLarge, textAlign: TextAlign.center),
+            Text('Bienvenido a GymZ', style: theme.textTheme.headlineLarge, textAlign: TextAlign.center),
           ),
           const SizedBox(height: AppSpacing.sm),
           _stagger(
             0.32,
             Text(
-              'Tu entreno, tu progreso y tus récords, todo en un sitio.',
+              'Antes de empezar, el rastreador necesita conocerte.',
               style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
@@ -317,7 +317,7 @@ class _WelcomeViewState extends State<_WelcomeView> with SingleTickerProviderSta
                 onPressed: widget.onStart,
                 iconAlignment: IconAlignment.end,
                 icon: const Icon(Icons.arrow_forward_rounded),
-                label: const Text('Empezar'),
+                label: const Text('¡Vamos allá!'),
               ),
             ),
           ),

@@ -262,7 +262,7 @@ class _RoutineExerciseRow extends ConsumerWidget {
                     child: ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: Icon(_linkedWithNext ? Icons.link_off : Icons.link),
-                      title: Text(_linkedWithNext ? 'Separar del siguiente' : 'Superserie con el siguiente'),
+                      title: Text(_linkedWithNext ? 'Separar del siguiente' : 'Fusión con el siguiente'),
                     ),
                   ),
                 const PopupMenuItem(

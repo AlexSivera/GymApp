@@ -5,12 +5,16 @@
     "start_url": "./",
     "scope": "./",
     "display": "standalone",
-    "background_color": "#0A0C0E",
-    "theme_color": "#0A0C0E",
+    "background_color": "#0A0D1C",
+    "theme_color": "#0A0D1C",
     "description": "Planifica tus rutinas, registra tus entrenamientos y sigue tu progreso.",
     "lang": "es",
     "dir": "ltr",
-    "categories": ["health", "fitness", "sports"],
+    "categories": [
+        "health",
+        "fitness",
+        "sports"
+    ],
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

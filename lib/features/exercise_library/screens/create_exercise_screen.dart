@@ -61,7 +61,7 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
     final grouped = groupedMusclesForPicker(muscleGroups.values.expand((v) => v).toList());
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Crear ejercicio')),
+      appBar: AppBar(title: const Text('Crear técnica')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
@@ -76,9 +76,9 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
           const SizedBox(height: AppSpacing.sm),
           SegmentedButton<ExerciseCategory>(
             segments: const [
-              ButtonSegment(value: ExerciseCategory.strength, label: Text('Fuerza')),
-              ButtonSegment(value: ExerciseCategory.cardio, label: Text('Cardio')),
-              ButtonSegment(value: ExerciseCategory.isometric, label: Text('Isométrico')),
+              ButtonSegment(value: ExerciseCategory.strength, label: Text('Combate')),
+              ButtonSegment(value: ExerciseCategory.cardio, label: Text('Kinton')),
+              ButtonSegment(value: ExerciseCategory.isometric, label: Text('Ki')),
             ],
             selected: {_category},
             onSelectionChanged: (selection) => setState(() => _category = selection.first),

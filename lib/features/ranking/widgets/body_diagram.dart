@@ -49,7 +49,7 @@ class _BodyView extends StatelessWidget {
         heightFactor: _cleanHeight / bodyImageSize.height,
         child: AspectRatio(
           aspectRatio: bodyImageSize.aspectRatio,
-          child: BodyLayers(view: view, tints: tints),
+          child: BodyLayers(view: view, tints: tints, glow: true),
         ),
       ),
     );

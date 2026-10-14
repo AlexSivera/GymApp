@@ -20,7 +20,7 @@ class PersonalRecordsScreen extends ConsumerWidget {
     final unit = ref.watch(weightUnitProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Récords personales')),
+      appBar: AppBar(title: const Text('Técnicas dominadas')),
       body: recordsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => ErrorRetryView(

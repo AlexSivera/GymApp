@@ -18,7 +18,7 @@ class ArchivedRoutinesScreen extends ConsumerWidget {
     final archivedAsync = ref.watch(archivedRoutinesListProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Rutinas archivadas')),
+      appBar: AppBar(title: const Text('Cápsulas guardadas')),
       body: archivedAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Padding(

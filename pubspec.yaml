@@ -115,23 +115,23 @@ flutter_launcher_icons:
   ios: false
   image_path: "assets/branding/logo.png"
   min_sdk_android: 21
-  adaptive_icon_background: "#1E1B18"
+  adaptive_icon_background: "#0A0D1C"
   adaptive_icon_foreground: "assets/branding/logo.png"
   web:
     generate: true
     image_path: "assets/branding/logo.png"
-    background_color: "#1E1B18"
-    theme_color: "#1E1B18"
+    background_color: "#0A0D1C"
+    theme_color: "#0A0D1C"
 
 # Pantalla de carga con el logo (se genera con: dart run flutter_native_splash:create)
 flutter_native_splash:
-  color: "#1E1B18"
+  color: "#0A0D1C"
   image: assets/branding/logo.png
   android: true
   ios: false
   web: false
   android_12:
-    color: "#1E1B18"
+    color: "#0A0D1C"
     image: assets/branding/logo.png
 
 # For information on the generic Dart part of this file, see the

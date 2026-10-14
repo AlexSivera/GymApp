@@ -318,7 +318,7 @@ class WorkoutSessionScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('¿Terminar el entrenamiento?'),
+        title: const Text('¿Terminar el combate?'),
         content: Text(message),
         actions: [
           TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Seguir entrenando')),
@@ -1119,7 +1119,7 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar ejercicio'),
+        title: const Text('Eliminar técnica'),
         content: const Text('Se eliminará este ejercicio y sus series de este entrenamiento.'),
         actions: [
           TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancelar')),

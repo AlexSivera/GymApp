@@ -157,7 +157,7 @@ class _CreateRoutineScreenState extends ConsumerState<CreateRoutineScreen> {
       appBar: AppBar(
         leading: TextButton(onPressed: _saving ? null : _cancel, child: const Text('Cancelar')),
         leadingWidth: 100,
-        title: const Text('Crear Rutina'),
+        title: const Text('Nueva cápsula'),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.sm),

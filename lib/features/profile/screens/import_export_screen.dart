@@ -88,7 +88,7 @@ class _ImportExportScreenState extends ConsumerState<ImportExportScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Copia de seguridad')),
+      appBar: AppBar(title: const Text('Cápsula de respaldo')),
       body: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(

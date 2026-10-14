@@ -37,7 +37,7 @@ class ExerciseLibraryScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(pickerMode ? 'Elegir ejercicio' : 'Ejercicios'),
+        title: Text(pickerMode ? 'Elegir técnica' : 'Técnicas'),
         actions: [
           IconButton(
             tooltip: viewMode == ExerciseViewMode.list ? 'Ver en cuadrícula' : 'Ver en lista',
@@ -136,7 +136,7 @@ class _MuscleFilterChip extends ConsumerWidget {
     final theme = Theme.of(context);
     final isActive = selected.isNotEmpty || cardioOnly;
     final label = cardioOnly
-        ? 'Cardio'
+        ? 'Nube Kinton'
         : selected.isEmpty
             ? 'Músculos'
             : 'Músculos (${selected.length})';
@@ -193,7 +193,7 @@ class _MuscleFilterSheet extends ConsumerWidget {
             SizedBox(
               height: 44,
               child: _MuscleTile(
-                label: 'Cardio',
+                label: 'Nube Kinton (cardio)',
                 icon: Icons.directions_run,
                 selected: cardioOnly,
                 onTap: toggleCardio,
@@ -615,6 +615,8 @@ class _RoundIconButton extends StatelessWidget {
 // Cardio is filed under the muscle it mostly loads (running → Cuádriceps)
 // so it still counts towards muscle balance, but listing "Correr" as a
 // quad exercise read like a mistake — the library just calls it cardio.
-String _exerciseSubtitle(Exercise exercise) => exercise.category == ExerciseCategory.cardio
-    ? 'Cardio'
-    : exercise.primaryMuscles.join(', ');
+String _exerciseSubtitle(Exercise exercise) => switch (exercise.category) {
+      ExerciseCategory.cardio => 'Nube Kinton · cardio',
+      ExerciseCategory.isometric => 'Concentración de ki · ${exercise.primaryMuscles.join(', ')}',
+      ExerciseCategory.strength => exercise.primaryMuscles.join(', '),
+    };

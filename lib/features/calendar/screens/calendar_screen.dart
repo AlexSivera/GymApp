@@ -4,6 +4,7 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../../../core/constants/muscle_groups.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/z_palette.dart';
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_card.dart';
@@ -75,10 +76,10 @@ class CalendarScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Planificar'),
+        title: const Text('Radar del dragón'),
         actions: [
           IconButton(
-            tooltip: 'Ver ejercicios',
+            tooltip: 'Ver técnicas',
             icon: const Icon(Icons.menu_book_outlined),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const ExerciseLibraryScreen()),
@@ -89,7 +90,7 @@ class CalendarScreen extends ConsumerWidget {
       floatingActionButton: selectionMode
           ? null
           : FloatingActionButton(
-              tooltip: 'Crear rutina',
+              tooltip: 'Crear cápsula',
               onPressed: () => showRoutineCreationSheet(context, ref),
               child: const Icon(Icons.add),
             ),
@@ -186,7 +187,7 @@ class CalendarScreen extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Tus rutinas', style: theme.textTheme.titleMedium),
+                Text('Tus cápsulas', style: theme.textTheme.titleMedium),
                 TextButton(
                   onPressed: () => Navigator.of(context)
                       .push(MaterialPageRoute(builder: (_) => const ArchivedRoutinesScreen())),
@@ -203,7 +204,7 @@ class CalendarScreen extends ConsumerWidget {
             error: (e, _) => Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: ErrorRetryCard(
-                message: 'No se han podido cargar tus rutinas.',
+                message: 'No se han podido cargar tus cápsulas.',
                 onRetry: () => ref.invalidate(routinesListProvider),
               ),
             ),
@@ -218,10 +219,10 @@ class CalendarScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: Column(
                   children: [
-                    for (final routine in routines)
+                    for (final (index, routine) in routines.indexed)
                       Padding(
                         padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                        child: _RoutineCard(routine: routine),
+                        child: _RoutineCard(routine: routine, number: index + 1),
                       ),
                   ],
                 ),
@@ -259,7 +260,7 @@ class CalendarScreen extends ConsumerWidget {
     switch (action) {
       case AssignDaysAction.manual:
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Toca un día del calendario para asignarle una rutina.')),
+          const SnackBar(content: Text('Toca un día del radar para asignarle una cápsula.')),
         );
       case AssignDaysAction.selectMultiple:
         ref.read(calendarSelectionModeProvider.notifier).state = true;
@@ -281,13 +282,13 @@ class _EmptyRoutines extends StatelessWidget {
       children: [
         Icon(Icons.list_alt_outlined, size: 32, color: theme.colorScheme.onSurfaceVariant),
         const SizedBox(height: AppSpacing.sm),
-        Text('Todavía no has creado ninguna rutina', style: theme.textTheme.bodyMedium),
+        Text('Todavía no tienes ninguna cápsula de entrenamiento', style: theme.textTheme.bodyMedium),
         const SizedBox(height: AppSpacing.md),
         SizedBox(
           width: double.infinity,
           child: OutlinedButton(
             onPressed: onCreate,
-            child: const Text('Crear tu primera rutina'),
+            child: const Text('Crear tu primera cápsula'),
           ),
         ),
       ],
@@ -296,9 +297,10 @@ class _EmptyRoutines extends StatelessWidget {
 }
 
 class _RoutineCard extends ConsumerWidget {
-  const _RoutineCard({required this.routine});
+  const _RoutineCard({required this.routine, required this.number});
 
   final Routine routine;
+  final int number;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -315,15 +317,7 @@ class _RoutineCard extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(AppSpacing.sm),
-              ),
-              child: Icon(Icons.fitness_center, color: theme.colorScheme.primary),
-            ),
+            CapsuleChip(number: number),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
@@ -333,8 +327,8 @@ class _RoutineCard extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     orderedMuscles == null || orderedMuscles.isEmpty
-                        ? '${exerciseCount ?? '—'} ejercicios'
-                        : '${exerciseCount ?? '—'} ejercicios · ${orderedMuscles.join(', ')}',
+                        ? '${exerciseCount ?? '—'} técnicas'
+                        : '${exerciseCount ?? '—'} técnicas · ${orderedMuscles.join(', ')}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodySmall,
@@ -345,6 +339,35 @@ class _RoutineCard extends ConsumerWidget {
             Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// A Capsule Corp capsule with the routine's number (Nº 01, Nº 02…).
+class CapsuleChip extends StatelessWidget {
+  const CapsuleChip({super.key, required this.number});
+
+  final int number;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 58,
+      height: 28,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        gradient: const LinearGradient(
+          colors: [ZColors.silver, ZColors.silver, ZColors.kiBlue, ZColors.kiBlue],
+          stops: [0, 0.52, 0.52, 1],
+        ),
+        boxShadow: [BoxShadow(color: ZColors.kiBlue.withValues(alpha: 0.3), blurRadius: 8)],
+      ),
+      padding: const EdgeInsets.only(left: 7),
+      alignment: Alignment.centerLeft,
+      child: Text(
+        'Nº${number.toString().padLeft(2, '0')}',
+        style: ZText.hud(size: 10, color: ZColors.night, spacing: 0),
       ),
     );
   }
@@ -387,6 +410,8 @@ class _DayCell extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = AppColors.of(context);
     final fill = _fillColor(colors);
+    // On the dragon radar a trained day is an esfera found.
+    final isBall = status == SessionStatus.completed && !isSelectedForBulk;
 
     // FittedBox absorbs both a long routine name and larger system font
     // scales by shrinking the whole cell instead of overflowing the fixed
@@ -410,7 +435,17 @@ class _DayCell extends StatelessWidget {
                 // confused with a selected day at a glance.
                 color: isSelectedForBulk
                     ? colors.accent.withValues(alpha: 0.32)
-                    : fill?.withValues(alpha: 0.22) ?? colors.statusEmpty.withValues(alpha: 0.5),
+                    : isBall
+                        ? null
+                        : fill?.withValues(alpha: 0.22) ?? colors.statusEmpty.withValues(alpha: 0.5),
+                gradient: isBall
+                    ? const RadialGradient(
+                        center: Alignment(-0.3, -0.4),
+                        colors: [ZColors.ballHighlight, ZColors.ball, ZColors.ballShade],
+                        stops: [0, 0.5, 1],
+                      )
+                    : null,
+                boxShadow: isBall ? [BoxShadow(color: ZColors.ball.withValues(alpha: 0.6), blurRadius: 8)] : null,
                 shape: BoxShape.circle,
                 border: isSelectedForBulk
                     ? Border.all(color: theme.colorScheme.onSurface, width: 2)
@@ -422,7 +457,12 @@ class _DayCell extends StatelessWidget {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  Text('${day.day}', style: theme.textTheme.bodyMedium),
+                  Text(
+                    '${day.day}',
+                    style: isBall
+                        ? theme.textTheme.bodyMedium?.copyWith(color: const Color(0xFF3A1600), fontWeight: FontWeight.w800)
+                        : theme.textTheme.bodyMedium,
+                  ),
                   if (isSelectedForBulk)
                     Positioned(
                       right: -2,

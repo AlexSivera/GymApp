@@ -7,7 +7,7 @@ name: Build Android APK
 # don't cost anything.
 on:
   push:
-    branches: [main]
+    branches: [main, dragon-ball]
   workflow_dispatch:
 
 jobs:
@@ -26,6 +26,6 @@ jobs:
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
         with:
-          name: gymapp-apk
+          name: ${{ github.ref_name == 'dragon-ball' && 'gymz-apk' || 'gymapp-apk' }}
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 90
