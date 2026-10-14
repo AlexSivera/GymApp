@@ -42,6 +42,7 @@ p { margin: 0; }
 .prose strong { color: var(--ink); font-weight: 600; }
 .eyebrow { font-family: var(--hud); font-size: 13px; letter-spacing: .18em; text-transform: uppercase; color: var(--scouter); }
 section { padding-block: 72px 8px; display: grid; gap: 28px; }
+section > *, .pillar { min-width: 0; }
 .sec-head { display: grid; gap: 12px; }
 .sec-head .kanji { font-family: var(--display); color: var(--gi); font-size: 15px; letter-spacing: .3em; }
 a { color: var(--blue); }
@@ -69,7 +70,7 @@ a { color: var(--blue); }
 /* ---------- PILARES ---------- */
 .pillars { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
 .pillar { background: var(--night); border: 1px solid var(--line); border-radius: 6px; padding: 22px; display: grid; gap: 10px; align-content: start; }
-.pillar .big { font-family: var(--display); font-size: 34px; color: var(--gold); }
+.pillar .big { font-family: var(--display); font-size: clamp(24px, 3vw, 34px); color: var(--gold); overflow-wrap: anywhere; }
 .pillar p { color: var(--muted); font-size: 15px; }
 .pillar .tag { font-family: var(--hud); font-size: 12px; color: var(--scouter); letter-spacing: .1em; }
 
@@ -330,6 +331,87 @@ td .sm { color: var(--muted); font-size: 14px; }
 .q .rec { font-size: 14px; color: var(--gold); }
 .foot { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-family: var(--hud); font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px 24px; }
 
+/* ---------- FASE 2: EL ANIME COBRA VIDA ---------- */
+.f2-intro { display: grid; gap: 14px; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: 14px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.legend i { width: 26px; height: 18px; border-radius: 4px; border: 1.5px dashed var(--gold); background: repeating-linear-gradient(45deg, rgba(255, 210, 63, .12) 0 5px, transparent 5px 10px); }
+/* Hueco del pack: aquí va una imagen o vídeo real del anime */
+.slot { border: 1.5px dashed var(--gold); border-radius: 10px; background: repeating-linear-gradient(45deg, rgba(255, 210, 63, .10) 0 6px, rgba(10, 13, 28, .5) 6px 12px); display: grid; place-items: center; text-align: center; font-family: var(--hud); font-size: 9px; color: var(--gold); line-height: 1.3; padding: 4px; }
+.slot b { display: block; font-size: 10px; color: var(--ink); font-weight: 400; }
+.feature { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 32px; align-items: start; padding-block: 28px; border-top: 1px solid var(--line); }
+.feature:first-of-type { border-top: 0; }
+@media (max-width: 760px) { .feature { grid-template-columns: 1fr; justify-items: center; } }
+.feature .txt { display: grid; gap: 14px; align-content: start; max-width: 62ch; }
+.feature .num { font-family: var(--hud); font-size: 13px; color: var(--scouter); letter-spacing: .12em; }
+.feature h3 { font-size: 28px; }
+.feature ul { margin: 0; padding-left: 18px; color: var(--muted); display: grid; gap: 7px; font-size: 15px; }
+.feature ul b { color: var(--ink); font-weight: 600; }
+.packlist { font-family: var(--hud); font-size: 13px; color: var(--gold); background: var(--night); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; line-height: 1.7; }
+.packlist span { color: var(--muted); }
+/* Kaio asomándose */
+.peek { position: absolute; right: -14px; bottom: 150px; width: 104px; height: 128px; z-index: 5; transform: rotate(-8deg); }
+.peek .slot { width: 100%; height: 100%; border-radius: 50% 50% 12px 12px; }
+.peek-bubble { position: relative; z-index: 4; margin-right: 70px; background: var(--panel-2); border-radius: 14px 14px 3px 14px; padding: 10px 12px; font-size: 11.5px; }
+.peek-bubble .lbl { color: var(--blue); }
+.mood { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.mood span { font-family: var(--hud); font-size: 8.5px; padding: 2px 6px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); }
+.mood span.on { border-color: var(--blue); color: var(--blue); }
+/* Jefe en la cámara */
+.boss { position: relative; border-radius: 14px; overflow: hidden; background: linear-gradient(160deg, #3A0E14, #1A0A10 70%); border: 1px solid rgba(255, 61, 69, .45); padding: 10px 11px; display: grid; grid-template-columns: 1fr 86px; gap: 8px; min-height: 118px; }
+.boss .slot { height: 104px; border-color: var(--red); color: var(--red); }
+.hp { height: 9px; border-radius: 5px; background: rgba(255, 255, 255, .1); overflow: hidden; margin-top: 6px; border: 1px solid rgba(255, 255, 255, .15); }
+.hp i { display: block; height: 100%; width: var(--w); background: linear-gradient(90deg, #FF3D45, #FF8A3D); box-shadow: 0 0 8px rgba(255, 61, 69, .7); }
+.dmg { position: absolute; font-family: var(--display); color: #fff; -webkit-text-stroke: 1px var(--red); paint-order: stroke fill; }
+.crit { color: var(--gold); -webkit-text-stroke: 1px #7A2A00; }
+/* K.O. */
+.s-ko { background: radial-gradient(70% 45% at 50% 30%, #4A1010 0, #120608 70%); text-align: center; align-items: center; padding-bottom: 14px; }
+.ko { font-family: var(--display); font-size: 64px; line-height: 1; color: #fff; -webkit-text-stroke: 3px var(--red); paint-order: stroke fill; transform: rotate(-6deg); margin-top: 10px; text-shadow: 0 0 30px rgba(255, 61, 69, .8); position: relative; }
+.reward { width: 100%; border-radius: 12px; padding: 9px 11px; display: flex; gap: 10px; align-items: center; text-align: left; font-size: 11px; position: relative; }
+.reward .ic { width: 42px; height: 42px; flex: none; }
+.reward b { display: block; font-size: 12.5px; }
+/* Ataques */
+.atk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.atk { border-radius: 10px; padding: 8px; background: var(--panel); border: 1px solid var(--line); font-size: 10.5px; display: grid; gap: 5px; position: relative; }
+.atk .beam { height: 30px; border-radius: 6px; }
+.atk b { font-size: 11.5px; }
+.atk span { color: var(--muted); font-size: 9.5px; }
+.atk.on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
+.atk.lock { opacity: .55; }
+.atk.lock .beam { filter: grayscale(1) brightness(.6); }
+/* Guerrero */
+.hero-portrait { height: 210px; position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(60% 60% at 50% 70%, rgba(255, 210, 63, .45), transparent 70%), #141A3E; display: grid; place-items: end center; }
+.hero-portrait .slot { width: 62%; height: 88%; border-radius: 40% 40% 8px 8px; }
+.roster { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.roster div { aspect-ratio: 1; border-radius: 10px; font-size: 8.5px; }
+.roster .sel { outline: 2px solid var(--gold); }
+.roster .locked { border-color: var(--muted); color: var(--muted); background: rgba(255, 255, 255, .03); }
+.forms { display: flex; gap: 4px; flex-wrap: wrap; }
+.forms span { font-family: var(--hud); font-size: 8.5px; border-radius: 99px; padding: 2px 6px; border: 1px solid var(--line); color: var(--muted); }
+.forms span.on { color: var(--gold); border-color: var(--gold); }
+/* Próximo episodio */
+.s-next { background: #FFF8E8; color: #131427; text-align: center; align-items: center; justify-content: center; }
+.s-next .speedlines { background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(19, 20, 39, .5) 0deg .7deg, transparent .7deg 5deg); -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 30%, #000 70%); mask-image: radial-gradient(circle at 50% 50%, transparent 30%, #000 70%); }
+.next-title { font-family: var(--display); font-size: 26px; line-height: 1; color: var(--gi); -webkit-text-stroke: 1.5px #131427; paint-order: stroke fill; transform: rotate(-3deg); position: relative; }
+.next-card { position: relative; background: #fff; border: 2.5px solid #131427; padding: 10px; width: 100%; display: grid; gap: 4px; font-size: 11.5px; text-align: left; }
+.next-card .slot { height: 92px; border-color: #131427; color: #131427; background: repeating-linear-gradient(45deg, rgba(19, 20, 39, .08) 0 6px, transparent 6px 12px); }
+/* Anteriormente */
+.s-prev { background: #05060C; padding: 30px 0 0; }
+.s-prev .bg { position: absolute; inset: 0; }
+.s-prev .bg .slot { position: absolute; inset: 0; border-radius: 0; border: 0; opacity: .5; }
+.s-prev .shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5, 6, 12, .2), rgba(5, 6, 12, .92) 60%); }
+.stories { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 6px 12px 0; }
+.stories i { height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .25); }
+.stories i.done { background: #fff; }
+.stories i.now { background: linear-gradient(90deg, #fff 60%, rgba(255, 255, 255, .25) 60%); }
+.prev-body { position: relative; padding: 0 16px 18px; display: flex; flex-direction: column; gap: 10px; height: calc(100% - 20px); justify-content: flex-end; }
+.prev-body .t { font-family: var(--display); font-size: 22px; line-height: 1.05; }
+.prev-line { display: flex; gap: 8px; align-items: baseline; font-size: 12px; }
+.prev-line b { font-family: var(--display); font-weight: 400; font-size: 18px; color: var(--gold); min-width: 54px; }
+/* Jefes */
+.bosses td:nth-child(3) { font-family: var(--hud); white-space: nowrap; }
+.bosses td.saga-cell { font-weight: 800; white-space: nowrap; }
+
 @media (prefers-reduced-motion: reduce) {
   .aura, .radar::after { animation: none; }
 }
@@ -339,7 +421,7 @@ td .sm { color: var(--muted); font-size: 14px; }
 
 <!-- ================= HERO ================= -->
 <header class="hero">
-  <div class="eyebrow">Documento de concepto · v2 · decisiones tomadas</div>
+  <div class="eyebrow">Documento de concepto · v3 · fase 2</div>
   <h1>GYM<span class="z">Z</span></h1>
   <p class="lead">Tu app de gimnasio, reinterpretada en el universo Dragon Ball. Mismos datos, mismos entrenos y otra forma de vivirlos.</p>
   <div class="ball-row" aria-label="Las siete esferas">
@@ -870,10 +952,280 @@ td .sm { color: var(--muted); font-size: 14px; }
   </div>
 </section>
 
+<!-- ================= FASE 2 ================= -->
+<section id="fase2">
+  <div class="sec-head f2-intro">
+    <div class="sec-head kanji">十一 · FASE 2 · EL ANIME COBRA VIDA</div>
+    <h2>Jefes, ataques, guerreros y episodios</h2>
+    <p class="prose">Seis ideas elegidas para la segunda tanda: <strong>Kaio-sama asomándose</strong>, <strong>un jefe en cada combate</strong>, <strong>ataques que se desbloquean derrotando jefes</strong>, <strong>tu guerrero es un personaje</strong>, <strong>"¡En el próximo episodio!"</strong> y <strong>"Anteriormente en GymZ…"</strong>. Las piezas encajan entre sí: los jefes dan los ataques y los personajes, los personajes protagonizan los episodios y Kaio-sama lo comenta todo.</p>
+    <div class="legend"><span><i></i>Hueco para una imagen o vídeo del pack (anime o videojuego)</span><span>Los números son de ejemplo</span></div>
+  </div>
+
+  <!-- 1 · KAIO -->
+  <div class="feature">
+    <div class="phone"><div class="notch"></div>
+      <div class="scr s-base">
+        <div class="sb"><span>9:41</span><span>●●● 87%</span></div>
+        <div class="between"><div><div class="lbl">Kame House · jue 16</div><div style="font-weight:800;font-size:15px">¡Hola, Goku!</div></div><div class="av">G</div></div>
+        <div class="card" style="background:linear-gradient(160deg,#1E2A66,#151B42)"><div class="lbl hudg">▸ Nivel de poder</div><div class="pl-num" style="font-size:32px">14.286</div></div>
+        <div class="card"><div class="lbl">Esferas</div><div class="row" style="gap:5px;margin-top:7px"><div class="ball" data-n="1" style="--s:24px"></div><div class="ball" data-n="2" style="--s:24px"></div><div class="ball" data-n="3" style="--s:24px"></div><div class="ball off" data-n="4" style="--s:24px"></div><div class="ball off" data-n="5" style="--s:24px"></div><div class="ball off" data-n="6" style="--s:24px"></div><div class="ball off" data-n="7" style="--s:24px"></div></div></div>
+        <div style="flex:1"></div>
+        <div class="peek-bubble"><div class="lbl">Kaio-sama</div>Hace 6 días que no entrenas piernas. ¡Ni Bubbles se salta tantas sentadillas!<div class="mood"><span>contento</span><span class="on">serio</span><span>riendo</span><span>preocupado</span></div></div>
+        <div class="cta" style="margin-bottom:6px"><div>Entrar en la cámara<small>Hoy · Pierna · Nappa te espera</small></div><span>→</span></div>
+      </div>
+      <div class="peek"><div class="slot"><b>Kaio-sama</b>recorte PNG<br>kaio_serio</div></div>
+      <div class="nav">
+        <div class="on"><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/></svg>Kame House</div>
+        <div><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 12l5.5-5.5"/></svg>Radar</div>
+        <div><span class="ki">気</span></div>
+        <div><svg viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-6 1 1 1 2 2 3 0-3 0-5 1-7z"/></svg>Poder</div>
+        <div><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/></svg>Ficha</div>
+      </div>
+    </div>
+    <div class="txt">
+      <div class="num">IDEA 1</div>
+      <h3>Kaio-sama se asoma</h3>
+      <p class="prose">En lugar de una tarjeta con un icono, Kaio-sama entra deslizándose desde el borde derecho, inclinado como si se asomara por la esquina del móvil, y te suelta el consejo en un bocadillo.</p>
+      <ul>
+        <li><b>Cuatro caras según el mensaje:</b> contento (subes volumen, récords), serio (músculo olvidado), riendo (chistes, Zenkai), preocupado (llevas días sin entrenar).</li>
+        <li><b>Entra una vez al día</b> con un pequeño rebote y la telepatía hace ondular los bordes. Si lo tocas, se esconde y el consejo queda en una tarjeta normal.</li>
+        <li><b>Si falta la imagen</b> en el pack, se ve la esfera azul 界 de ahora.</li>
+        <li>Más adelante, el mismo sistema servirá para el resto de maestros (Roshi, Vegeta, Piccolo…).</li>
+      </ul>
+      <div class="packlist">kaio_contento.png · kaio_serio.png · kaio_riendo.png · kaio_preocupado.png<br><span>Recortes con fondo transparente, de cintura para arriba.</span></div>
+    </div>
+  </div>
+
+  <!-- 2 · JEFE -->
+  <div class="feature">
+    <div class="phone"><div class="notch"></div>
+      <div class="scr s-cam">
+        <div class="sb"><span>9:41</span><span>●●● 85%</span></div>
+        <div class="between"><div><div class="lbl" style="color:var(--gi)">Cámara de gravedad</div><div style="font-weight:800;font-size:14px">Pierna</div></div><div style="font-family:var(--hud);font-size:16px;color:var(--scouter)">21:40</div></div>
+        <div class="boss">
+          <div>
+            <div class="lbl" style="color:#FF8A8A">Saga Saiyan · jefe 2 de 3</div>
+            <div style="font-family:var(--display);font-size:20px;line-height:1;margin-top:2px">NAPPA</div>
+            <div class="hp" style="--w:37%"><i></i></div>
+            <div style="font-family:var(--hud);font-size:10px;color:#FFB3B3;margin-top:4px">VIDA 22 / 60</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:6px">Cada serie = 1 golpe · récord = crítico ×3</div>
+          </div>
+          <div class="slot"><b>Nappa</b>recorte PNG<br>jefe_nappa</div>
+          <div class="dmg" style="right:26px;top:16px;font-size:20px">-1</div>
+          <div class="dmg crit" style="right:10px;top:78px;font-size:12px">¡CRÍTICO! -3</div>
+        </div>
+        <div class="sets">
+          <div class="set head"><span>#</span><span>ANTERIOR</span><span>KG</span><span>REPS</span><span></span></div>
+          <div class="set done"><span>1</span><span style="color:var(--muted)">95 × 8</span><span>100</span><span>8</span><span class="chk">✓</span></div>
+          <div class="set done"><span>2</span><span style="color:var(--muted)">95 × 8</span><span>100</span><span>8</span><span class="chk">✓</span></div>
+          <div class="set act"><span>3</span><span style="color:var(--muted)">95 × 7</span><span>100</span><span>–</span><span class="chk"></span></div>
+        </div>
+        <div class="rest"><div class="senzu"></div><div style="font-weight:800;font-size:11px">Semilla del ermitaño</div><div class="t">0:48</div></div>
+      </div>
+      <div class="nav">
+        <div><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/></svg>Kame House</div>
+        <div><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 12l5.5-5.5"/></svg>Radar</div>
+        <div><span class="ki on">気</span></div>
+        <div><svg viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-6 1 1 1 2 2 3 0-3 0-5 1-7z"/></svg>Poder</div>
+        <div><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/></svg>Ficha</div>
+      </div>
+    </div>
+    <div class="txt">
+      <div class="num">IDEA 5</div>
+      <h3>Un jefe en cada combate</h3>
+      <p class="prose">Siempre hay un enemigo delante. Su vida <strong>no se recupera entre sesiones</strong>: los más fuertes aguantan varios entrenos, así que derrotar a Freezer es una campaña de semanas.</p>
+      <ul>
+        <li><b>Cada serie completada es un golpe</b> (−1 de vida), con sonido, vibración y el jefe temblando. Una serie que bate un récord es un <b>crítico ×3</b>.</li>
+        <li><b>La vida se mide en series</b>, no en kilos: así cuentan igual el cardio, los isométricos y las piernas que el pecho.</li>
+        <li><b>K.O. en mitad del entreno:</b> si cae, sale su derrota al momento y entra el siguiente jefe en la misma sesión.</li>
+        <li><b>Los jefes siguen las sagas:</b> la saga cambia cuando derrotas a su jefe final (Vegeta, Freezer, Cell, Buu…). Esto sustituye a la regla actual de "25 entrenos".</li>
+        <li><b>Sin pack</b> se ve el nombre del jefe sobre un fondo rojo con su kanji; con pack, su recorte.</li>
+      </ul>
+      <div class="packlist">jefe_raditz.png · jefe_nappa.png · jefe_vegeta.png … (15 jefes)<br><span>Opcional: jefe_&lt;nombre&gt;_ko.mp4 para la escena de derrota y golpe.mp3, ko.mp3.</span></div>
+    </div>
+  </div>
+
+  <!-- TABLA DE JEFES -->
+  <div class="sec-head" style="padding-top:12px">
+    <h3 style="font-size:24px">La campaña: 15 jefes</h3>
+    <p class="prose">Propuesta para retocar. Entrenando 4 días a la semana con unas 15 series por sesión (~60 series/semana), la campaña completa dura unos <strong>8 meses</strong>. Los ataques y los personajes que se unen salen de quién los usó o quién se pasó a tu bando en el anime.</p>
+  </div>
+  <div class="table-wrap">
+    <table class="bosses">
+      <thead><tr><th>Saga</th><th>Jefe</th><th>Vida</th><th>Recompensa</th></tr></thead>
+      <tbody>
+        <tr><td class="saga-cell" style="color:#6FB8FF">Saiyan</td><td>Raditz</td><td>40</td><td>Ataque <b>Makankosappo</b> · <b>Piccolo</b> se une</td></tr>
+        <tr><td></td><td>Nappa</td><td>60</td><td>Ataque <b>Kienzan</b> · <b>Krilin</b> se une</td></tr>
+        <tr><td></td><td>Vegeta</td><td>90</td><td>Ataque <b>Galick Gun</b> · <b>Vegeta</b> se une</td></tr>
+        <tr><td class="saga-cell" style="color:var(--namek)">Namek</td><td>Dodoria</td><td>60</td><td>Título «Guerrero de Namek»</td></tr>
+        <tr><td></td><td>Ginyu</td><td>90</td><td>Ataque <b>Masenko</b> · <b>Gohan</b> se une</td></tr>
+        <tr><td></td><td>Freezer</td><td>150</td><td>Ataque <b>Rayo mortal de Freezer</b> · aura dorada</td></tr>
+        <tr><td class="saga-cell" style="color:#E0B07A">Androides</td><td>Androide 19</td><td>100</td><td>Ataque <b>Burning Attack</b> · <b>Trunks</b> se une</td></tr>
+        <tr><td></td><td>Cell imperfecto</td><td>130</td><td>Ataque <b>Final Flash</b></td></tr>
+        <tr><td></td><td>Cell perfecto</td><td>180</td><td>Ataque <b>Kamehameha Padre-Hijo</b></td></tr>
+        <tr><td class="saga-cell" style="color:#FF8FC8">Buu</td><td>Dabura</td><td>130</td><td>Ataque <b>Ataque Kamikaze de Fantasmas</b> · <b>Gotenks</b> se une</td></tr>
+        <tr><td></td><td>Majin Vegeta</td><td>160</td><td>Ataque <b>Explosión final</b></td></tr>
+        <tr><td></td><td>Kid Buu</td><td>220</td><td>Ataque <b>Genkidama</b></td></tr>
+        <tr><td class="saga-cell" style="color:#B69CFF">Super</td><td>Freezer Dorado</td><td>200</td><td>Título «Resurrección F»</td></tr>
+        <tr><td></td><td>Goku Black</td><td>240</td><td>Ataque <b>Final Kamehameha</b> · <b>Vegetto</b> se une</td></tr>
+        <tr><td></td><td>Jiren</td><td>300</td><td>Ataque <b>Kamehameha Ultra Instinto</b> · final de la campaña</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 3 · K.O. Y ATAQUES -->
+  <div class="feature">
+    <div class="phone"><div class="notch"></div>
+      <div class="scr s-ko">
+        <div class="speedlines" style="opacity:.25"></div>
+        <div class="slot" style="width:100%;height:150px;margin-top:18px;border-color:var(--red);color:var(--red);position:relative"><b>Vegeta derrotado</b>imagen o vídeo<br>jefe_vegeta_ko</div>
+        <div class="ko">K.O.</div>
+        <div style="position:relative;font-weight:800;font-size:14px">¡Has derrotado a Vegeta!</div>
+        <div style="position:relative;font-family:var(--hud);font-size:10px;color:var(--muted)">FIN DE LA SAGA SAIYAN · 6 COMBATES</div>
+        <div class="reward" style="background:rgba(160,90,255,.14);border:1px solid rgba(160,90,255,.6)"><div class="ic" style="border-radius:8px;background:linear-gradient(90deg,rgba(160,90,255,.2),#B06BFF 70%,#F2E6FF)"></div><div><span class="lbl" style="color:#C9A0FF">Nuevo ataque</span><b>Galick Gun</b>Ya puedes usarlo para terminar tus combates</div></div>
+        <div class="reward" style="background:rgba(60,200,255,.1);border:1px solid rgba(60,200,255,.5)"><div class="slot ic" style="padding:0;font-size:7px"><b style="font-size:8px">Vegeta</b>retrato</div><div><span class="lbl" style="color:var(--blue)">Nuevo guerrero</span><b>Vegeta se une a ti</b>Elígelo en tu ficha</div></div>
+        <div style="flex:1"></div>
+        <div class="btn-gold" style="width:100%;text-align:center">Viajar a Namek</div>
+      </div>
+    </div>
+    <div class="txt">
+      <div class="num">IDEA 7 · CON TU CAMBIO</div>
+      <h3>Ataques que ganas en combate</h3>
+      <p class="prose">Empiezas con el Kamehameha. Cada jefe derrotado puede darte su ataque (o el que se usó contra él en el anime), y eliges cuál lanzar al terminar cada entreno. Como "Técnicas" ya son los ejercicios, aquí se llaman <strong>Ataques</strong>.</p>
+      <ul>
+        <li><b>Pantalla de K.O.:</b> el clip o la imagen de la derrota, el sello K.O. y las recompensas una a una.</li>
+        <li><b>Elegir ataque:</b> en la Ficha hay una colección con los ataques ganados y los bloqueados ("Derrota a Freezer"). El botón de terminar pasa a decir "Mantén para lanzar el Galick Gun".</li>
+        <li><b>Cada ataque tiene su color de rayo</b> (dibujado, siempre funciona) y, si hay pack, su clip a pantalla completa y su grito.</li>
+      </ul>
+      <div class="packlist">ataque_kamehameha.mp4 / .mp3 · ataque_galick_gun.mp4 / .mp3 · ataque_final_flash.mp4 / .mp3 …<br><span>Un clip corto (2–4 s) y su sonido por ataque. 13 ataques en total.</span></div>
+    </div>
+  </div>
+
+  <!-- 4 · ATAQUES (colección) + GUERRERO -->
+  <div class="feature">
+    <div class="phone"><div class="notch"></div>
+      <div class="scr s-fi">
+        <div class="sb"><span>9:41</span><span>●●● 82%</span></div>
+        <div style="font-family:var(--display);font-size:20px">Tu guerrero</div>
+        <div class="hero-portrait">
+          <div class="slot"><b>Goku</b>retrato PNG<br>guerrero_goku_ssj</div>
+          <div style="position:absolute;left:10px;top:10px;text-align:left"><div style="font-family:var(--display);font-size:18px">Goku</div><span class="pill" style="--ac:var(--gold)"><i></i>Super Saiyan · II</span></div>
+        </div>
+        <div class="forms"><span>Base</span><span>Kaioken</span><span class="on">SSJ</span><span>SSJ 2</span><span>SSJ 3</span><span>Blue</span><span>UI</span></div>
+        <div class="lbl">Tu equipo</div>
+        <div class="roster">
+          <div class="slot sel"><b>Goku</b></div>
+          <div class="slot"><b>Piccolo</b></div>
+          <div class="slot"><b>Krilin</b></div>
+          <div class="slot locked"><b>Vegeta</b>🔒 jefe 3</div>
+          <div class="slot locked">Gohan</div>
+          <div class="slot locked">Trunks</div>
+          <div class="slot locked">Gotenks</div>
+          <div class="slot locked">Vegetto</div>
+        </div>
+        <div class="lbl">Ataque final</div>
+        <div class="atk-grid">
+          <div class="atk on"><div class="beam" style="background:linear-gradient(90deg,rgba(60,200,255,.15),#3CC8FF 70%,#E6FAFF)"></div><b>Kamehameha</b><span>Equipado</span></div>
+          <div class="atk"><div class="beam" style="background:linear-gradient(90deg,rgba(255,210,63,.15),#FFD23F 60%,#B06BFF)"></div><b>Makankosappo</b><span>Raditz ✓</span></div>
+        </div>
+      </div>
+      <div class="nav">
+        <div><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/></svg>Kame House</div>
+        <div><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 12l5.5-5.5"/></svg>Radar</div>
+        <div><span class="ki">気</span></div>
+        <div><svg viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-6 1 1 1 2 2 3 0-3 0-5 1-7z"/></svg>Poder</div>
+        <div class="on"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/></svg>Ficha</div>
+      </div>
+    </div>
+    <div class="txt">
+      <div class="num">IDEA 15</div>
+      <h3>Tu guerrero es un personaje</h3>
+      <p class="prose">Empiezas con Goku y los jefes van sumando personajes a tu equipo. El que elijas es tu avatar, y <strong>su retrato cambia con tu transformación real</strong>: cuando tu media llega a Super Saiyan, tu Goku se pone rubio en la Kame House, en la Ficha y en Poder.</p>
+      <ul>
+        <li><b>Retrato por forma:</b> base, Kaioken, SSJ, SSJ 2, SSJ 3, Blue y Ultra Instinto. Si un personaje no tiene una forma (Piccolo no es saiyan), se usa la más alta que tenga.</li>
+        <li><b>Nuevo momento:</b> cuando tu media sube de forma, tu guerrero se transforma a pantalla completa (además de la transformación por ejercicio que ya existe).</li>
+        <li>Es la primera versión del <b>creador de avatar</b> que apuntamos, con arte que ya existe. Sin pack, sigue la inicial con aura de ahora.</li>
+      </ul>
+      <div class="packlist">guerrero_goku_base.png · guerrero_goku_ssj.png · guerrero_goku_ssj2.png … guerrero_vegeta_ssj.png …<br><span>Retratos con fondo transparente. 9 personajes; cada uno con las formas que tenga.</span></div>
+    </div>
+  </div>
+
+  <!-- 5 · PRÓXIMO EPISODIO -->
+  <div class="feature">
+    <div class="phone"><div class="notch"></div>
+      <div class="scr s-next">
+        <div class="speedlines"></div>
+        <div class="next-title">¡En el próximo<br>episodio de GymZ!</div>
+        <div class="next-card">
+          <div class="slot"><b>Escena del anime</b>imagen al azar<br>escena_07</div>
+          <div style="font-weight:800;font-size:13px">«¡Nappa, a punto de caer!»</div>
+          <div>A Nappa le quedan <b>22 de vida</b>. ¿Acabará Goku con él el jueves en la Cápsula Nº 02, Tirón?</div>
+        </div>
+        <div style="position:relative;font-family:var(--display);font-size:16px;transform:rotate(-2deg)">¡No te lo pierdas!</div>
+        <div style="position:relative;font-family:var(--hud);font-size:10px;color:#5b5f7a">🔊 voz del narrador · toca para saltar</div>
+      </div>
+    </div>
+    <div class="txt">
+      <div class="num">IDEA 10</div>
+      <h3>"¡En el próximo episodio!"</h3>
+      <p class="prose">Al pulsar "Volver a la Kame House" tras un combate, aparece durante unos 4 segundos el avance del siguiente "capítulo", con la voz del narrador, como al final de cada episodio del anime.</p>
+      <ul>
+        <li><b>El título y el texto salen de tus datos:</b> el jefe actual y la vida que le queda, tu próxima sesión planificada, si estás a punto de conseguir una esfera o de cambiar de saga.</li>
+        <li><b>Frases con plantillas</b> para que no se repita: "¡Nappa, a punto de caer!", "¡La última esfera!", "¡Rumbo a Namek!".</li>
+        <li><b>Se puede saltar</b> con un toque y desactivar en Ajustes.</li>
+      </ul>
+      <div class="packlist">proximo_episodio.mp3 (narrador) · escena_01.jpg … escena_20.jpg<br><span>Las escenas son un "cajón" de capturas del anime que se usan al azar aquí y en "Anteriormente".</span></div>
+    </div>
+  </div>
+
+  <!-- 6 · ANTERIORMENTE -->
+  <div class="feature">
+    <div class="phone"><div class="notch"></div>
+      <div class="scr s-prev">
+        <div class="bg"><div class="slot"><b>Escena del anime</b>escena_12</div></div>
+        <div class="shade"></div>
+        <div class="stories"><i class="done"></i><i class="now"></i><i></i><i></i></div>
+        <div class="prev-body">
+          <div style="font-family:var(--hud);font-size:10px;color:var(--gold)">ANTERIORMENTE EN GYMZ… · SEMANA DEL 6 AL 12 OCT</div>
+          <div class="t">Goku entrenó como nunca en la cámara de gravedad</div>
+          <div class="prev-line"><b>4</b>combates de 4 · <span style="color:var(--ball)">esfera de 3 estrellas</span></div>
+          <div class="prev-line"><b>58</b>golpes a Nappa (le quedan 22 de vida)</div>
+          <div class="prev-line"><b>2</b>límites superados: sentadilla y peso muerto</div>
+          <div class="prev-line"><b>112 %</b>Genkidama: la más grande del mes</div>
+          <div style="font-size:11px;color:var(--muted)">Toca para seguir · 🔊 narrador</div>
+        </div>
+      </div>
+    </div>
+    <div class="txt">
+      <div class="num">IDEA 9</div>
+      <h3>"Anteriormente en GymZ…"</h3>
+      <p class="prose">La primera vez que abres la app cada semana, un resumen de la semana anterior en formato historias (como las de Instagram): 4 pantallas que pasan solas, sobre escenas del anime, con la voz del narrador al principio.</p>
+      <ul>
+        <li><b>1 · Portada:</b> "Anteriormente en GymZ…" y una frase según cómo fue la semana (épica, normal o floja, con humor si fue floja).</li>
+        <li><b>2 · Combate:</b> entrenos hechos, esfera conseguida o perdida, Genkidama.</li>
+        <li><b>3 · Campaña:</b> golpes al jefe, jefes derrotados, ataques o guerreros ganados.</li>
+        <li><b>4 · Esta semana:</b> el plan del radar y el objetivo de la próxima esfera.</li>
+        <li>Se puede volver a ver desde la Kame House y desactivar en Ajustes.</li>
+      </ul>
+      <div class="packlist">anteriormente.mp3 (narrador) · reutiliza escena_01 … escena_20</div>
+    </div>
+  </div>
+
+  <div class="callout" style="border-color:var(--gold);background:linear-gradient(135deg,rgba(255,210,63,.08),transparent 60%)">
+    <div class="eyebrow" style="color:var(--gold)">Para decidir antes de programar</div>
+    <ul style="margin:0;padding-left:18px;color:var(--muted);display:grid;gap:8px;font-size:15px">
+      <li><b style="color:var(--ink)">La saga cambia al derrotar a su jefe final</b> en lugar de por número de entrenos. (Mi propuesta: sí, da sentido a la campaña.)</li>
+      <li><b style="color:var(--ink)">La campaña empieza en Raditz</b> aunque importes tu historial de Machoke. (Mi propuesta: sí, empezar de cero es parte de la gracia; tus rangos y poder sí se conservan.)</li>
+      <li><b style="color:var(--ink)">La vida de los jefes se mide en series</b> y un récord es un crítico ×3. (Mi propuesta: sí.)</li>
+      <li><b style="color:var(--ink)">La tabla de jefes y recompensas</b>: cámbiala a tu gusto (jefes, orden, ataques, quién se une).</li>
+    </ul>
+  </div>
+</section>
+
 <!-- ================= CONSTRUCCION ================= -->
 <section id="construccion">
   <div class="sec-head">
-    <div class="sec-head kanji">十一 · CÓMO SE CONSTRUYE</div>
+    <div class="sec-head kanji">十二 · CÓMO SE CONSTRUYE</div>
     <h2>Lo que cambia y lo que no</h2>
     <p class="prose"><strong>No cambia:</strong> tus datos, la base de datos, los cálculos de rangos, récords, calorías y progresión, los GIF de los ejercicios y el modo sin conexión. <strong>Cambia:</strong> el aspecto, los textos y unas capas nuevas que se calculan a partir de lo que ya existe. Todo vive en la rama <code style="font-family:var(--hud);color:var(--gold)">dragon-ball</code>; la app que usas ahora no se toca y la web publicada solo se actualiza desde main.</p>
   </div>
@@ -891,7 +1243,7 @@ td .sm { color: var(--muted); font-size: 14px; }
 <!-- ================= DECISIONES ================= -->
 <section id="decisiones">
   <div class="sec-head">
-    <div class="sec-head kanji">十二 · DECIDIDO</div>
+    <div class="sec-head kanji">十三 · DECIDIDO</div>
     <h2>Lo que ya está claro</h2>
   </div>
   <div class="qs">
@@ -907,7 +1259,7 @@ td .sm { color: var(--muted); font-size: 14px; }
 <!-- ================= FUTURO ================= -->
 <section id="futuro">
   <div class="sec-head">
-    <div class="sec-head kanji">十三 · PARA EL FUTURO</div>
+    <div class="sec-head kanji">十四 · PARA EL FUTURO</div>
     <h2>Creador de guerrero</h2>
     <p class="prose">Un creador de avatar para la Ficha de guerrero. La gracia está en que <strong>tu avatar se transforma contigo</strong>: cuando tu media de rangos llega a Super Saiyan, su pelo se vuelve dorado y su aura cambia. No es un dibujo fijo, es tu progreso hecho personaje.</p>
   </div>
@@ -916,7 +1268,7 @@ td .sm { color: var(--muted); font-size: 14px; }
     <div class="pillar"><div class="tag">EVOLUCIONAR</div><div class="big" style="font-size:26px;color:var(--blue)">Se transforma solo</div><p>El pelo, el aura y los ojos siguen a tu transformación real. Aparece en la Kame House, en la Ficha y en la pantalla de "¡Transformación!".</p></div>
     <div class="pillar"><div class="tag">DESBLOQUEAR</div><div class="big" style="font-size:26px;color:var(--ball)">Premios</div><p>Rastreador, caparazón de tortuga con pesas, capa de Piccolo, cola… Se ganan con deseos de Shenlong, sagas y récords.</p></div>
   </div>
-  <div class="foot"><span>GymZ · documento de concepto v2</span><span>Experimento en la rama dragon-ball</span><span>Maquetas con datos de ejemplo</span></div>
+  <div class="foot"><span>GymZ · documento de concepto v3</span><span>Experimento en la rama dragon-ball</span><span>Maquetas con datos de ejemplo</span></div>
 </section>
 
 </div>
