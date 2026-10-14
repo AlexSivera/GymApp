@@ -7,6 +7,8 @@ import '../../../core/utils/weight_unit_provider.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../dashboard/providers/dashboard_providers.dart';
 import '../../insights/screens/insights_screen.dart';
+import '../../z/screens/media_pack_screen.dart';
+import '../../z/widgets/warrior_card.dart';
 import '../providers/profile_providers.dart';
 import 'about_screen.dart';
 import 'body_weight_screen.dart';
@@ -20,9 +22,7 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final unit = ref.watch(weightUnitProvider);
-    final name = ref.watch(userSettingsProvider).valueOrNull?.name?.trim();
 
     final bodyWeightLog = ref.watch(latestBodyWeightProvider).valueOrNull;
     final totalWorkouts = ref.watch(totalWorkoutsCompletedProvider).valueOrNull;
@@ -33,46 +33,14 @@ class ProfileScreen extends ConsumerWidget {
     final bodyWeightText = bodyWeightLog == null ? null : formatWeight(bodyWeightLog.weightKg, unit);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Perfil')),
+      appBar: AppBar(title: const Text('Ficha de guerrero')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.xl),
         children: [
-          // Who this profile is: an initial avatar + name, instead of a
-          // small grey "Hola, X" line that read like leftover copy.
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.18),
-                child: Text(
-                  name == null || name.isEmpty ? '?' : name.characters.first.toUpperCase(),
-                  style: theme.textTheme.headlineMedium?.copyWith(color: theme.colorScheme.primary),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name == null || name.isEmpty ? 'Tu perfil' : name,
-                      style: theme.textTheme.headlineMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (totalWorkouts != null)
-                      Text(
-                        totalWorkouts == 0
-                            ? 'Aún sin entrenamientos'
-                            : '$totalWorkouts entrenamiento${totalWorkouts == 1 ? '' : 's'} completado${totalWorkouts == 1 ? '' : 's'}',
-                        style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
+          const WarriorCard(),
+          const SizedBox(height: AppSpacing.md),
+          const SagaProgressCard(),
+          const SizedBox(height: AppSpacing.md),
 
           // Resumen — a quick read of where things stand, not a set of
           // destinations. Three plain numbers instead of two big icon cards,
@@ -83,7 +51,7 @@ class ProfileScreen extends ConsumerWidget {
               children: [
                 Expanded(child: _SummaryMetric(value: bodyWeightText ?? '—', label: 'Peso')),
                 _SummaryDivider(),
-                Expanded(child: _SummaryMetric(value: totalWorkouts?.toString() ?? '—', label: 'Entrenos')),
+                Expanded(child: _SummaryMetric(value: totalWorkouts?.toString() ?? '—', label: 'Combates')),
                 _SummaryDivider(),
                 Expanded(
                   child: _SummaryMetric(
@@ -95,8 +63,10 @@ class ProfileScreen extends ConsumerWidget {
             ),
           ),
 
+          const SizedBox(height: AppSpacing.md),
+          const WishRewardsCard(),
           const SizedBox(height: AppSpacing.xxl),
-          _ProfileSectionHeader('Progreso'),
+          _ProfileSectionHeader('Entrenamiento'),
           _ProfileSection(tiles: [
             _ProfileTile(
               icon: Icons.monitor_weight_outlined,
@@ -107,7 +77,7 @@ class ProfileScreen extends ConsumerWidget {
             ),
             _ProfileTile(
               icon: Icons.emoji_events_outlined,
-              title: 'Récords personales',
+              title: 'Técnicas dominadas',
               subtitle: records == null
                   ? null
                   : '${records.length} récord${records.length == 1 ? '' : 's'}',
@@ -139,13 +109,21 @@ class ProfileScreen extends ConsumerWidget {
           _ProfileSection(tiles: [
             _ProfileTile(
               icon: Icons.settings_outlined,
-              title: 'Configuración',
+              title: 'Ajustes',
               onTap: () =>
                   Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
             ),
             _ProfileTile(
+              icon: Icons.auto_awesome_motion_outlined,
+              title: 'Pack de recursos',
+              subtitle: 'Imágenes, vídeos y sonidos del anime',
+              onTap: () =>
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MediaPackScreen())),
+            ),
+            _ProfileTile(
               icon: Icons.backup_outlined,
-              title: 'Copia de seguridad',
+              title: 'Cápsula de respaldo',
+              subtitle: 'Exportar o importar tus datos',
               onTap: () => Navigator.of(context)
                   .push(MaterialPageRoute(builder: (_) => const ImportExportScreen())),
             ),

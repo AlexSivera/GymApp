@@ -78,6 +78,10 @@ dependencies:
   # Some Flutter/package widgets reference the Cupertino icon font; without
   # it the web build warns about (and would draw) missing glyphs.
   cupertino_icons: ^1.0.8
+  archive: ^4.5.2
+  path_provider: ^2.1.6
+  video_player: ^2.14.1
+  audioplayers: ^6.8.1
 
 dev_dependencies:
   flutter_test:
@@ -150,6 +154,9 @@ flutter:
     - assets/body/
     - assets/body/masks/front/
     - assets/body/masks/back/
+    # GymZ: stock photos shown until the user imports their own media pack
+    # (see lib/services/z/media_pack.dart and docs/dragon-ball/).
+    - assets/z/stock/
 
   # Tipografías de marca, incluidas en la app (antes se descargaban de
   # Google Fonts al arrancar: sin conexión no cargaban y el texto saltaba de
@@ -167,6 +174,14 @@ flutter:
           weight: 700
         - asset: assets/fonts/Outfit-800.ttf
           weight: 800
+    # GymZ display face (subset: Latin, Spanish accents and the few kanji the
+    # app draws) and the scouter read-out face. Both OFL, from Google Fonts.
+    - family: DelaGothicOne
+      fonts:
+        - asset: assets/fonts/DelaGothicOne-Regular.ttf
+    - family: ShareTechMono
+      fonts:
+        - asset: assets/fonts/ShareTechMono-Regular.ttf
     - family: PlusJakartaSans
       fonts:
         - asset: assets/fonts/PlusJakartaSans-400.ttf

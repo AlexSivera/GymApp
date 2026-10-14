@@ -2,19 +2,21 @@ import 'package:flutter/material.dart';
 
 import '../../../services/ranking_engine/rank_tier.dart';
 
+// Aura color of each transformation.
 const rankTierColors = <RankTier, Color>{
-  RankTier.hierro: Color(0xFF8D8D93),
-  RankTier.bronce: Color(0xFFB2703B),
-  RankTier.plata: Color(0xFFC7CBD1),
-  RankTier.oro: Color(0xFFE7B93A),
-  RankTier.platino: Color(0xFF7FD9CE),
-  RankTier.esmeralda: Color(0xFF34D399),
-  RankTier.diamante: Color(0xFF5EC8F2),
-  RankTier.maestro: Color(0xFFC77DFF),
+  RankTier.hierro: Color(0xFFC9CFE6),
+  RankTier.bronce: Color(0xFFF2F6FF),
+  RankTier.plata: Color(0xFFFF3D45),
+  RankTier.oro: Color(0xFFFFD23F),
+  RankTier.platino: Color(0xFFFFE066),
+  RankTier.esmeralda: Color(0xFFFFB81F),
+  RankTier.diamante: Color(0xFF3CC8FF),
+  RankTier.maestro: Color(0xFFE6ECF7),
 };
 
-// Hexagonal badge for a Rank — a single consistent shape, colored by tier,
-// with the I/II/III sub-step in the middle.
+// A ki orb for a Rank: a dark core ringed by its transformation's aura,
+// glowing harder with each grade, with the grade (I/II/III, or ×2… for
+// Kaioken) in the middle.
 class RankBadge extends StatelessWidget {
   const RankBadge({super.key, required this.rank, this.size = 40});
 
@@ -28,11 +30,16 @@ class RankBadge extends StatelessWidget {
       width: size,
       height: size,
       child: CustomPaint(
-        painter: _HexagonPainter(color: color),
+        painter: _KiOrbPainter(color: color, intensity: rank.subTier / 3),
         child: Center(
           child: Text(
-            const ['', 'I', 'II', 'III'][rank.subTier],
-            style: TextStyle(fontSize: size * 0.32, fontWeight: FontWeight.w800, color: Colors.white),
+            rankGradeLabel(rank.tier, rank.subTier),
+            style: TextStyle(
+              fontSize: size * 0.3,
+              fontWeight: FontWeight.w800,
+              color: color,
+              shadows: [Shadow(color: color, blurRadius: size * 0.2)],
+            ),
           ),
         ),
       ),
@@ -40,38 +47,42 @@ class RankBadge extends StatelessWidget {
   }
 }
 
-class _HexagonPainter extends CustomPainter {
-  _HexagonPainter({required this.color});
+class _KiOrbPainter extends CustomPainter {
+  _KiOrbPainter({required this.color, required this.intensity});
   final Color color;
+  final double intensity;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final path = Path()
-      ..moveTo(w * 0.5, 0)
-      ..lineTo(w, h * 0.25)
-      ..lineTo(w, h * 0.75)
-      ..lineTo(w * 0.5, h)
-      ..lineTo(0, h * 0.75)
-      ..lineTo(0, h * 0.25)
-      ..close();
+    final center = size.center(Offset.zero);
+    final radius = size.shortestSide / 2;
 
-    final fillPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [color.withValues(alpha: 0.95), color.withValues(alpha: 0.6)],
-      ).createShader(Rect.fromLTWH(0, 0, w, h));
-    canvas.drawPath(path, fillPaint);
-
-    final borderPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.25)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    canvas.drawPath(path, borderPaint);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = color.withValues(alpha: 0.25 + 0.3 * intensity)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, radius * (0.18 + 0.2 * intensity)),
+    );
+    canvas.drawCircle(
+      center,
+      radius * 0.84,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [const Color(0xFF0A0D1C), Color.lerp(const Color(0xFF0A0D1C), color, 0.28)!],
+        ).createShader(Rect.fromCircle(center: center, radius: radius * 0.84)),
+    );
+    canvas.drawCircle(
+      center,
+      radius * 0.84,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = radius * 0.1,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant _HexagonPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _KiOrbPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.intensity != intensity;
 }

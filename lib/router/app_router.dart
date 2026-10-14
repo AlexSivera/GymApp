@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../core/theme/app_motion.dart';
+import '../core/theme/z_palette.dart';
 import '../features/calendar/screens/calendar_screen.dart';
 import '../features/dashboard/providers/dashboard_scroll.dart';
 import '../features/dashboard/screens/dashboard_screen.dart';
@@ -12,6 +13,8 @@ import '../features/profile/screens/profile_screen.dart';
 import '../features/ranking/screens/ranking_screen.dart';
 import '../features/workout_session/providers/workout_session_providers.dart';
 import '../features/workout_session/screens/workout_branch_screen.dart';
+import '../features/z/providers/z_providers.dart';
+import '../services/z/z_sound.dart';
 import 'workout_branch_navigator_key.dart';
 
 // Branch indices — used to keep the shell's nav-bar wiring and the route
@@ -121,6 +124,10 @@ class _AppShellState extends ConsumerState<_AppShell> {
     // Browsers drop a screen wake lock whenever the page is hidden (switching
     // apps, locking the phone), so it's re-requested on every return.
     _lifecycle = AppLifecycleListener(onResume: () => _syncWakeLock(ref.read(activeSessionProvider).valueOrNull));
+    // Sound effects are played from plain callbacks, so the on/off switch is
+    // mirrored into ZSound instead of every caller reading it.
+    ref.listenManual(zStateValueProvider, (_, state) => ZSound.enabled = state.soundEnabled,
+        fireImmediately: true);
   }
 
   @override
@@ -179,13 +186,13 @@ class _BottomNav extends StatelessWidget {
   final ValueChanged<int> onSelect;
 
   static const _fixedDestinations = [
-    _NavItem(_dashboardBranch, Icons.home_outlined, Icons.home, 'Inicio'),
-    _NavItem(_calendarBranch, Icons.calendar_today_outlined, Icons.calendar_today, 'Planificar'),
-    _NavItem(_rankingBranch, Icons.military_tech_outlined, Icons.military_tech, 'Rangos'),
-    _NavItem(_profileBranch, Icons.person_outline, Icons.person, 'Perfil'),
+    _NavItem(_dashboardBranch, Icons.cottage_outlined, Icons.cottage, 'Kame House'),
+    _NavItem(_calendarBranch, Icons.radar_outlined, Icons.radar, 'Radar'),
+    _NavItem(_rankingBranch, Icons.local_fire_department_outlined, Icons.local_fire_department, 'Poder'),
+    _NavItem(_profileBranch, Icons.badge_outlined, Icons.badge, 'Ficha'),
   ];
   static const _workoutItem =
-      _NavItem(_workoutBranch, Icons.fitness_center_outlined, Icons.fitness_center, 'Entreno');
+      _NavItem(_workoutBranch, Icons.fitness_center_outlined, Icons.fitness_center, 'Cámara');
 
   @override
   Widget build(BuildContext context) {
@@ -200,15 +207,52 @@ class _BottomNav extends StatelessWidget {
       onDestinationSelected: (uiIndex) => onSelect(items[uiIndex].branchIndex),
       destinations: [
         for (final item in items)
-          NavigationDestination(
-            icon: AnimatedSwitcher(
-              duration: AppMotion.fast,
-              child: Icon(item.icon, key: ValueKey(item.branchIndex)),
+          if (item.branchIndex == _workoutBranch)
+            // The training room shows up mid-session as a glowing ki orb.
+            NavigationDestination(
+              icon: const _KiOrb(selected: false),
+              selectedIcon: const _KiOrb(selected: true),
+              label: item.label,
+            )
+          else
+            NavigationDestination(
+              icon: AnimatedSwitcher(
+                duration: AppMotion.fast,
+                child: Icon(item.icon, key: ValueKey(item.branchIndex)),
+              ),
+              selectedIcon: Icon(item.selectedIcon, color: ZColors.gold),
+              label: item.label,
             ),
-            selectedIcon: Icon(item.selectedIcon),
-            label: item.label,
-          ),
       ],
+    );
+  }
+}
+
+class _KiOrb extends StatelessWidget {
+  const _KiOrb({required this.selected});
+
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 34,
+      height: 34,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const RadialGradient(
+          center: Alignment(-0.2, -0.3),
+          colors: [Color(0xFFFF9A4D), ZColors.gi, ZColors.giDeep],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (selected ? ZColors.gold : ZColors.gi).withValues(alpha: 0.7),
+            blurRadius: selected ? 16 : 10,
+          ),
+        ],
+      ),
+      child: Text('気', style: ZText.display(size: 16)),
     );
   }
 }

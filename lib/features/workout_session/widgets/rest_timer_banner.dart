@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/z_palette.dart';
 import '../providers/rest_timer_controller.dart';
 
 // Persistent countdown banner driven by [restTimerControllerProvider]. Ticks
@@ -57,8 +58,10 @@ class _RestTimerBannerState extends ConsumerState<RestTimerBanner> {
     final progress = restState.totalSeconds <= 0 ? 0.0 : (remaining / restState.totalSeconds).clamp(0.0, 1.0);
     final controller = ref.read(restTimerControllerProvider.notifier);
 
+    // La semilla del ermitaño: the rest is a senzu bean slowly being eaten
+    // (it shrinks with the time left).
     return Material(
-      color: theme.colorScheme.surface,
+      color: Color.alphaBlend(ZColors.senzu.withValues(alpha: 0.10), theme.colorScheme.surface),
       child: SafeArea(
         top: false,
         child: Column(
@@ -67,10 +70,22 @@ class _RestTimerBannerState extends ConsumerState<RestTimerBanner> {
             LinearProgressIndicator(
               value: progress,
               minHeight: 3,
+              color: ZColors.senzu,
               backgroundColor: theme.colorScheme.surfaceContainerHighest,
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.sm),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _SenzuBean(scale: 0.55 + 0.45 * progress),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text('SEMILLA DEL ERMITAÑO', style: ZText.hud(size: 11, color: ZColors.senzu)),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.xs, AppSpacing.md, AppSpacing.sm),
               child: Row(
                 children: [
                   _AdjustChip(label: '-15', onTap: () => controller.adjustSeconds(-15)),
@@ -78,7 +93,7 @@ class _RestTimerBannerState extends ConsumerState<RestTimerBanner> {
                     child: Text(
                       label,
                       textAlign: TextAlign.center,
-                      style: theme.textTheme.displaySmall?.copyWith(fontSize: 30),
+                      style: ZText.hud(size: 32, color: ZColors.ink, spacing: 2),
                     ),
                   ),
                   _AdjustChip(label: '+15', onTap: () => controller.adjustSeconds(15)),
@@ -91,6 +106,38 @@ class _RestTimerBannerState extends ConsumerState<RestTimerBanner> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SenzuBean extends StatelessWidget {
+  const _SenzuBean({required this.scale});
+
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 26,
+      height: 18,
+      child: Center(
+        child: Transform.rotate(
+          angle: -0.45,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 400),
+            width: 24 * scale,
+            height: 15 * scale,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: const RadialGradient(
+                center: Alignment(-0.3, -0.35),
+                colors: [Color(0xFFC7F29A), ZColors.senzu, Color(0xFF3F7E24)],
+              ),
+              boxShadow: [BoxShadow(color: ZColors.senzu.withValues(alpha: 0.5), blurRadius: 8)],
+            ),
+          ),
         ),
       ),
     );

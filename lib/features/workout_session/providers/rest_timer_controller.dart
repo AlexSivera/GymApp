@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/platform/web_bridge.dart';
 import '../../../services/notifications/notification_service.dart';
+import '../../../services/z/z_sound.dart';
 
 class RestTimerState {
   const RestTimerState({required this.totalSeconds, this.endTime, this.pausedRemaining});
@@ -113,6 +114,7 @@ class RestTimerController extends StateNotifier<RestTimerState> {
     // The PWA can't schedule a system notification like the native build
     // does, so it beeps and vibrates instead (no-op on native).
     playRestFinishedAlert();
+    ZSound.play('rest_done');
     state = const RestTimerState(totalSeconds: 0);
   }
 

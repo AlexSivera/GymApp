@@ -8,7 +8,13 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/exercise_thumbnail.dart';
 import '../../../services/ranking_engine/rank_tier.dart';
+import '../../../core/theme/z_palette.dart';
 import '../../exercise_library/providers/exercise_library_providers.dart';
+import '../../z/providers/z_providers.dart';
+import '../../z/widgets/kame_house_cards.dart';
+import '../../z/widgets/over_9000.dart';
+import '../../z/widgets/scouter_number.dart';
+import '../../z/widgets/z_visuals.dart';
 import '../providers/ranking_providers.dart';
 import '../widgets/body_diagram.dart';
 import '../widgets/body_masks.dart';
@@ -23,6 +29,7 @@ class RankingScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final predicted = ref.watch(overallPredictedRankProvider);
+    final reading = ref.watch(powerReadingProvider);
     final muscleRanks = ref.watch(muscleRanksProvider);
     final available = ref.watch(availableMusclesProvider);
     // Every muscle of the body diagram is always listed (unranked ones as
@@ -34,40 +41,48 @@ class RankingScreen extends ConsumerWidget {
     };
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Rangos')),
+      appBar: AppBar(title: const Text('Poder')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
-          AppCard(
-            child: Column(
+          const Over9000Watcher(),
+          ScouterFrame(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('RANGO ESTIMADO',
-                              style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 0.5)),
-                          const SizedBox(height: AppSpacing.xs),
-                          Text(predicted?.label ?? 'Sin rango', style: theme.textTheme.headlineMedium),
-                          const SizedBox(height: AppSpacing.xs),
-                          Text(
-                            predicted == null
-                                ? 'Termina un entrenamiento para empezar a ver tu rango.'
-                                : 'Estimación a partir de tu propio progreso — no te compara con otras personas.',
-                            style: theme.textTheme.bodySmall
-                                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(reading == null ? '▸ ESPERANDO LECTURA…' : '▸ NIVEL DE PODER', style: ZText.hud(size: 11)),
+                      const SizedBox(height: AppSpacing.xs),
+                      if (reading == null)
+                        Text('Sin lectura', style: theme.textTheme.headlineMedium)
+                      else
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: ScouterNumber(
+                            value: reading.level,
+                            style: ZText.hud(size: 40, color: const Color(0xFFE6FFEE), spacing: 1).copyWith(
+                              shadows: const [Shadow(color: ZColors.scouter, blurRadius: 12)],
+                            ),
                           ),
-                        ],
+                        ),
+                      const SizedBox(height: AppSpacing.sm),
+                      if (predicted != null) AuraPill(tier: predicted.tier, label: predicted.label),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        predicted == null
+                            ? 'Termina un combate para que el rastreador lea tu poder.'
+                            : 'Media de la transformación de tus músculos. Solo se compara contigo mismo.',
+                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    RankBadge(rank: predicted ?? const Rank(RankTier.hierro, 1), size: 56),
-                  ],
+                    ],
+                  ),
                 ),
+                const SizedBox(width: AppSpacing.md),
+                RankBadge(rank: predicted ?? const Rank(RankTier.hierro, 1), size: 56),
               ],
             ),
           ),
@@ -81,7 +96,7 @@ class RankingScreen extends ConsumerWidget {
               child: BodyDiagram(colorsByMuscle: colorsByMuscle),
             ),
             const SizedBox(height: AppSpacing.xl),
-            Text('Rangos por músculo', style: theme.textTheme.titleLarge),
+            Text('Transformación por músculo', style: theme.textTheme.titleLarge),
             const SizedBox(height: AppSpacing.md),
             for (final MapEntry(key: group, value: muscles) in grouped.entries)
               Padding(
@@ -119,14 +134,14 @@ class _RankingEmptyState extends StatelessWidget {
               color: colors.accent.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.military_tech_rounded, color: colors.accent, size: 32),
+            child: Icon(Icons.local_fire_department_rounded, color: colors.accent, size: 32),
           ),
           const SizedBox(height: AppSpacing.lg),
-          Text('Aquí verás tu progreso por músculo', style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
+          Text('Aquí brillará tu aura, músculo a músculo', style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Cada ejercicio que completes te acerca a un rango, de Hierro a Maestro. '
-            'Termina tu primer entrenamiento para desbloquear el primero.',
+            'Cada técnica que completes te acerca a una transformación, de Terrícola a Ultra Instinto. '
+            'Termina tu primer combate para que el rastreador te lea.',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
@@ -135,7 +150,7 @@ class _RankingEmptyState extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () => context.go('/calendar'),
-              child: const Text('Ir a mis rutinas'),
+              child: const Text('Ir a mis cápsulas'),
             ),
           ),
         ],
@@ -198,7 +213,7 @@ class _RankLine extends StatelessWidget {
     return Text.rich(
       TextSpan(children: [
         TextSpan(
-          text: rank?.label.toUpperCase() ?? 'SIN RANGO',
+          text: rank?.label.toUpperCase() ?? 'SIN LECTURA',
           style: base?.copyWith(
             color: tierColor ?? theme.colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w600,
@@ -396,14 +411,14 @@ class _MuscleDetailSheet extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text('Rangos de tus ejercicios',
+            Text('Transformación de tus técnicas',
                 style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
             const SizedBox(height: AppSpacing.sm),
             if (exercises.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                 child: Text(
-                  'Todavía no has clasificado ningún ejercicio de este grupo.',
+                  'El rastreador todavía no ha leído ninguna técnica de este grupo.',
                   style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),
               )

@@ -19,7 +19,7 @@ class GymApp extends ConsumerWidget {
     // (no-op on native).
     setBrowserThemeColor(AppTheme.colorsFor(themeMode).background);
     return MaterialApp.router(
-      title: 'Machoke',
+      title: 'GymZ',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.themeFor(themeMode),
       routerConfig: router,

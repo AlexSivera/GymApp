@@ -2,23 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/z_palette.dart';
 import '../../../core/widgets/error_retry_card.dart';
 import '../../../core/widgets/fade_slide_in.dart';
 import '../../../core/widgets/shimmer_box.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../services/notifications/reminder_scheduler.dart';
+import '../../z/providers/z_providers.dart';
+import '../../z/widgets/kame_house_cards.dart';
+import '../../z/widgets/over_9000.dart';
+import '../../z/widgets/z_media.dart';
 import '../providers/dashboard_providers.dart';
 import '../providers/dashboard_scroll.dart';
 import '../widgets/calories_today_card.dart';
-import '../widgets/dashboard_header.dart';
 import '../widgets/hero_today_card.dart';
-import '../widgets/insight_of_day_card.dart';
 import '../widgets/next_session_card.dart';
-import '../widgets/progress_card.dart';
 import '../widgets/recent_activity_card.dart';
-import '../widgets/streak_card.dart';
-import '../widgets/weekly_goal_card.dart';
 
+// La Kame House: the scouter reading, today's training, the esferas and the
+// Genkidama of the week, and Kaio-sama's tip — under the sky of the saga
+// the user is in.
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
@@ -37,113 +40,131 @@ class DashboardScreen extends ConsumerWidget {
     final todaysSession = ref.watch(todaysSessionProvider);
     final recentActivity = ref.watch(recentActivityProvider);
     final nextSession = ref.watch(nextPlannedSessionProvider);
-    final streak = ref.watch(workoutStreakProvider);
     final caloriesToday = ref.watch(caloriesBurnedTodayProvider);
-    final weeklyGoal = ref.watch(weeklyGoalProvider);
-    final weeklySummary = ref.watch(weeklySummaryProvider);
     final insight = ref.watch(insightOfDayProvider);
+    final saga = ref.watch(sagaProvider);
 
     return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          controller: ref.watch(dashboardScrollControllerProvider),
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xl),
-          children: [
-            const FadeSlideIn(index: 0, child: DashboardHeader()),
-            const SizedBox(height: AppSpacing.lg),
-            FadeSlideIn(
-              index: 1,
-              child: todaysSession.when(
-                data: (session) => HeroTodayCard(session: session),
-                loading: () => const ShimmerBox(height: 190),
-                error: (e, _) => ErrorRetryCard(
-                  message: 'No se ha podido cargar el entrenamiento de hoy.',
-                  onRetry: () => ref.invalidate(todaysSessionProvider),
+      body: Stack(
+        children: [
+          // The saga's sky behind the top of the screen, fading into the
+          // night background.
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 360,
+            child: ShaderMask(
+              shaderCallback: (rect) => const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.white, Colors.transparent],
+                stops: [0.25, 1],
+              ).createShader(rect),
+              blendMode: BlendMode.dstIn,
+              child: Opacity(opacity: 0.55, child: ZImage(saga.mediaSlot)),
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 360,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [ZColors.night.withValues(alpha: 0.15), ZColors.night.withValues(alpha: 0.55)],
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
-            FadeSlideIn(
-              index: 2,
-              child: IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: streak.when(
-                        data: (value) => StreakCard(streak: value),
-                        loading: () => const ShimmerBox(height: 150),
-                        error: (e, _) => ErrorRetryCard(
-                          message: 'No se ha podido cargar la racha.',
-                          onRetry: () => ref.invalidate(workoutStreakProvider),
-                        ),
-                      ),
+          ),
+          SafeArea(
+            child: ListView(
+              controller: ref.watch(dashboardScrollControllerProvider),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xl),
+              children: [
+                const Over9000Watcher(),
+                const FadeSlideIn(index: 0, child: KameHouseHeader()),
+                const SizedBox(height: AppSpacing.lg),
+                const FadeSlideIn(index: 1, child: PowerLevelCard()),
+                const SizedBox(height: AppSpacing.md),
+                FadeSlideIn(
+                  index: 2,
+                  child: todaysSession.when(
+                    data: (session) => HeroTodayCard(session: session),
+                    loading: () => const ShimmerBox(height: 190),
+                    error: (e, _) => ErrorRetryCard(
+                      message: 'No se ha podido cargar el entrenamiento de hoy.',
+                      onRetry: () => ref.invalidate(todaysSessionProvider),
                     ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      flex: 2,
-                      child: caloriesToday.when(
-                        data: (value) => CaloriesTodayCard(calories: value),
-                        loading: () => const ShimmerBox(height: 150),
-                        error: (e, _) => ErrorRetryCard(
-                          message: 'No se han podido cargar las calorías.',
-                          onRetry: () => ref.invalidate(caloriesBurnedTodayProvider),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                const FadeSlideIn(index: 3, child: DragonBallsCard()),
+                const SizedBox(height: AppSpacing.md),
+                FadeSlideIn(
+                  index: 4,
+                  child: IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Expanded(flex: 3, child: GenkidamaCard()),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          flex: 2,
+                          child: caloriesToday.when(
+                            data: (value) => CaloriesTodayCard(calories: value),
+                            loading: () => const ShimmerBox(height: 150),
+                            error: (e, _) => ErrorRetryCard(
+                              message: 'No se ha podido cargar el ki gastado.',
+                              onRetry: () => ref.invalidate(caloriesBurnedTodayProvider),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            FadeSlideIn(index: 3, child: WeeklyGoalCard(goal: weeklyGoal)),
-            const SizedBox(height: AppSpacing.md),
-            FadeSlideIn(
-              index: 4,
-              child: weeklySummary.when(
-                data: (summary) => ProgressCard(summary: summary),
-                loading: () => const ShimmerBox(height: 140),
-                error: (e, _) => ErrorRetryCard(
-                  message: 'No se ha podido cargar tu progreso.',
-                  onRetry: () => ref.invalidate(weeklySummaryProvider),
+                const SizedBox(height: AppSpacing.md),
+                FadeSlideIn(
+                  index: 5,
+                  child: insight.when(
+                    data: (value) => KaioCard(message: value.message),
+                    loading: () => const ShimmerBox(height: 90),
+                    error: (e, _) => ErrorRetryCard(
+                      message: 'Kaio-sama no responde. Prueba otra vez.',
+                      onRetry: () => ref.invalidate(insightOfDayProvider),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            FadeSlideIn(
-              index: 5,
-              child: recentActivity.when(
-                data: (sessions) => RecentActivityCard(sessions: sessions),
-                loading: () => const ShimmerBox(height: 160),
-                error: (e, _) => ErrorRetryCard(
-                  message: 'No se ha podido cargar la actividad reciente.',
-                  onRetry: () => ref.invalidate(recentActivityProvider),
+                const SizedBox(height: AppSpacing.md),
+                FadeSlideIn(
+                  index: 6,
+                  child: recentActivity.when(
+                    data: (sessions) => RecentActivityCard(sessions: sessions),
+                    loading: () => const ShimmerBox(height: 160),
+                    error: (e, _) => ErrorRetryCard(
+                      message: 'No se han podido cargar tus últimos combates.',
+                      onRetry: () => ref.invalidate(recentActivityProvider),
+                    ),
+                  ),
                 ),
-              ),
+                nextSession.whenOrNull(data: (session) {
+                      if (session == null) return null;
+                      return Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.md),
+                        child: FadeSlideIn(index: 7, child: NextSessionCard(session: session)),
+                      );
+                    }) ??
+                    const SizedBox.shrink(),
+              ],
             ),
-            nextSession.whenOrNull(data: (session) {
-                  if (session == null) return null;
-                  return Padding(
-                    padding: const EdgeInsets.only(top: AppSpacing.md),
-                    child: FadeSlideIn(index: 6, child: NextSessionCard(session: session)),
-                  );
-                }) ??
-                const SizedBox.shrink(),
-            const SizedBox(height: AppSpacing.md),
-            FadeSlideIn(
-              index: 7,
-              child: insight.when(
-                data: (value) => InsightOfDayCard(message: value.message),
-                loading: () => const ShimmerBox(height: 90),
-                error: (e, _) => ErrorRetryCard(
-                  message: 'No se ha podido cargar el consejo del día.',
-                  onRetry: () => ref.invalidate(insightOfDayProvider),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

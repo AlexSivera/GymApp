@@ -11,11 +11,13 @@ import 'data/seed/exercise_seeder.dart';
 import 'router/app_router.dart';
 import 'services/notifications/notification_service.dart';
 import 'services/notifications/reminder_scheduler.dart';
+import 'services/z/media_pack.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('es');
   await NotificationService.init();
+  await MediaPack.init();
 
   final db = AppDatabase();
   await syncSeedExercises(db);

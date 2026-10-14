@@ -31,7 +31,9 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.alexsivera.gymapp"
+        // GymZ installs as its own app next to Machoke (different id), so the
+        // experiment never touches Machoke's database.
+        applicationId = "com.alexsivera.gymz"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         // Health Connect (used to import calorías from Mi Fitness/wearables)

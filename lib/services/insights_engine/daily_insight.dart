@@ -18,23 +18,42 @@ Future<DailyInsight> computeDailyInsight(AppDatabase db, {DateTime? now, WeightU
   final today = now ?? DateTime.now();
   final candidates = <String>[];
 
+  // Zenkai: after a long break, a welcome back instead of a stat — Saiyans
+  // come back stronger, but the first day back should be lighter.
+  final lastSession = await db.workoutSessionsDao.watchLastCompletedSession().first;
+  if (lastSession != null) {
+    final daysOff = DateTime(today.year, today.month, today.day)
+        .difference(DateTime(lastSession.date.year, lastSession.date.month, lastSession.date.day))
+        .inDays;
+    if (daysOff >= 10) {
+      return DailyInsight(
+        '¡Zenkai! Llevas $daysOff días sin entrenar, y los saiyans vuelven más fuertes. '
+        'Hoy baja la gravedad un 10 % y deja que el cuerpo despierte.',
+      );
+    }
+  }
+
   final weekly = await computeWeeklySummary(db, now: today);
   final volumeChange = weekly.volumeChangePercent;
   if (volumeChange != null && volumeChange.abs() >= 3) {
-    final sign = volumeChange >= 0 ? 'aumentado' : 'reducido';
-    candidates.add('Has $sign un ${volumeChange.abs().toStringAsFixed(0)}% el volumen esta semana.');
+    final pct = volumeChange.abs().toStringAsFixed(0);
+    candidates.add(volumeChange >= 0
+        ? 'Tu Genkidama es un $pct % más grande que la semana pasada. ¡Sigue reuniendo energía!'
+        : 'Tu Genkidama va un $pct % por debajo de la semana pasada. Aún estás a tiempo de cargarla.');
   }
 
   final muscleGap = await _mostNeglectedMuscle(db, today);
   if (muscleGap != null && muscleGap.daysSince >= 6) {
-    candidates.add('Hace ${muscleGap.daysSince} días que no entrenas ${muscleGap.muscle}.');
+    candidates.add('Hace ${muscleGap.daysSince} días que no entrenas ${muscleGap.muscle.toLowerCase()}. '
+        'Un guerrero desequilibrado no aguanta ni un asalto.');
   }
 
   final loadTip = await _topExerciseLoadTip(db, today, unit);
   if (loadTip != null) candidates.add(loadTip);
 
   if (candidates.isEmpty) {
-    return const DailyInsight('Registra un entrenamiento para empezar a ver tus progresos aquí.');
+    return const DailyInsight(
+        'Todavía no he sentido tu energía. Entrena una vez y empezaré a leer tu nivel de poder.');
   }
 
   final seed = today.year * 10000 + today.month * 100 + today.day;
@@ -109,5 +128,6 @@ Future<String?> _topExerciseLoadTip(AppDatabase db, DateTime today, WeightUnit u
     targetRepsMax: maxRepsUsed,
   );
   if (suggestion.suggestedWeight == null) return null;
-  return 'En ${exercise.name} puedes probar con ${formatWeight(suggestion.suggestedWeight!, unit)}.';
+  return '${exercise.name}: sube la gravedad a ${formatWeight(suggestion.suggestedWeight!, unit)}. '
+      'Tu cuerpo ya está preparado.';
 }

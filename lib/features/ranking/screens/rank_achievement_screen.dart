@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/z_palette.dart';
 import '../../../core/utils/set_format.dart';
 import '../../../core/utils/weight_unit.dart';
 import '../../../core/utils/weight_unit_provider.dart';
-import '../../../core/widgets/celebration_overlay.dart';
 import '../../../core/widgets/exercise_thumbnail.dart';
 import '../../../services/progression_engine/estimated_one_rep_max.dart';
 import '../../../services/ranking_engine/compute_new_rank_achievements.dart';
+import '../../../services/ranking_engine/rank_tier.dart';
 import '../../../services/ranking_engine/strength_standards.dart';
+import '../../../services/z/z_sound.dart';
+import '../../z/widgets/z_media.dart';
+import '../../z/widgets/z_visuals.dart';
 import '../widgets/rank_badge.dart';
 import '../widgets/rank_stat_block.dart';
 
-// Celebratory reveal shown right after finishing a workout when it produced
-// a new rank (first-time classification or a tier climb). Unlike the old
-// manual classification queue, there's no "Saltar" here — these ranks are
-// already earned and already persisted, this screen just shows them off.
+// ¡Transformación!: shown right after finishing a workout when it produced a
+// new rank. A jump to a new form (tier) is the full transformation — the
+// pack's clip for that form (or the generic one, or the stock photo) behind
+// a burst of aura; a grade within the same form is a smaller "¡Más poder!".
+// No "Saltar": these ranks are already earned and persisted, this screen
+// just shows them off.
 class RankAchievementScreen extends ConsumerStatefulWidget {
   const RankAchievementScreen({super.key, required this.achievements});
 
@@ -27,8 +32,31 @@ class RankAchievementScreen extends ConsumerStatefulWidget {
   ConsumerState<RankAchievementScreen> createState() => _RankAchievementScreenState();
 }
 
-class _RankAchievementScreenState extends ConsumerState<RankAchievementScreen> {
+class _RankAchievementScreenState extends ConsumerState<RankAchievementScreen>
+    with SingleTickerProviderStateMixin {
   int _index = 0;
+  late final AnimationController _burst =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 1600));
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _play());
+  }
+
+  bool _isTransformation(RankAchievement a) => a.previousRank == null || a.previousRank!.tier != a.rank.tier;
+
+  void _play() {
+    if (!mounted) return;
+    final achievement = widget.achievements[_index];
+    if (MediaQuery.of(context).disableAnimations) {
+      _burst.value = 1;
+    } else {
+      _burst.forward(from: 0);
+    }
+    ZSound.play(_isTransformation(achievement) ? 'transform' : 'level_up');
+    ZHaptics.boom();
+  }
 
   void _next() {
     if (_index + 1 >= widget.achievements.length) {
@@ -36,6 +64,13 @@ class _RankAchievementScreenState extends ConsumerState<RankAchievementScreen> {
       return;
     }
     setState(() => _index++);
+    _play();
+  }
+
+  @override
+  void dispose() {
+    _burst.dispose();
+    super.dispose();
   }
 
   @override
@@ -44,250 +79,182 @@ class _RankAchievementScreenState extends ConsumerState<RankAchievementScreen> {
     final unit = ref.watch(weightUnitProvider);
     final achievement = widget.achievements[_index];
     final rank = achievement.rank;
-    final rankColor = rankTierColors[rank.tier]!;
-    final previousRank = achievement.previousRank;
+    final color = rankTierColors[rank.tier]!;
+    final previous = achievement.previousRank;
     final total = widget.achievements.length;
+    final transformation = _isTransformation(achievement);
+    final standard = exerciseStandards[achievement.exercise.name];
 
-    return CelebrationOverlay(
-      child: Scaffold(
-      appBar: AppBar(title: Text(total > 1 ? '${_index + 1} de $total' : 'Nuevo rango')),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.lg),
-          child: Column(
-            children: [
-              if (total > 1)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(AppSpacing.xs),
-                  child: LinearProgressIndicator(
-                    value: _index / total,
-                    minHeight: 6,
-                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                  ),
-                ),
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: AppMotion.normal,
-                  switchInCurve: AppMotion.curve,
-                  child: KeyedSubtree(
-                    key: ValueKey(achievement.exercise.id),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.emoji_events_rounded, color: rankColor, size: 20),
-                            const SizedBox(width: AppSpacing.xs),
-                            Text(previousRank == null ? 'Nuevo rango' : '¡Subiste de rango!',
-                                style: theme.textTheme.titleMedium),
-                          ],
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        ExerciseThumbnail(imagePaths: achievement.exercise.imagePaths, size: 96),
-                        const SizedBox(height: AppSpacing.md),
-                        Text(achievement.exercise.name,
-                            style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
-                        const SizedBox(height: AppSpacing.xxl),
-                        _RankReveal(
-                          badge: RankBadge(rank: rank, size: 100),
-                          color: rankColor,
-                          previousLabel: previousRank?.label,
-                          label: rank.label,
-                        ),
-                        const SizedBox(height: AppSpacing.xxl),
-                        if (exerciseStandards[achievement.exercise.name]?.baselineHoldSeconds != null)
-                          RankStatBlock(
-                            icon: Icons.timer_outlined,
-                            label: 'Mejor serie',
-                            value: _fmtSeconds(achievement.bestSet.durationSeconds!),
-                          )
-                        else if (exerciseStandards[achievement.exercise.name]?.baselineReps != null)
-                          RankStatBlock(
-                            icon: Icons.repeat,
-                            label: 'Mejor serie',
-                            value: '${achievement.bestSet.reps} reps',
-                          )
-                        else
-                          Row(
-                            children: [
-                              Expanded(
-                                child: RankStatBlock(
-                                  icon: Icons.fitness_center,
-                                  label: 'Mejor serie',
-                                  value: formatStrengthSet(
-                                      achievement.bestSet.weightKg!, achievement.bestSet.reps!, unit),
-                                ),
-                              ),
-                              Expanded(
-                                child: RankStatBlock(
-                                  icon: Icons.show_chart,
-                                  label: '1RM estimado',
-                                  value: formatWeight(
-                                      estimatedOneRepMax(
-                                          achievement.bestSet.weightKg!, achievement.bestSet.reps!),
-                                      unit,
-                                      decimals: 0),
-                                ),
-                              ),
-                            ],
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _next,
-                  child: Text(_index + 1 >= total ? 'Continuar' : 'Siguiente'),
-                ),
-              ),
-            ],
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          ZMomentBackground(
+            key: ValueKey('bg-$_index'),
+            slots: ['transform_${rank.tier.slug}', 'transform'],
           ),
-        ),
-      ),
-      ),
-    );
-  }
-}
-
-// The moment the new rank lands, staged instead of all at once: a glow
-// blooms behind the badge, the badge pops in with a little overshoot, the old
-// rank (if any) is struck out and the new one rises into place. With
-// "reduce motion" on it all just appears.
-class _RankReveal extends StatefulWidget {
-  const _RankReveal({
-    required this.badge,
-    required this.color,
-    required this.previousLabel,
-    required this.label,
-  });
-
-  final Widget badge;
-  final Color color;
-  final String? previousLabel;
-  final String label;
-
-  @override
-  State<_RankReveal> createState() => _RankRevealState();
-}
-
-class _RankRevealState extends State<_RankReveal> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 1400));
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_controller.isAnimating || _controller.value > 0) return;
-    if (MediaQuery.of(context).disableAnimations) {
-      _controller.value = 1;
-    } else {
-      _controller.forward();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Animation<double> _interval(double begin, double end, Curve curve) =>
-      CurvedAnimation(parent: _controller, curve: Interval(begin, end, curve: curve));
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final glow = _interval(0.0, 0.45, Curves.easeOut);
-    final badgeScale = _interval(0.1, 0.55, Curves.elasticOut);
-    final badgeFade = _interval(0.1, 0.25, Curves.easeOut);
-    final strike = _interval(0.45, 0.65, Curves.easeInOut);
-    final newLabel = _interval(0.55, 0.85, Curves.easeOutCubic);
-
-    return Column(
-      children: [
-        SizedBox(
-          width: 170,
-          height: 150,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              AnimatedBuilder(
-                animation: glow,
-                builder: (context, _) => Container(
-                  width: 90 + 80 * glow.value,
-                  height: 90 + 80 * glow.value,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(colors: [
-                      widget.color.withValues(alpha: 0.35 * glow.value),
-                      widget.color.withValues(alpha: 0),
-                    ]),
-                  ),
-                ),
-              ),
-              FadeTransition(
-                opacity: badgeFade,
-                child: ScaleTransition(scale: badgeScale, child: widget.badge),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        if (widget.previousLabel != null)
-          AnimatedBuilder(
-            animation: strike,
-            builder: (context, _) => Opacity(
-              opacity: 1 - 0.45 * strike.value,
-              child: CustomPaint(
-                foregroundPainter: _StrikePainter(
-                  progress: strike.value,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                child: Text(
-                  widget.previousLabel!,
-                  style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                radius: 1.1,
+                colors: [
+                  color.withValues(alpha: transformation ? 0.35 : 0.2),
+                  Colors.black.withValues(alpha: 0.75),
+                  Colors.black.withValues(alpha: 0.92),
+                ],
+                stops: const [0, 0.6, 1],
               ),
             ),
           ),
-        FadeTransition(
-          opacity: newLabel,
-          child: SlideTransition(
-            position: Tween(begin: const Offset(0, 0.5), end: Offset.zero).animate(newLabel),
-            child: Text(widget.label, style: theme.textTheme.headlineMedium?.copyWith(color: widget.color)),
+          if (transformation) SpeedLines(color: color, focus: const Alignment(0, -0.25), opacity: 0.22),
+          Align(
+            alignment: const Alignment(0, -0.35),
+            child: Text('超', style: ZText.display(size: 240, color: color.withValues(alpha: 0.07))),
           ),
-        ),
-      ],
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.lg),
+              child: AnimatedBuilder(
+                animation: _burst,
+                builder: (context, _) {
+                  final t = _burst.value;
+                  final grow = Curves.elasticOut.transform((t / 0.6).clamp(0.0, 1.0));
+                  final text = Curves.easeOutCubic.transform(((t - 0.35) / 0.4).clamp(0.0, 1.0));
+                  return Column(
+                    children: [
+                      if (total > 1)
+                        Text('${_index + 1} DE $total', style: ZText.hud(size: 12, color: color)),
+                      const Spacer(),
+                      Transform.scale(
+                        scale: 0.6 + 0.4 * grow,
+                        child: KiAura(
+                          color: color,
+                          intensity: rank.subTier / 3 + (transformation ? 0.4 : 0),
+                          spread: 2.2,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: ExerciseThumbnail(imagePaths: achievement.exercise.imagePaths, size: 120),
+                              ),
+                              Positioned(right: -18, bottom: -18, child: RankBadge(rank: rank, size: 56)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xxl + AppSpacing.md),
+                      Opacity(
+                        opacity: text,
+                        child: Transform.translate(
+                          offset: Offset(0, 24 * (1 - text)),
+                          child: Column(
+                            children: [
+                              Text(
+                                transformation ? '¡TRANSFORMACIÓN!' : '¡MÁS PODER!',
+                                textAlign: TextAlign.center,
+                                style: ZText.display(size: 30, color: Colors.white).copyWith(
+                                  shadows: [Shadow(color: color, blurRadius: 18), Shadow(color: color, blurRadius: 4)],
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.sm),
+                              Text.rich(
+                                TextSpan(children: [
+                                  TextSpan(
+                                      text: achievement.exercise.name,
+                                      style: const TextStyle(fontWeight: FontWeight.w800)),
+                                  TextSpan(text: previous == null ? ' despierta en ' : ' alcanza '),
+                                  TextSpan(
+                                      text: rank.label,
+                                      style: TextStyle(color: color, fontWeight: FontWeight.w800)),
+                                ]),
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.bodyLarge?.copyWith(color: Colors.white),
+                              ),
+                              if (previous != null) ...[
+                                const SizedBox(height: AppSpacing.xs),
+                                Text(
+                                  '${previous.label.toUpperCase()}  →  ${rank.label.toUpperCase()}',
+                                  textAlign: TextAlign.center,
+                                  style: ZText.hud(size: 11, color: Colors.white70),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Opacity(
+                        opacity: text,
+                        child: DefaultTextStyle.merge(
+                          style: const TextStyle(color: Colors.white),
+                          child: standard?.baselineHoldSeconds != null
+                              ? RankStatBlock(
+                                  icon: Icons.timer_outlined,
+                                  label: 'Mejor serie',
+                                  value: _fmtSeconds(achievement.bestSet.durationSeconds!),
+                                )
+                              : standard?.baselineReps != null
+                                  ? RankStatBlock(
+                                      icon: Icons.repeat,
+                                      label: 'Mejor serie',
+                                      value: '${achievement.bestSet.reps} reps',
+                                    )
+                                  : Row(
+                                      children: [
+                                        Expanded(
+                                          child: RankStatBlock(
+                                            icon: Icons.fitness_center,
+                                            label: 'Mejor serie',
+                                            value: formatStrengthSet(
+                                                achievement.bestSet.weightKg!, achievement.bestSet.reps!, unit),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: RankStatBlock(
+                                            icon: Icons.show_chart,
+                                            label: '1RM estimado',
+                                            value: formatWeight(
+                                                estimatedOneRepMax(
+                                                    achievement.bestSet.weightKg!, achievement.bestSet.reps!),
+                                                unit,
+                                                decimals: 0),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: color, foregroundColor: ZColors.night),
+                          onPressed: _next,
+                          child: Text(_index + 1 >= total ? 'Seguir' : 'Siguiente'),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+          // White flash at the instant of the transformation.
+          IgnorePointer(
+            child: AnimatedBuilder(
+              animation: _burst,
+              builder: (context, _) {
+                final flash = transformation ? (1 - (_burst.value / 0.18)).clamp(0.0, 1.0) : 0.0;
+                return ColoredBox(color: Colors.white.withValues(alpha: 0.85 * flash * (_burst.value > 0 ? 1 : 0)));
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
-}
-
-class _StrikePainter extends CustomPainter {
-  const _StrikePainter({required this.progress, required this.color});
-
-  final double progress;
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (progress <= 0) return;
-    final y = size.height * 0.55;
-    canvas.drawLine(
-      Offset(0, y),
-      Offset(size.width * progress, y),
-      Paint()
-        ..color = color
-        ..strokeWidth = 1.5,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_StrikePainter oldDelegate) =>
-      oldDelegate.progress != progress || oldDelegate.color != color;
 }
 
 // "45s" / "2 min" — matches the format used elsewhere for isometric/cardio

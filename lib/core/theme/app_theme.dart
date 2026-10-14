@@ -4,134 +4,43 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_spacing.dart';
 import 'app_theme_mode.dart';
+import 'z_palette.dart';
 
-// Minimal, premium theming in the spirit of Whoop/Hevy: flat surfaces with
-// a single vivid accent, borders instead of heavy shadows, and an explicit
-// type scale so every screen reuses the same hierarchy instead of ad-hoc
-// TextStyles. Five palettes (dark/light/pastel/pastel verde/pastel azul)
-// share one ThemeData builder below — only the AppColors values change.
+// GymZ: a single dark "noche de entrenamiento" look. Everything that reads
+// AppColors (cards, buttons, status colors…) follows this one palette; the
+// ki/aura hues that have no generic role live in ZColors (z_palette.dart).
+// The old five palettes and the theme picker were dropped with the switch to
+// GymZ, so themeFor ignores the stored mode.
 class AppTheme {
   AppTheme._();
 
-  static const _dark = AppColors(
-    accent: Color(0xFF5EEAD4),
-    accentForeground: Color(0xFF06201C),
-    background: Color(0xFF0A0C0E),
-    surface: Color(0xFF15181B),
-    surfaceRaised: Color(0xFF1C2024),
-    border: Color(0xFF262B30),
-    textColor: Color(0xFFF4F5F6),
-    mutedTextColor: Color(0xFF9CA3AB),
-    statusCompleted: Color(0xFF34D399),
-    statusPlanned: Color(0xFFFBBF24),
-    statusSkipped: Color(0xFFF87171),
-    statusRest: Color(0xFF818CF8),
-    statusEmpty: Color(0xFF3A3F45),
-  );
-
-  static const _light = AppColors(
-    accent: Color(0xFF0F9C8E),
+  static const _gymz = AppColors(
+    accent: ZColors.gi,
     accentForeground: Color(0xFFFFFFFF),
-    background: Color(0xFFF7F8F9),
-    surface: Color(0xFFFFFFFF),
-    surfaceRaised: Color(0xFFEFF1F3),
-    border: Color(0xFFE1E4E8),
-    textColor: Color(0xFF12161A),
-    mutedTextColor: Color(0xFF64707A),
-    statusCompleted: Color(0xFF0FA968),
-    statusPlanned: Color(0xFFDB8B00),
-    statusSkipped: Color(0xFFE5484D),
-    statusRest: Color(0xFF5A67D8),
-    statusEmpty: Color(0xFFD8DCE1),
+    background: ZColors.night,
+    surface: Color(0xFF141A3E),
+    surfaceRaised: ZColors.panelRaised,
+    border: ZColors.line,
+    textColor: ZColors.ink,
+    mutedTextColor: ZColors.muted,
+    // Completed = an esfera's orange, planned = a signal on the radar.
+    statusCompleted: ZColors.ball,
+    statusPlanned: ZColors.scouter,
+    statusSkipped: ZColors.kaioken,
+    statusRest: Color(0xFF7B86D6),
+    statusEmpty: Color(0xFF2A3160),
   );
 
-  static const _pastel = AppColors(
-    accent: Color(0xFFD98BA7),
-    accentForeground: Color(0xFF3A1626),
-    background: Color(0xFFFBF3F0),
-    surface: Color(0xFFFFFFFF),
-    surfaceRaised: Color(0xFFF7E9E3),
-    border: Color(0xFFEEDCD3),
-    textColor: Color(0xFF4A3B38),
-    mutedTextColor: Color(0xFF9C8983),
-    statusCompleted: Color(0xFF7FC29B),
-    statusPlanned: Color(0xFFE8AD5F),
-    statusSkipped: Color(0xFFE28080),
-    statusRest: Color(0xFFA79BE8),
-    statusEmpty: Color(0xFFE6D9D2),
-  );
+  static ThemeData get gymz => _buildTheme(_gymz, Brightness.dark);
 
-  static const _pastelGreen = AppColors(
-    accent: Color(0xFF6FBE96),
-    accentForeground: Color(0xFF0E2B1D),
-    background: Color(0xFFF2FAF5),
-    surface: Color(0xFFFFFFFF),
-    surfaceRaised: Color(0xFFE4F3EA),
-    border: Color(0xFFD3E9DD),
-    textColor: Color(0xFF2C3B32),
-    mutedTextColor: Color(0xFF7C9186),
-    statusCompleted: Color(0xFF4FAE7C),
-    statusPlanned: Color(0xFFE0AC5A),
-    statusSkipped: Color(0xFFE08080),
-    statusRest: Color(0xFF8FB6DA),
-    statusEmpty: Color(0xFFD9E7DF),
-  );
+  static AppColors colorsFor(AppThemeMode mode) => _gymz;
 
-  static const _pastelBlue = AppColors(
-    accent: Color(0xFF6FA3D8),
-    accentForeground: Color(0xFF0D2438),
-    background: Color(0xFFF1F7FC),
-    surface: Color(0xFFFFFFFF),
-    surfaceRaised: Color(0xFFE3EFFA),
-    border: Color(0xFFD2E3F3),
-    textColor: Color(0xFF28384A),
-    mutedTextColor: Color(0xFF7B8FA3),
-    statusCompleted: Color(0xFF5FB98A),
-    statusPlanned: Color(0xFFE0AC5A),
-    statusSkipped: Color(0xFFE08080),
-    statusRest: Color(0xFF5A85CC),
-    statusEmpty: Color(0xFFDAE7F3),
-  );
-
-  static ThemeData get dark => _buildTheme(_dark, Brightness.dark);
-  static ThemeData get light => _buildTheme(_light, Brightness.light);
-  static ThemeData get pastel => _buildTheme(_pastel, Brightness.light);
-  static ThemeData get pastelGreen => _buildTheme(_pastelGreen, Brightness.light);
-  static ThemeData get pastelBlue => _buildTheme(_pastelBlue, Brightness.light);
-
-  // Lets UI like the theme picker preview a palette without building (and
-  // discarding) a full ThemeData for it.
-  static AppColors colorsFor(AppThemeMode mode) {
-    switch (mode) {
-      case AppThemeMode.dark:
-        return _dark;
-      case AppThemeMode.light:
-        return _light;
-      case AppThemeMode.pastel:
-        return _pastel;
-      case AppThemeMode.pastelGreen:
-        return _pastelGreen;
-      case AppThemeMode.pastelBlue:
-        return _pastelBlue;
-    }
-  }
-
-  static ThemeData themeFor(AppThemeMode mode) {
-    switch (mode) {
-      case AppThemeMode.dark:
-        return dark;
-      case AppThemeMode.light:
-        return light;
-      case AppThemeMode.pastel:
-        return pastel;
-      case AppThemeMode.pastelGreen:
-        return pastelGreen;
-      case AppThemeMode.pastelBlue:
-        return pastelBlue;
-    }
-  }
+  static ThemeData themeFor(AppThemeMode mode) => gymz;
 
   // Families declared in pubspec.yaml (bundled TTFs, no runtime download).
+  // Big display/headline slots use the heavy GymZ face; titles stay on
+  // Outfit, which reads better at list-row sizes.
+  static const headingFont = ZFonts.display;
   static const displayFont = 'Outfit';
   static const bodyFont = 'PlusJakartaSans';
 
@@ -167,8 +76,10 @@ class AppTheme {
       surfaceTint: Colors.transparent,
     );
 
-    // Display face: Outfit — a geometric sans with a confident, sporty
-    // character for numbers and headings. Body face: Plus Jakarta Sans — warm
+    // Heading face: Dela Gothic One — the heavy GymZ display face, for the
+    // big display/headline slots and app bar titles. It runs wide, so those
+    // slots are a notch smaller than they were with Outfit. Title face:
+    // Outfit — a geometric sans for list rows and card titles. Body face: Plus Jakarta Sans — warm
     // and highly legible at small sizes for stat-dense screens. Every slot of
     // the TextTheme is filled (not just the ones the screens use directly):
     // stock widgets like dialog titles, chips, menus and tooltips read the
@@ -181,6 +92,13 @@ class AppTheme {
           height: height,
           color: colors.textColor,
         );
+    TextStyle heading(double size, {double? height}) => TextStyle(
+          fontFamily: headingFont,
+          fontSize: size,
+          fontWeight: FontWeight.w400,
+          height: height ?? 1.12,
+          color: colors.textColor,
+        );
     TextStyle body(double size, {FontWeight weight = FontWeight.w400, Color? color, double? height}) =>
         TextStyle(
           fontFamily: bodyFont,
@@ -191,13 +109,13 @@ class AppTheme {
         );
 
     final textTheme = TextTheme(
-      displayLarge: display(48, FontWeight.w700, spacing: -1, height: 1.05),
-      displayMedium: display(40, FontWeight.w700, spacing: -0.8, height: 1.05),
+      displayLarge: heading(44, height: 1.0),
+      displayMedium: heading(36, height: 1.0),
       // Hero numbers / big CTAs.
-      displaySmall: display(34, FontWeight.w700, spacing: -0.5, height: 1.1),
-      headlineLarge: display(28, FontWeight.w700, spacing: -0.4),
-      headlineMedium: display(24, FontWeight.w700, spacing: -0.3),
-      headlineSmall: display(21, FontWeight.w700, spacing: -0.2),
+      displaySmall: heading(30, height: 1.05),
+      headlineLarge: heading(25),
+      headlineMedium: heading(21),
+      headlineSmall: heading(19),
       titleLarge: display(19, FontWeight.w600),
       titleMedium: display(16, FontWeight.w600),
       titleSmall: display(14, FontWeight.w600),
@@ -246,7 +164,7 @@ class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: false,
         foregroundColor: colors.textColor,
-        titleTextStyle: display(20, FontWeight.w700),
+        titleTextStyle: heading(19),
       ),
       cardTheme: CardThemeData(
         color: colors.surface,

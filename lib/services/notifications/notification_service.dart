@@ -38,8 +38,8 @@ class NotificationService {
     if (!_initialized) return;
     await _plugin.zonedSchedule(
       _restTimerNotificationId,
-      'Descanso terminado',
-      'Toca para volver a tu entrenamiento.',
+      'Semilla del ermitaño: listo',
+      'Ya te has recuperado. Vuelve a la cámara de gravedad.',
       tz.TZDateTime.now(tz.local).add(delay),
       const NotificationDetails(
         android: AndroidNotificationDetails(

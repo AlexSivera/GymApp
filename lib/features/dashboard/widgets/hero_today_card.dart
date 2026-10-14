@@ -62,12 +62,12 @@ class HeroTodayCard extends ConsumerWidget {
                 children: [
                   Icon(Icons.flag_rounded, size: 14, color: colors.accent),
                   const SizedBox(width: AppSpacing.xs),
-                  Text('PRIMEROS PASOS',
+                  Text('TU PRIMERA CÁPSULA',
                       style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 0.6)),
                 ],
               ),
               const SizedBox(height: AppSpacing.sm),
-              Text('Crea tu primera rutina para empezar a entrenar.',
+              Text('Crea tu primera rutina (una cápsula) para empezar a entrenar.',
                   style: theme.textTheme.titleLarge),
               const SizedBox(height: AppSpacing.lg),
               SizedBox(
@@ -76,7 +76,7 @@ class HeroTodayCard extends ConsumerWidget {
                   onPressed: () => context.go('/calendar'),
                   iconAlignment: IconAlignment.end,
                   icon: const Icon(Icons.arrow_forward_rounded),
-                  label: const Text('Crear rutina'),
+                  label: const Text('Crear cápsula'),
                 ),
               ),
             ],
@@ -92,11 +92,11 @@ class HeroTodayCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('TU ENTRENAMIENTO DE HOY',
+            Text('EL COMBATE DE HOY',
                 style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 0.6)),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              isRest ? 'Hoy es tu día de descanso.' : 'No tienes ningún entrenamiento programado.',
+              isRest ? 'Hoy toca descansar en la Kame House.' : 'Hoy no tienes ningún combate programado.',
               style: theme.textTheme.headlineMedium,
             ),
             if (!isRest) ...[
@@ -144,7 +144,7 @@ class HeroTodayCard extends ConsumerWidget {
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Text(
-                    isCompleted ? 'ENTRENAMIENTO COMPLETADO' : 'ENTRENAMIENTO SALTADO',
+                    isCompleted ? 'COMBATE TERMINADO' : 'COMBATE SALTADO',
                     style: theme.textTheme.labelMedium?.copyWith(color: stateColor, letterSpacing: 0.6),
                   ),
                 ),
@@ -170,7 +170,7 @@ class HeroTodayCard extends ConsumerWidget {
                   onPressed: () => _viewSession(context, ref, session),
                   iconAlignment: IconAlignment.end,
                   icon: const Icon(Icons.arrow_forward_rounded),
-                  label: const Text('Ver entrenamiento'),
+                  label: const Text('Ver el combate'),
                 ),
               ),
             SizedBox(
@@ -179,7 +179,7 @@ class HeroTodayCard extends ConsumerWidget {
                 padding: EdgeInsets.only(top: isCompleted ? AppSpacing.sm : 0),
                 child: OutlinedButton(
                   onPressed: () => _startAnotherSession(context, ref),
-                  child: const Text('+ Añadir otro entrenamiento'),
+                  child: const Text('+ Otro combate hoy'),
                 ),
               ),
             ),
@@ -209,7 +209,7 @@ class HeroTodayCard extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('TU ENTRENAMIENTO DE HOY',
+              Text('EL COMBATE DE HOY',
                   style: theme.textTheme.labelMedium?.copyWith(color: colors.accent, letterSpacing: 0.6)),
               if (session.status == SessionStatus.planned)
                 TextButton(
@@ -237,7 +237,7 @@ class HeroTodayCard extends ConsumerWidget {
           ],
           if (dayExercises != null && dayExercises.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
-            _Pill(text: '${dayExercises.length} ${dayExercises.length == 1 ? 'ejercicio' : 'ejercicios'}'),
+            _Pill(text: '${dayExercises.length} ${dayExercises.length == 1 ? 'técnica' : 'técnicas'}'),
           ],
           const SizedBox(height: AppSpacing.lg),
           SizedBox(
@@ -249,8 +249,8 @@ class HeroTodayCard extends ConsumerWidget {
               iconAlignment: IconAlignment.end,
               icon: const Icon(Icons.arrow_forward_rounded),
               label: Text(session.status == SessionStatus.inProgress
-                  ? 'Continuar entrenamiento'
-                  : 'Empezar entrenamiento'),
+                  ? 'Volver a la cámara de gravedad'
+                  : 'Entrar en la cámara de gravedad'),
             ),
           ),
         ],

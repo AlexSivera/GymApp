@@ -30,6 +30,9 @@ import '../../exercise_library/providers/exercise_library_providers.dart';
 import '../../exercise_library/screens/exercise_library_screen.dart';
 import '../../ranking/screens/rank_achievement_screen.dart';
 import '../../routines/providers/routines_providers.dart';
+import '../../z/widgets/kamehameha_button.dart';
+import '../../../core/theme/z_palette.dart';
+import '../../../services/z/z_sound.dart';
 import '../providers/rest_timer_controller.dart';
 import '../providers/workout_session_providers.dart';
 import '../widgets/rest_timer_banner.dart';
@@ -111,7 +114,13 @@ class WorkoutSessionScreen extends ConsumerWidget {
 
             return Scaffold(
               appBar: AppBar(
-                title: Text(title),
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('CÁMARA DE GRAVEDAD', style: ZText.hud(size: 10, color: ZColors.gi)),
+                    Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  ],
+                ),
                 // Finishing is always one tap away, but no longer the biggest
                 // button on screen while there's still work left — that's
                 // what made it easy to end a session by accident. Once
@@ -164,6 +173,7 @@ class WorkoutSessionScreen extends ConsumerWidget {
                               builder: (context, value, _) => LinearProgressIndicator(
                                 value: value,
                                 minHeight: 6,
+                                color: value >= 1 ? ZColors.gold : ZColors.gi,
                                 backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                               ),
                             ),
@@ -179,11 +189,10 @@ class WorkoutSessionScreen extends ConsumerWidget {
                         child: AppCard(
                         child: Row(
                           children: [
-                            Icon(Icons.check_circle_rounded,
-                                color: AppColors.of(context).statusCompleted, size: 26),
+                            const Icon(Icons.bolt_rounded, color: ZColors.kiBlue, size: 26),
                             const SizedBox(width: AppSpacing.md),
                             Expanded(
-                              child: Text('¡Entrenamiento completado!',
+                              child: Text('¡Todas las técnicas superadas! Carga el Kamehameha para terminar.',
                                   style: Theme.of(context).textTheme.titleMedium),
                             ),
                           ],
@@ -197,7 +206,7 @@ class WorkoutSessionScreen extends ConsumerWidget {
                             child: OutlinedButton.icon(
                               onPressed: () => _addExercise(context, ref, 0),
                               icon: const Icon(Icons.add),
-                              label: const Text('Añadir ejercicio'),
+                              label: const Text('Añadir técnica'),
                             ),
                           )
                         : ReorderableListView.builder(
@@ -238,7 +247,7 @@ class WorkoutSessionScreen extends ConsumerWidget {
                               child: TextButton.icon(
                                 onPressed: () => _addExercise(context, ref, sessionExercises.length),
                                 icon: const Icon(Icons.add),
-                                label: const Text('Añadir ejercicio'),
+                                label: const Text('Añadir técnica'),
                               ),
                             ),
                           ),
@@ -252,13 +261,9 @@ class WorkoutSessionScreen extends ConsumerWidget {
                             padding: const EdgeInsets.fromLTRB(
                                 AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.lg),
                             child: FadeSlideIn(
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton.icon(
-                                  onPressed: () => _completeSession(context, ref, session, sessionExercises),
-                                  icon: const Icon(Icons.flag_rounded),
-                                  label: const Text('Finalizar entrenamiento'),
-                                ),
+                              child: KamehamehaButton(
+                                onFire: () =>
+                                    _completeSession(context, ref, session, sessionExercises, kamehameha: true),
                               ),
                             ),
                           )
@@ -328,8 +333,9 @@ class WorkoutSessionScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     WorkoutSession session,
-    List<SessionExercise> sessionExercises,
-  ) async {
+    List<SessionExercise> sessionExercises, {
+    bool kamehameha = false,
+  }) async {
     if (!await _confirmFinishIfIncomplete(context, ref, sessionExercises)) return;
     if (!context.mounted) return;
 
@@ -350,6 +356,10 @@ class WorkoutSessionScreen extends ConsumerWidget {
     // completed first is required here too: rank achievements are detected
     // from the best-set query, which only looks at completed sessions.
     final navigator = Navigator.of(context);
+    // The beam crosses the screen while the session is saved underneath.
+    final beam = kamehameha ? KamehamehaBeamRoute() : null;
+    if (beam != null) navigator.push(beam);
+    final beamStarted = DateTime.now();
 
     await db.workoutSessionsDao.updateSession(
       session.copyWith(
@@ -363,11 +373,18 @@ class WorkoutSessionScreen extends ConsumerWidget {
     final summary = await computeSessionSummary(db, sessionId: sessionId, unit: unit);
     final achievements = await computeNewRankAchievements(db, sessionId: sessionId);
 
+    if (beam != null) {
+      final elapsed = DateTime.now().difference(beamStarted);
+      const beamTime = Duration(milliseconds: 750);
+      if (elapsed < beamTime) await Future<void>.delayed(beamTime - elapsed);
+      navigator.removeRoute(beam);
+    }
+
     navigator.push(
       MaterialPageRoute(
         // The rank-up screen (pushed on top) already throws confetti — the
         // summary underneath only celebrates when it's the first thing shown.
-        builder: (_) => SessionSummaryScreen(summary: summary, celebrate: achievements.isEmpty),
+        builder: (_) => SessionSummaryScreen(summary: summary, celebrate: achievements.isEmpty, justFinished: true),
       ),
     );
     if (achievements.isNotEmpty) {
@@ -427,9 +444,9 @@ class _ElapsedTimeState extends State<_ElapsedTime> {
     final text = hours > 0 ? '$hours:$minutes:$seconds' : '$minutes:$seconds';
     return Row(
       children: [
-        Icon(Icons.timer_outlined, size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant),
+        const Icon(Icons.timer_outlined, size: 18, color: ZColors.scouter),
         const SizedBox(width: AppSpacing.xs),
-        Text(text, style: Theme.of(context).textTheme.bodyMedium),
+        Text(text, style: ZText.hud(size: 16)),
       ],
     );
   }
@@ -522,9 +539,8 @@ class _ExerciseRow extends ConsumerWidget {
           if (groupLabel != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-              child: Text('SUPERSERIE $groupLabel',
-                  style: theme.textTheme.labelMedium
-                      ?.copyWith(color: theme.colorScheme.primary, letterSpacing: 0.5)),
+              child: Text('FUSIÓN $groupLabel',
+                  style: theme.textTheme.labelMedium?.copyWith(color: ZColors.gold, letterSpacing: 0.5)),
             ),
           ListTile(
             leading: ExerciseThumbnail(imagePaths: imagePaths),
@@ -880,6 +896,7 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
         ));
 
     HapticFeedback.lightImpact();
+    ZSound.play('punch');
     final nextInSuperset = await _nextSupersetPartnerNeedingThisRound(ref, dao);
     if (nextInSuperset != null) {
       // Part of a superset/circuit and a partner hasn't done this round yet
@@ -911,7 +928,7 @@ class _ExpandedExerciseDetail extends ConsumerWidget {
           toastOverlay,
           icon: Icons.emoji_events_rounded,
           iconColor: recordColor,
-          message: '¡Nuevo récord personal en $exerciseName!',
+          message: '¡Límite superado en $exerciseName!',
         );
       }
     }

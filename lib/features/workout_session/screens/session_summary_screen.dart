@@ -12,10 +12,15 @@ import '../../../core/widgets/celebration_overlay.dart';
 import '../../../core/widgets/count_up_text.dart';
 import '../../../core/widgets/fade_slide_in.dart';
 import '../../../services/insights_engine/session_summary.dart';
+import '../../../core/theme/z_palette.dart';
+import '../../../services/z/z_sound.dart';
+import '../../dashboard/providers/dashboard_providers.dart';
 import '../../dashboard/providers/dashboard_scroll.dart';
+import '../../z/providers/z_providers.dart';
+import '../../z/widgets/z_visuals.dart';
 
 class SessionSummaryScreen extends ConsumerWidget {
-  const SessionSummaryScreen({super.key, required this.summary, this.celebrate = false});
+  const SessionSummaryScreen({super.key, required this.summary, this.celebrate = false, this.justFinished = false});
 
   final SessionSummary summary;
 
@@ -23,6 +28,10 @@ class SessionSummaryScreen extends ConsumerWidget {
   // past one from Inicio/Calendario — and not when a rank-up screen is shown
   // on top first, since that one already throws its own.
   final bool celebrate;
+
+  // Opened right after finishing (not reopened from history) — the only
+  // time the "esfera conseguida" panel can apply.
+  final bool justFinished;
 
   // This screen is pushed imperatively on top of whichever tab's own
   // navigator was active (Inicio, Calendario o Entreno), and that navigator
@@ -55,6 +64,11 @@ class SessionSummaryScreen extends ConsumerWidget {
     var index = 0;
     Widget reveal(Widget child) => FadeSlideIn(index: index++, child: child);
 
+    // This workout is the one that completed the week's target: an esfera.
+    final weekly = ref.watch(weeklyGoalProvider);
+    final balls = ref.watch(dragonBallsProvider);
+    final earnedBall = justFinished && weekly.completed == weekly.target && balls.count > 0;
+
     return CelebrationOverlay(
       play: celebrate,
       child: PopScope(
@@ -74,27 +88,11 @@ class SessionSummaryScreen extends ConsumerWidget {
           body: ListView(
             padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xl),
             children: [
-              reveal(Column(
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: colors.statusCompleted.withValues(alpha: 0.16),
-                    ),
-                    child: Icon(Icons.check_rounded, color: colors.statusCompleted, size: 36),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Text('¡Entrenamiento completado!',
-                      style: theme.textTheme.headlineMedium, textAlign: TextAlign.center),
-                  if (summary.routineDayName != null) ...[
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(summary.routineDayName!,
-                        style: theme.textTheme.bodyLarge?.copyWith(color: muted), textAlign: TextAlign.center),
-                  ],
-                ],
-              )),
+              reveal(_MangaBurst(subtitle: summary.routineDayName)),
+              if (earnedBall) ...[
+                const SizedBox(height: AppSpacing.md),
+                reveal(_EarnedBallPanel(stars: balls.count)),
+              ],
               const SizedBox(height: AppSpacing.xl),
               reveal(AppCard(
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.sm),
@@ -129,7 +127,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                       if (summary.caloriesBurned > 0) ...[
                         VerticalDivider(color: colors.border, width: 1),
                         _Stat(
-                          label: 'kcal (est.)',
+                          label: 'Ki (kcal)',
                           child: CountUpText(
                             value: summary.caloriesBurned,
                             format: (v) => v.round().toString(),
@@ -144,7 +142,7 @@ class SessionSummaryScreen extends ConsumerWidget {
               if (summary.volumeChangePercent != null) ...[
                 const SizedBox(height: AppSpacing.sm),
                 reveal(Text(
-                  '${summary.volumeChangePercent! >= 0 ? '+' : ''}${summary.volumeChangePercent!.toStringAsFixed(0)}% de volumen vs la última vez con esta rutina',
+                  '${summary.volumeChangePercent! >= 0 ? '+' : ''}${summary.volumeChangePercent!.toStringAsFixed(0)}% de volumen vs la última vez con esta cápsula',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: summary.volumeChangePercent! >= 0 ? colors.statusCompleted : colors.statusSkipped,
@@ -155,25 +153,22 @@ class SessionSummaryScreen extends ConsumerWidget {
               if (hasPRs) ...[
                 const SizedBox(height: AppSpacing.md),
                 reveal(AppCard(
-                  borderColor: colors.statusPlanned.withValues(alpha: 0.5),
+                  color: ZColors.mangaInk,
+                  borderColor: ZColors.gold.withValues(alpha: 0.7),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Icon(Icons.emoji_events_rounded, size: 20, color: colors.statusPlanned),
-                          const SizedBox(width: AppSpacing.sm),
-                          Text(
-                            summary.newPRs.length == 1 ? 'Nuevo récord personal' : 'Nuevos récords personales',
-                            style: theme.textTheme.titleMedium,
-                          ),
-                        ],
+                      Text('¡LÍMITE SUPERADO!', style: ZText.display(size: 22, color: ZColors.gold)),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        summary.newPRs.length == 1 ? 'Nueva técnica dominada' : 'Nuevas técnicas dominadas',
+                        style: theme.textTheme.bodySmall?.copyWith(color: ZColors.gold.withValues(alpha: 0.8)),
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       for (final name in summary.newPRs)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 2),
-                          child: Text(name, style: theme.textTheme.bodyMedium),
+                          child: Text(name, style: theme.textTheme.titleMedium),
                         ),
                     ],
                   ),
@@ -185,7 +180,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Mejoras', style: theme.textTheme.titleMedium),
+                      Text('Más fuerte que la última vez', style: theme.textTheme.titleMedium),
                       const SizedBox(height: AppSpacing.sm),
                       for (final improvement in summary.improvements)
                         Padding(
@@ -217,8 +212,8 @@ class SessionSummaryScreen extends ConsumerWidget {
                         padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xs),
                         child: Text(
                           summary.exerciseLogs.length == 1
-                              ? '1 ejercicio'
-                              : '${summary.exerciseLogs.length} ejercicios',
+                              ? '1 técnica'
+                              : '${summary.exerciseLogs.length} técnicas',
                           style: theme.textTheme.titleMedium,
                         ),
                       ),
@@ -254,7 +249,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.md),
                 reveal(AppCard(
                   child: Text(
-                    'Sigue así — la próxima vez podrás comparar con esta sesión.',
+                    'Kaio-sama ha tomado nota. El próximo combate se medirá contra este.',
                     style: theme.textTheme.bodyMedium?.copyWith(color: muted),
                   ),
                 )),
@@ -264,12 +259,126 @@ class SessionSummaryScreen extends ConsumerWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () => _goHome(context, ref),
-                  child: const Text('Volver al inicio'),
+                  child: const Text('Volver a la Kame House'),
                 ),
               )),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// The one manga moment of the app: paper, ink and focus lines.
+class _MangaBurst extends StatelessWidget {
+  const _MangaBurst({required this.subtitle});
+
+  final String? subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 170,
+      decoration: BoxDecoration(
+        color: ZColors.mangaPaper,
+        border: Border.all(color: ZColors.mangaInk, width: 3),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          const Positioned.fill(child: SpeedLines(color: ZColors.mangaInk, focus: Alignment.center, opacity: 0.55)),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Transform.rotate(
+                angle: -0.06,
+                child: Stack(
+                  children: [
+                    Text(
+                      '¡COMBATE\nTERMINADO!',
+                      textAlign: TextAlign.center,
+                      style: ZText.display(size: 32, height: 0.95).copyWith(
+                        foreground: Paint()
+                          ..style = PaintingStyle.stroke
+                          ..strokeWidth = 5
+                          ..color = ZColors.mangaInk,
+                      ),
+                    ),
+                    Text(
+                      '¡COMBATE\nTERMINADO!',
+                      textAlign: TextAlign.center,
+                      style: ZText.display(size: 32, height: 0.95, color: ZColors.gi),
+                    ),
+                  ],
+                ),
+              ),
+              if (subtitle != null) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Container(
+                  color: ZColors.mangaPaper,
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text(subtitle!.toUpperCase(), style: ZText.hud(size: 12, color: ZColors.mangaInk)),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EarnedBallPanel extends StatefulWidget {
+  const _EarnedBallPanel({required this.stars});
+
+  final int stars;
+
+  @override
+  State<_EarnedBallPanel> createState() => _EarnedBallPanelState();
+}
+
+class _EarnedBallPanelState extends State<_EarnedBallPanel> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(milliseconds: 600), () {
+      ZSound.play('dragon_ball');
+      ZHaptics.hit();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AppCard(
+      borderColor: ZColors.ball.withValues(alpha: 0.7),
+      child: Row(
+        children: [
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.3, end: 1),
+            duration: const Duration(milliseconds: 900),
+            curve: Curves.elasticOut,
+            builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
+            child: DragonBall(stars: widget.stars, size: 52, glow: true),
+          ),
+          const SizedBox(width: AppSpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('SEMANA CUMPLIDA', style: theme.textTheme.labelMedium?.copyWith(color: ZColors.ball)),
+                const SizedBox(height: 2),
+                Text('¡Esfera de ${widget.stars} ${widget.stars == 1 ? 'estrella' : 'estrellas'}!',
+                    style: theme.textTheme.titleLarge),
+                if (widget.stars >= 7)
+                  Text('Ya puedes invocar a Shenlong desde la Kame House.',
+                      style: theme.textTheme.bodySmall?.copyWith(color: ZColors.namek)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

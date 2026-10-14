@@ -11,6 +11,7 @@ import 'daos/routines_dao.dart';
 import 'daos/session_logging_dao.dart';
 import 'daos/user_settings_dao.dart';
 import 'daos/workout_sessions_dao.dart';
+import 'daos/z_state_dao.dart';
 import 'enums.dart';
 import 'tables/body_weight_logs_table.dart';
 import 'tables/exercise_rank_acknowledgements_table.dart';
@@ -19,6 +20,7 @@ import 'tables/personal_records_table.dart';
 import 'tables/routines_table.dart';
 import 'tables/user_settings_table.dart';
 import 'tables/workout_sessions_table.dart';
+import 'tables/z_key_values_table.dart';
 
 export 'converters.dart';
 export 'enums.dart';
@@ -37,6 +39,7 @@ part 'app_database.g.dart';
   BodyWeightLogs,
   UserSettings,
   ExerciseRankAcknowledgements,
+  ZKeyValues,
 ], daos: [
   WorkoutSessionsDao,
   BodyWeightDao,
@@ -47,13 +50,14 @@ part 'app_database.g.dart';
   ProgressDao,
   UserSettingsDao,
   RankingDao,
+  ZStateDao,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -96,6 +100,9 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 10) {
             await m.addColumn(userSettings, userSettings.healthConnectEnabled);
+          }
+          if (from < 11) {
+            await m.createTable(zKeyValues);
           }
         },
         beforeOpen: (details) async {

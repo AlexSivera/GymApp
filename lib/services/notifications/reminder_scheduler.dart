@@ -29,8 +29,8 @@ Future<void> refreshDailyReminders(AppDatabase db) async {
       reminderTime.isAfter(now)) {
     await NotificationService.scheduleReminder(
       id: todayReminderNotificationId,
-      title: 'Hoy toca entrenar',
-      body: 'Tienes un entrenamiento planificado para hoy.',
+      title: 'Kaio-sama',
+      body: 'Hoy toca combate. Te espero en la cámara de gravedad.',
       fireAt: reminderTime,
     );
   }
@@ -49,8 +49,8 @@ Future<void> refreshDailyReminders(AppDatabase db) async {
     if (daysSince >= 6 && reminderTime.isAfter(now)) {
       await NotificationService.scheduleReminder(
         id: streakRiskNotificationId,
-        title: 'Tu racha está en riesgo',
-        body: 'Llevas $daysSince días sin entrenar — entrena hoy para no perderla.',
+        title: 'Kaio-sama: tu racha está en peligro',
+        body: 'Llevas $daysSince días sin entrenar. Entrena hoy o tu ki se enfriará.',
         fireAt: reminderTime,
       );
     }

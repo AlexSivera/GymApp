@@ -13,9 +13,9 @@ class CaloriesTodayCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // The flame keeps its warm color, but the number itself stays neutral —
-    // a big red figure (or a red dash when empty) read as an error.
-    final color = AppColors.of(context).statusSkipped;
+    // Calories as ki spent: the flame keeps the gi orange, the number stays
+    // neutral.
+    final color = AppColors.of(context).accent;
     final hasData = calories > 0;
 
     return AppCard(
@@ -29,7 +29,7 @@ class CaloriesTodayCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.xs),
               Expanded(
                 child: Text(
-                  'CALORÍAS HOY',
+                  'KI GASTADO',
                   style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 0.6),
                 ),
               ),
@@ -46,7 +46,7 @@ class CaloriesTodayCard extends StatelessWidget {
             Text('0', style: theme.textTheme.displaySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            hasData ? 'kcal quemadas' : 'Entrena para sumar kcal',
+            hasData ? 'kcal hoy' : 'Entrena para gastar ki',
             style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
         ],
