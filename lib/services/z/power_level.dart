@@ -6,12 +6,13 @@ import '../ranking_engine/rank_tier.dart';
 // from the ranks the app already computes. A rank's score runs 1..24
 // (tier × 3 + grade); the level grows exponentially with the average so
 // each transformation is a visible jump, and it's calibrated so crossing
-// 9.000 lands exactly on reaching Super Saiyan (score 10 → 9.099).
+// 9.000 lands exactly on reaching Super Saiyan (score 4 → 9.113).
 const powerLevelBase = 1.57;
+const _powerLevelScale = 1500;
 const over9000Threshold = 9000;
 
 int powerLevelForScore(double averageRankScore) =>
-    (100 * math.pow(powerLevelBase, averageRankScore)).round();
+    (_powerLevelScale * math.pow(powerLevelBase, averageRankScore)).round();
 
 class PowerReading {
   const PowerReading({required this.averageScore, required this.level, required this.rank});

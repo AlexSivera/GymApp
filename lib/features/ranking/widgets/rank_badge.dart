@@ -4,19 +4,18 @@ import '../../../services/ranking_engine/rank_tier.dart';
 
 // Aura color of each transformation.
 const rankTierColors = <RankTier, Color>{
-  RankTier.hierro: Color(0xFFC9CFE6),
-  RankTier.bronce: Color(0xFFF2F6FF),
-  RankTier.plata: Color(0xFFFF3D45),
-  RankTier.oro: Color(0xFFFFD23F),
-  RankTier.platino: Color(0xFFFFE066),
-  RankTier.esmeralda: Color(0xFFFFB81F),
-  RankTier.diamante: Color(0xFF3CC8FF),
-  RankTier.maestro: Color(0xFFE6ECF7),
+  RankTier.hierro: Color(0xFFB07444), // Saiyan: marrón tierra
+  RankTier.bronce: Color(0xFFFFC93C), // SSJ: dorado clásico
+  RankTier.plata: Color(0xFFFFF35C), // SSJ2: oro eléctrico
+  RankTier.oro: Color(0xFFE89A0C), // SSJ3: ámbar intenso
+  RankTier.platino: Color(0xFFC02A3E), // SSJ4: granate
+  RankTier.esmeralda: Color(0xFFFF3D5A), // SSJ God: rojo brillante
+  RankTier.diamante: Color(0xFF2EB8FF), // SSJ Blue
+  RankTier.maestro: Color(0xFFF4F6FF), // Ultra Instinto: blanco brillante
 };
 
 // A ki orb for a Rank: a dark core ringed by its transformation's aura,
-// glowing harder with each grade, with the grade (I/II/III, or ×2… for
-// Kaioken) in the middle.
+// glowing harder with each grade, with the grade's stars in the middle.
 class RankBadge extends StatelessWidget {
   const RankBadge({super.key, required this.rank, this.size = 40});
 

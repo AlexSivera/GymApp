@@ -7,10 +7,12 @@ import 'package:gymapp/services/z/z_state.dart';
 
 void main() {
   group('nivel de poder', () {
-    test('crossing 9.000 lands exactly on Super Saiyan (score 10)', () {
-      expect(powerLevelForScore(9), lessThan(over9000Threshold));
-      expect(powerLevelForScore(10), greaterThan(over9000Threshold));
-      expect(rankForScore(10).tier, RankTier.oro);
+    test('crossing 9.000 lands exactly on Super Saiyan (score 4)', () {
+      expect(powerLevelForScore(3.9), lessThan(over9000Threshold));
+      expect(powerLevelForScore(4), greaterThan(over9000Threshold));
+      expect(rankForScore(3.9).tier, RankTier.hierro);
+      expect(rankForScore(4).tier, RankTier.bronce);
+      expect(RankTier.bronce.label, 'Super Saiyan');
     });
 
     test('grows with every grade', () {
@@ -40,9 +42,10 @@ void main() {
       expect(formatPowerLevel(305), '305');
     });
 
-    test('Kaioken grades read as multipliers', () {
-      expect(const Rank(RankTier.plata, 3).label, 'Kaioken ×4');
-      expect(const Rank(RankTier.oro, 2).label, 'Super Saiyan II');
+    test('grades read as stars', () {
+      expect(const Rank(RankTier.hierro, 1).label, 'Saiyan ★');
+      expect(const Rank(RankTier.plata, 2).label, 'Super Saiyan 2 ★★');
+      expect(const Rank(RankTier.maestro, 3).shortLabel, 'Ultra Instinto ★★★');
     });
   });
 

@@ -105,7 +105,7 @@ const masterUnlockSpeech = <String, String>{
   'gohan': '¡Todos tus grupos musculares tienen lectura! Eso es equilibrio. Te enseño el Masenko.',
   'trunks': 'Veinticinco entrenamientos. Con guerreros como tú, el futuro tiene esperanza. Toma, el Burning Attack.',
   'vegeta': 'Diez límites superados… Tsk. Está bien, lo admito: eres fuerte. Te enseñaré el Galick Gun. No lo malgastes.',
-  'goku': '¡Ya eres Super Saiyan! ¡Esto hay que celebrarlo! Te enseño mi Kamehameha instantáneo.',
+  'goku': '¡Ya eres Super Saiyan 3! ¡Esto hay que celebrarlo! Te enseño mi Kamehameha instantáneo.',
 };
 
 // Cameos in big moments, when that master is already on your side.

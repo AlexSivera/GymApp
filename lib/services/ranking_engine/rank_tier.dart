@@ -9,47 +9,45 @@ enum RankTier { hierro, bronce, plata, oro, platino, esmeralda, diamante, maestr
 
 extension RankTierLabel on RankTier {
   String get label => switch (this) {
-        RankTier.hierro => 'Terrícola',
-        RankTier.bronce => 'Guerrero Z',
-        RankTier.plata => 'Kaioken',
-        RankTier.oro => 'Super Saiyan',
-        RankTier.platino => 'Super Saiyan 2',
-        RankTier.esmeralda => 'Super Saiyan 3',
+        RankTier.hierro => 'Saiyan',
+        RankTier.bronce => 'Super Saiyan',
+        RankTier.plata => 'Super Saiyan 2',
+        RankTier.oro => 'Super Saiyan 3',
+        RankTier.platino => 'Super Saiyan 4',
+        RankTier.esmeralda => 'Super Saiyan God',
         RankTier.diamante => 'Super Saiyan Blue',
         RankTier.maestro => 'Ultra Instinto',
       };
 
-  // Compact form for chips and tight rows ("SSJ 2").
+  // Compact form for chips and tight rows ("SSJ2").
   String get shortLabel => switch (this) {
-        RankTier.hierro => 'Terrícola',
-        RankTier.bronce => 'Guerrero Z',
-        RankTier.plata => 'Kaioken',
-        RankTier.oro => 'SSJ',
-        RankTier.platino => 'SSJ 2',
-        RankTier.esmeralda => 'SSJ 3',
+        RankTier.hierro => 'Saiyan',
+        RankTier.bronce => 'SSJ',
+        RankTier.plata => 'SSJ2',
+        RankTier.oro => 'SSJ3',
+        RankTier.platino => 'SSJ4',
+        RankTier.esmeralda => 'SSJ God',
         RankTier.diamante => 'SSJ Blue',
         RankTier.maestro => 'Ultra Instinto',
       };
 
   // Pack media slot suffix for this transformation (transform_ssj.mp4…).
   String get slug => switch (this) {
-        RankTier.hierro => 'terricola',
-        RankTier.bronce => 'guerrero_z',
-        RankTier.plata => 'kaioken',
-        RankTier.oro => 'ssj',
-        RankTier.platino => 'ssj2',
-        RankTier.esmeralda => 'ssj3',
+        RankTier.hierro => 'saiyan',
+        RankTier.bronce => 'ssj',
+        RankTier.plata => 'ssj2',
+        RankTier.oro => 'ssj3',
+        RankTier.platino => 'ssj4',
+        RankTier.esmeralda => 'ssj_god',
         RankTier.diamante => 'ssj_blue',
         RankTier.maestro => 'ultra_instinto',
       };
 }
 
-// Kaioken counts its grades as multipliers (×2, ×3, ×4); every other form
-// uses I/II/III.
-String rankGradeLabel(RankTier tier, int subTier) =>
-    tier == RankTier.plata ? '×${subTier + 1}' : const ['', 'I', 'II', 'III'][subTier];
+// Grades are stars: "Super Saiyan 2 ★★" reads better than "… 2 II".
+String rankGradeLabel(RankTier tier, int subTier) => '★' * subTier.clamp(1, 3);
 
-// A tier plus its I/II/III sub-step, e.g. "Oro II".
+// A tier plus its 1–3 star sub-step, e.g. "Super Saiyan ★★".
 class Rank implements Comparable<Rank> {
   const Rank(this.tier, this.subTier);
 

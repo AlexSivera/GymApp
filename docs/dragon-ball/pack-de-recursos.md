@@ -28,12 +28,12 @@ Consejo: vídeos cortos (2–5 s) y de poco peso (menos de 10 MB cada uno), en v
 | `kaio` | imagen (.jpg/.png/.webp/.gif) | Retrato de Kaio-sama para sus consejos |
 | `shenlong` | imagen (.jpg/.png/.webp/.gif) o vídeo (.mp4/.webm) | Shenlong apareciendo (vídeo) o su imagen |
 | `transform` | imagen (.jpg/.png/.webp/.gif) o vídeo (.mp4/.webm) | Transformación genérica (si falta la de una forma) |
-| `transform_terricola` | imagen (.jpg/.png/.webp/.gif) o vídeo (.mp4/.webm) | Transformación: Terrícola |
-| `transform_guerrero_z` | imagen (.jpg/.png/.webp/.gif) o vídeo (.mp4/.webm) | Transformación: Guerrero Z |
-| `transform_kaioken` | imagen (.jpg/.png/.webp/.gif) o vídeo (.mp4/.webm) | Transformación: Kaioken |
+| `transform_saiyan` | imagen (.jpg/.png/.webp/.gif) o vídeo (.mp4/.webm) | Transformación: Saiyan (forma base) |
 | `transform_ssj` | imagen (.jpg/.png/.webp/.gif) o vídeo (.mp4/.webm) | Transformación: Super Saiyan |
 | `transform_ssj2` | imagen (.jpg/.png/.webp/.gif) o vídeo (.mp4/.webm) | Transformación: Super Saiyan 2 |
 | `transform_ssj3` | imagen (.jpg/.png/.webp/.gif) o vídeo (.mp4/.webm) | Transformación: Super Saiyan 3 |
+| `transform_ssj4` | imagen (.jpg/.png/.webp/.gif) o vídeo (.mp4/.webm) | Transformación: Super Saiyan 4 |
+| `transform_ssj_god` | imagen (.jpg/.png/.webp/.gif) o vídeo (.mp4/.webm) | Transformación: Super Saiyan God |
 | `transform_ssj_blue` | imagen (.jpg/.png/.webp/.gif) o vídeo (.mp4/.webm) | Transformación: Super Saiyan Blue |
 | `transform_ultra_instinto` | imagen (.jpg/.png/.webp/.gif) o vídeo (.mp4/.webm) | Transformación: Ultra Instinto |
 | `kamehameha` | vídeo (.mp4/.webm) | Clip del Kamehameha al terminar el entreno |

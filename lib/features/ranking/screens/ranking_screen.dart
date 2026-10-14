@@ -140,7 +140,7 @@ class _RankingEmptyState extends StatelessWidget {
           Text('Aquí brillará tu aura, músculo a músculo', style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Cada técnica que completes te acerca a una transformación, de Terrícola a Ultra Instinto. '
+            'Cada técnica que completes te acerca a una transformación, de Saiyan a Ultra Instinto. '
             'Termina tu primer entrenamiento para que el rastreador te lea.',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),

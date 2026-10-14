@@ -72,8 +72,8 @@ class ZAura {
 
 // Auras Shenlong can grant.
 const zUnlockableAuras = [
-  ZAura('ultra_instinto', 'Ultra Instinto', Color(0xFFE6ECF7)),
-  ZAura('ssj_blue', 'Super Saiyan Blue', Color(0xFF3CC8FF)),
+  ZAura('ultra_instinto', 'Ultra Instinto', Color(0xFFF4F6FF)),
+  ZAura('ssj_blue', 'Super Saiyan Blue', Color(0xFF2EB8FF)),
   ZAura('divino', 'Ki divino', Color(0xFFFF4F8B)),
   ZAura('kaioken', 'Kaioken', Color(0xFFFF3D45)),
 ];

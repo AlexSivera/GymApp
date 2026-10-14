@@ -234,7 +234,7 @@ class PowerLevelCard extends ConsumerWidget {
   }
 }
 
-// "● Super Saiyan II" in the transformation's aura color.
+// "● Super Saiyan ★★" in the transformation's aura color.
 class AuraPill extends StatelessWidget {
   const AuraPill({super.key, required this.tier, required this.label});
 

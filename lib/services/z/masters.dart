@@ -144,10 +144,10 @@ final masters = <Master>[
     color: const Color(0xFFFF6A13),
     attackId: 'kamehameha_instantaneo',
     personality: 'Alegre, siempre con hambre',
-    trialText: 'Tu media llega a Super Saiyan',
+    trialText: 'Tu media llega a Super Saiyan 3',
     trial: (s) {
       final reached = s.averageTier != null && s.averageTier!.index >= RankTier.oro.index;
-      return MasterTrial(reached ? 1 : 0, 1, reached ? 'Super Saiyan alcanzado' : 'Llega a Super Saiyan');
+      return MasterTrial(reached ? 1 : 0, 1, reached ? 'Super Saiyan 3 alcanzado' : 'Llega a Super Saiyan 3');
     },
   ),
 ];
