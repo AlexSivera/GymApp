@@ -1,0 +1,936 @@
+<title>Machoke Z</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Plus+Jakarta+Sans:wght@400;500;600;800&family=Share+Tech+Mono&display=swap">
+<style>
+/* Layout: documento largo de una columna (1120px) que se abre en galerías de teléfonos; un solo mundo oscuro "noche de entrenamiento" a propósito. */
+:root {
+  --void: #0A0D1C;
+  --night: #11163A;
+  --panel: #171E46;
+  --panel-2: #1E2757;
+  --line: rgba(170, 182, 255, .16);
+  --ink: #F5F1E6;
+  --muted: #A3A9CB;
+  --gi: #FF6A13;
+  --gi-deep: #C24400;
+  --gold: #FFD23F;
+  --blue: #3CC8FF;
+  --scouter: #45FF8E;
+  --red: #FF3D45;
+  --silver: #E6ECF7;
+  --white-ki: #F2F6FF;
+  --ball-hi: #FFF2B8;
+  --ball: #FFA21A;
+  --ball-lo: #D86200;
+  --star: #D6211A;
+  --senzu: #7FCB4B;
+  --namek: #7BE3A8;
+  --display: "Dela Gothic One", "Arial Black", "Helvetica Neue", sans-serif;
+  --body: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --hud: "Share Tech Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--void); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 0 80px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 400; line-height: 1.08; text-wrap: balance; margin: 0; }
+h2 { font-size: clamp(30px, 5vw, 48px); }
+h3 { font-size: 20px; }
+p { margin: 0; }
+.prose { max-width: 66ch; color: var(--muted); }
+.prose strong { color: var(--ink); font-weight: 600; }
+.eyebrow { font-family: var(--hud); font-size: 13px; letter-spacing: .18em; text-transform: uppercase; color: var(--scouter); }
+section { padding-block: 72px 8px; display: grid; gap: 28px; }
+.sec-head { display: grid; gap: 12px; }
+.sec-head .kanji { font-family: var(--display); color: var(--gi); font-size: 15px; letter-spacing: .3em; }
+a { color: var(--blue); }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+/* ---------- HERO ---------- */
+.hero { position: relative; padding-block: 72px 40px; display: grid; gap: 24px; overflow: hidden; }
+.hero::before { content: "気"; position: absolute; right: -4%; top: -6%; font-family: var(--display); font-size: clamp(260px, 42vw, 520px); line-height: 1; color: var(--gi); opacity: .09; pointer-events: none; }
+.hero h1 { font-size: clamp(64px, 13vw, 168px); letter-spacing: -.01em; line-height: .9; position: relative; }
+.hero h1 .z { color: var(--gold); -webkit-text-stroke: 3px var(--gi-deep); paint-order: stroke fill; display: inline-block; transform: skewX(-10deg) translateY(.04em); text-shadow: 0 0 40px rgba(255, 210, 63, .45); }
+.hero .lead { font-size: clamp(18px, 2.4vw, 24px); max-width: 34ch; line-height: 1.4; color: var(--ink); position: relative; }
+.hero .meta { font-family: var(--hud); font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 18px; position: relative; }
+.hero .meta span::before { content: "▸ "; color: var(--scouter); }
+.ball-row { display: flex; flex-wrap: wrap; gap: 12px; position: relative; }
+
+/* ---------- ESFERAS ---------- */
+.ball { --s: 44px; width: var(--s); height: var(--s); border-radius: 50%; position: relative; flex: none;
+  background: radial-gradient(circle at 34% 28%, var(--ball-hi) 0 9%, #FFC94A 22%, var(--ball) 52%, var(--ball-lo) 100%);
+  box-shadow: inset -4px -6px 10px rgba(120, 40, 0, .45), 0 0 18px rgba(255, 162, 26, .35);
+  display: grid; place-items: center; }
+.ball .stars { color: var(--star); font-size: calc(var(--s) * .22); line-height: .9; text-align: center; max-width: 70%; letter-spacing: -.05em; }
+.ball.off { background: radial-gradient(circle at 34% 28%, #3a4170 0 10%, #262d58 55%, #161b3b 100%); box-shadow: inset -3px -5px 8px rgba(0, 0, 0, .4); }
+.ball.off .stars { color: #4a5288; }
+
+/* ---------- PILARES ---------- */
+.pillars { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.pillar { background: var(--night); border: 1px solid var(--line); border-radius: 6px; padding: 22px; display: grid; gap: 10px; align-content: start; }
+.pillar .big { font-family: var(--display); font-size: 34px; color: var(--gold); }
+.pillar p { color: var(--muted); font-size: 15px; }
+.pillar .tag { font-family: var(--hud); font-size: 12px; color: var(--scouter); letter-spacing: .1em; }
+
+/* ---------- TABLA TRADUCCION ---------- */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 15px; }
+th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--hud); font-weight: 400; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); background: var(--night); }
+td:first-child { color: var(--muted); white-space: nowrap; }
+td.new { font-weight: 800; color: var(--gold); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td .sm { color: var(--muted); font-size: 14px; }
+
+/* ---------- SISTEMA VISUAL ---------- */
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.sw { border-radius: 6px; overflow: hidden; border: 1px solid var(--line); background: var(--night); }
+.sw .chip { height: 72px; }
+.sw .lab { padding: 10px 12px; font-size: 14px; display: grid; }
+.sw .lab b { font-weight: 600; }
+.sw .lab span { font-family: var(--hud); font-size: 12px; color: var(--muted); }
+.type-spec { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.type-card { background: var(--night); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: grid; gap: 8px; }
+.type-card .sample { font-size: 34px; line-height: 1.1; }
+.type-card .who { font-family: var(--hud); font-size: 12px; color: var(--muted); letter-spacing: .1em; }
+.motifs { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
+.motif { background: var(--night); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; display: grid; }
+.motif .stage { height: 130px; position: relative; display: grid; place-items: center; overflow: hidden; background: var(--void); }
+.motif .cap { padding: 10px 12px; font-size: 14px; }
+.motif .cap span { display: block; color: var(--muted); font-size: 13px; line-height: 1.4; }
+
+/* aura reutilizable */
+.aura-wrap { position: relative; display: grid; place-items: center; }
+.aura { position: absolute; left: 50%; bottom: 0; width: 120%; height: 150%; transform: translateX(-50%); pointer-events: none;
+  background: radial-gradient(ellipse 50% 60% at 50% 72%, var(--ac, var(--gold)) 0%, transparent 70%);
+  clip-path: polygon(50% 0, 58% 18%, 70% 6%, 72% 30%, 88% 20%, 84% 46%, 100% 50%, 88% 70%, 96% 100%, 4% 100%, 12% 70%, 0 50%, 16% 46%, 12% 20%, 28% 30%, 30% 6%, 42% 18%);
+  filter: blur(3px); opacity: .9; animation: flick 1.4s ease-in-out infinite alternate; transform-origin: 50% 100%; }
+.aura.b { width: 95%; height: 120%; opacity: .7; animation-duration: 1s; animation-delay: -.4s; filter: blur(1px) brightness(1.3); }
+@keyframes flick { 0% { transform: translateX(-50%) scaleY(.94) scaleX(1); } 100% { transform: translateX(-50%) scaleY(1.06) scaleX(.96); } }
+.speedlines { position: absolute; inset: 0; background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(245, 241, 230, .35) 0deg 1deg, transparent 1deg 6deg);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 22%, #000 70%); mask-image: radial-gradient(circle at 50% 50%, transparent 22%, #000 70%); }
+.scope { width: 110px; height: 80px; border-radius: 10px 40px 10px 10px; background: linear-gradient(135deg, rgba(69, 255, 142, .28), rgba(69, 255, 142, .08)); border: 2px solid rgba(69, 255, 142, .7); position: relative; font-family: var(--hud); color: var(--scouter); font-size: 11px; padding: 8px; box-shadow: 0 0 20px rgba(69, 255, 142, .25) inset; }
+.scope::after { content: ""; position: absolute; right: 12px; top: 12px; width: 12px; height: 12px; border: 2px solid var(--scouter); transform: rotate(45deg); }
+.stamp { font-family: var(--display); font-size: 54px; color: var(--red); border: 4px solid var(--red); border-radius: 6px; width: 84px; height: 84px; display: grid; place-items: center; transform: rotate(-8deg); opacity: .9; }
+.capsule { width: 120px; height: 44px; border-radius: 22px; background: linear-gradient(90deg, var(--silver) 0 50%, var(--blue) 50%); position: relative; box-shadow: inset 0 -5px 8px rgba(0, 0, 0, .25); display: flex; align-items: center; padding-left: 14px; font-family: var(--hud); color: var(--void); font-size: 13px; font-weight: 700; }
+.capsule::after { content: ""; position: absolute; right: 18px; top: 13px; width: 18px; height: 18px; border-radius: 50%; background: var(--silver); box-shadow: inset 0 -2px 3px rgba(0, 0, 0, .3); }
+.senzu { width: 26px; height: 16px; border-radius: 50%; background: radial-gradient(ellipse at 35% 35%, #C7F29A 0, var(--senzu) 50%, #3F7E24 100%); transform: rotate(-25deg); box-shadow: 0 0 10px rgba(127, 203, 75, .5); flex: none; }
+
+/* ---------- TRANSFORMACIONES ---------- */
+.ladder { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.tier { background: var(--night); border: 1px solid var(--line); border-radius: 6px; padding: 18px 18px 16px; display: grid; grid-template-columns: 64px 1fr; gap: 14px; align-items: center; }
+.tier .orb { width: 64px; height: 76px; position: relative; display: grid; place-items: end center; }
+.tier .orb .core { width: 30px; height: 30px; border-radius: 50%; background: var(--void); border: 2px solid var(--ac); position: relative; z-index: 1; margin-bottom: 8px; display: grid; place-items: center; font-family: var(--hud); font-size: 12px; color: var(--ac); }
+.tier .old { font-family: var(--hud); font-size: 12px; color: var(--muted); letter-spacing: .08em; }
+.tier .nm { font-family: var(--display); font-size: 19px; line-height: 1.1; color: var(--ac); }
+.tier .ds { font-size: 13px; color: var(--muted); line-height: 1.4; margin-top: 4px; }
+
+/* ---------- PODER ---------- */
+.power { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: stretch; }
+@media (max-width: 820px) { .power { grid-template-columns: 1fr; } }
+.calc { background: #071A12; border: 2px solid rgba(69, 255, 142, .5); border-radius: 8px 40px 8px 8px; padding: 22px; font-family: var(--hud); color: var(--scouter); display: grid; gap: 14px; box-shadow: 0 0 40px rgba(69, 255, 142, .12) inset; position: relative; overflow: hidden; }
+.calc::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(69, 255, 142, .06) 0 1px, transparent 1px 4px); pointer-events: none; }
+.calc label { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+.calc input[type=range] { width: 100%; accent-color: var(--scouter); }
+.calc .readout { font-size: clamp(44px, 8vw, 68px); line-height: 1; color: var(--ink); text-shadow: 0 0 18px rgba(69, 255, 142, .6); font-variant-numeric: tabular-nums; }
+.calc .tiername { font-size: 16px; }
+.calc .over { color: var(--red); font-size: 14px; min-height: 1.4em; }
+.formula { background: var(--night); border: 1px solid var(--line); border-radius: 6px; padding: 22px; display: grid; gap: 14px; align-content: start; }
+.formula code { font-family: var(--hud); font-size: 16px; color: var(--gold); background: var(--void); padding: 12px 14px; border-radius: 4px; display: block; overflow-x: auto; }
+.formula ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 15px; display: grid; gap: 6px; }
+.mini-table { font-family: var(--hud); font-size: 14px; min-width: 0; }
+.mini-table td, .mini-table th { padding: 6px 10px; }
+.mini-table td:last-child { text-align: right; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* ---------- TELEFONOS ---------- */
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 44px 24px; }
+.shot { display: grid; gap: 14px; justify-items: center; align-content: start; }
+.shot .cap { max-width: 300px; display: grid; gap: 4px; }
+.shot .cap h3 { font-size: 18px; }
+.shot .cap .was { font-family: var(--hud); font-size: 12px; color: var(--scouter); letter-spacing: .08em; }
+.shot .cap p { font-size: 14px; color: var(--muted); line-height: 1.5; }
+.phone { width: min(290px, 100%); aspect-ratio: 9 / 19; border-radius: 38px; border: 9px solid #04050B; background: var(--void); position: relative; overflow: hidden; box-shadow: 0 0 0 1px #2a2f52, 0 30px 60px rgba(0, 0, 0, .5); font-size: 12px; line-height: 1.35; color: var(--ink); }
+.phone .notch { position: absolute; top: 6px; left: 50%; width: 76px; height: 20px; background: #04050B; border-radius: 12px; transform: translateX(-50%); z-index: 9; }
+.phone .sb { display: flex; justify-content: space-between; padding: 8px 18px 0; font-size: 11px; font-weight: 600; position: relative; z-index: 5; height: 28px; }
+.scr { position: absolute; inset: 0; padding: 30px 12px 64px; display: flex; flex-direction: column; gap: 9px; overflow: hidden; }
+.nav { position: absolute; left: 0; right: 0; bottom: 0; height: 58px; background: rgba(10, 13, 28, .96); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; z-index: 6; }
+.nav div { display: grid; justify-items: center; gap: 2px; font-size: 9px; color: var(--muted); }
+.nav div.on { color: var(--gold); }
+.nav svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav .ki { width: 42px; height: 42px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #FF9A4D, var(--gi) 55%, var(--gi-deep)); color: var(--ink); font-family: var(--display); font-size: 18px; display: grid; place-items: center; margin-top: -18px; box-shadow: 0 0 16px rgba(255, 106, 19, .55), 0 0 0 3px var(--void); }
+.nav .ki.on { box-shadow: 0 0 22px rgba(255, 210, 63, .8), 0 0 0 3px var(--void); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 11px; }
+.lbl { font-family: var(--hud); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.hudg { color: var(--scouter); }
+.row { display: flex; align-items: center; gap: 8px; }
+.between { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 99px; padding: 3px 9px; font-size: 10px; font-weight: 700; border: 1px solid var(--ac, var(--gold)); color: var(--ac, var(--gold)); background: color-mix(in srgb, var(--ac, var(--gold)) 12%, transparent); white-space: nowrap; }
+.pill i { width: 7px; height: 7px; border-radius: 50%; background: var(--ac, var(--gold)); box-shadow: 0 0 6px var(--ac, var(--gold)); }
+.cta { background: linear-gradient(180deg, #FF8838, var(--gi) 60%, var(--gi-deep)); color: #fff; font-weight: 800; border-radius: 12px; padding: 11px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; box-shadow: 0 6px 18px rgba(255, 106, 19, .35); }
+.cta small { display: block; font-weight: 500; opacity: .85; font-size: 10px; }
+
+/* pantalla Base */
+.s-base { background: radial-gradient(120% 60% at 50% -10%, #1C3A7A 0, transparent 60%), var(--void); }
+.pl-num { font-family: var(--display); font-size: 40px; line-height: 1; color: var(--gold); text-shadow: 0 0 22px rgba(255, 210, 63, .5); font-variant-numeric: tabular-nums; }
+.genki { width: 54px; height: 54px; border-radius: 50%; flex: none; position: relative; overflow: hidden; background: #0d1f3c; box-shadow: 0 0 18px rgba(60, 200, 255, .55), inset 0 0 12px rgba(60, 200, 255, .6); border: 1px solid rgba(160, 230, 255, .6); }
+.genki::after { content: ""; position: absolute; left: -10%; right: -10%; bottom: 0; height: var(--fill, 60%); background: radial-gradient(circle at 50% 0%, #E6FAFF 0, var(--blue) 40%, #1170C9 100%); border-radius: 45% 45% 0 0; }
+.bubble { background: var(--panel-2); border-radius: 12px 12px 12px 3px; padding: 9px 10px; font-size: 11px; position: relative; display: flex; gap: 8px; }
+.kaio { width: 26px; height: 26px; border-radius: 50%; flex: none; background: radial-gradient(circle at 40% 35%, #6FA5FF, #2B5BC4); display: grid; place-items: center; font-family: var(--display); font-size: 12px; color: var(--ink); }
+.av { width: 34px; height: 34px; border-radius: 50%; background: var(--panel-2); border: 2px solid var(--gold); position: relative; display: grid; place-items: center; font-family: var(--display); font-size: 13px; color: var(--gold); box-shadow: 0 0 12px rgba(255, 210, 63, .6); }
+
+/* pantalla Cámara */
+.s-cam { background: linear-gradient(180deg, #1A0E05 0, var(--void) 40%); }
+.gif { height: 92px; border-radius: 10px; background: repeating-linear-gradient(45deg, #222a55 0 8px, #1b2249 8px 16px); display: grid; place-items: center; font-family: var(--hud); font-size: 10px; color: var(--muted); position: relative; }
+.sets { display: grid; gap: 4px; }
+.set { display: grid; grid-template-columns: 22px 1fr 44px 34px 24px; gap: 6px; align-items: center; padding: 6px 7px; border-radius: 8px; background: var(--panel-2); font-variant-numeric: tabular-nums; font-size: 11px; }
+.set.head { background: none; padding-block: 0; font-family: var(--hud); font-size: 9px; color: var(--muted); letter-spacing: .08em; }
+.set.done { background: linear-gradient(90deg, rgba(255, 106, 19, .28), rgba(255, 106, 19, .08)); box-shadow: inset 2px 0 0 var(--gi); }
+.set.act { outline: 1.5px solid var(--gold); background: rgba(255, 210, 63, .08); }
+.chk { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--muted); display: grid; place-items: center; font-size: 11px; }
+.set.done .chk { background: var(--gi); border-color: var(--gi); color: #fff; box-shadow: 0 0 8px var(--gi); }
+.rest { display: flex; align-items: center; gap: 9px; background: rgba(127, 203, 75, .12); border: 1px solid rgba(127, 203, 75, .45); border-radius: 12px; padding: 8px 10px; }
+.rest .t { font-family: var(--hud); font-size: 18px; color: var(--senzu); margin-left: auto; }
+.bar { height: 4px; border-radius: 4px; background: rgba(255, 255, 255, .1); overflow: hidden; }
+.bar > i { display: block; height: 100%; width: var(--w); background: var(--ac, var(--senzu)); box-shadow: 0 0 6px var(--ac, var(--senzu)); }
+.fusion { border-radius: 12px; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; position: relative; border: 1px solid rgba(255, 210, 63, .5); }
+.fusion div { padding: 8px 10px; font-size: 11px; }
+.fusion div:first-child { background: rgba(255, 106, 19, .16); }
+.fusion div:last-child { background: rgba(60, 200, 255, .14); text-align: right; }
+.fusion::after { content: "FUSIÓN"; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-8deg); font-family: var(--display); font-size: 11px; color: var(--void); background: var(--gold); padding: 2px 7px; border-radius: 3px; }
+.kame { position: absolute; left: 12px; right: 12px; bottom: 68px; border-radius: 14px; padding: 10px 12px; background: #0B1B3A; border: 1px solid rgba(60, 200, 255, .55); overflow: hidden; z-index: 4; }
+.kame::before { content: ""; position: absolute; inset: 0; width: 62%; background: linear-gradient(90deg, rgba(60, 200, 255, .1), rgba(60, 200, 255, .55)); box-shadow: 8px 0 20px rgba(160, 235, 255, .7); }
+.kame span { position: relative; font-weight: 800; font-size: 12px; display: flex; justify-content: space-between; }
+.kame small { font-weight: 500; font-family: var(--hud); color: #BFEFFF; }
+
+/* pantalla Combate terminado */
+.s-end { background: #FFF8E8; color: #131427; padding-bottom: 12px; }
+.s-end .speedlines { background: repeating-conic-gradient(from 0deg at 50% 22%, rgba(19, 20, 39, .55) 0deg .7deg, transparent .7deg 5deg); -webkit-mask-image: radial-gradient(circle at 50% 22%, transparent 18%, #000 55%); mask-image: radial-gradient(circle at 50% 22%, transparent 18%, #000 55%); opacity: .5; }
+.burst { font-family: var(--display); font-size: 30px; line-height: .95; text-align: center; transform: rotate(-4deg); color: var(--gi); -webkit-text-stroke: 1.5px #131427; paint-order: stroke fill; position: relative; margin-top: 18px; }
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; position: relative; }
+.pn { background: #fff; border: 2.5px solid #131427; padding: 9px; display: grid; gap: 2px; align-content: start; }
+.pn .lbl { color: #5b5f7a; }
+.pn b { font-family: var(--display); font-weight: 400; font-size: 20px; line-height: 1.05; }
+.pn.a { clip-path: polygon(0 0, 100% 0, 96% 100%, 0 100%); }
+.pn.b { clip-path: polygon(4% 0, 100% 0, 100% 100%, 0 100%); }
+.pn.wide { grid-column: 1 / -1; background: #131427; color: var(--gold); clip-path: polygon(0 6%, 100% 0, 100% 94%, 0 100%); padding-block: 14px; }
+.pn.wide .lbl { color: var(--gold); opacity: .8; }
+.pn.wide small { color: var(--ink); font-size: 11px; }
+.btn-dark { background: #131427; color: #fff; text-align: center; border-radius: 12px; padding: 11px; font-weight: 800; position: relative; margin-top: auto; }
+
+/* pantalla Poder */
+.s-pow { background: radial-gradient(90% 50% at 50% 30%, #1A2A5E 0, var(--void) 70%); }
+.body-wrap { position: relative; height: 250px; display: grid; place-items: center; }
+.body-wrap svg.body { height: 240px; width: auto; overflow: visible; }
+.lens { position: absolute; right: -6px; top: 6px; width: 140px; height: 104px; border-radius: 10px 46px 10px 10px; background: linear-gradient(135deg, rgba(69, 255, 142, .3), rgba(69, 255, 142, .06)); border: 2px solid rgba(69, 255, 142, .8); font-family: var(--hud); color: var(--scouter); font-size: 10px; padding: 9px 10px; line-height: 1.5; box-shadow: 0 0 22px rgba(69, 255, 142, .35); }
+.lens b { font-size: 20px; font-weight: 400; display: block; color: #E6FFEE; text-shadow: 0 0 10px var(--scouter); }
+.target { position: absolute; width: 22px; height: 22px; border: 1.5px solid var(--scouter); transform: rotate(45deg); }
+.mrow { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; padding: 6px 2px; border-bottom: 1px solid var(--line); }
+.mrow .bar { grid-column: 1 / -1; }
+
+/* pantalla Transformación */
+.s-tr { background: radial-gradient(80% 55% at 50% 52%, #7A5200 0, #2A1600 55%, #0B0700 100%); align-items: center; text-align: center; padding-bottom: 20px; }
+.s-tr .speedlines { background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(255, 220, 120, .55) 0deg .8deg, transparent .8deg 5deg); opacity: .6; }
+.s-tr .bigk { position: absolute; font-family: var(--display); font-size: 260px; color: var(--gold); opacity: .08; top: 50%; left: 50%; transform: translate(-50%, -54%); line-height: 1; }
+.tr-fig { position: relative; width: 150px; height: 220px; margin-top: 20px; display: grid; place-items: end center; }
+.tr-fig .aura { --ac: var(--gold); width: 190%; height: 125%; filter: blur(4px) brightness(1.15); }
+.tr-fig .aura.b { --ac: #FFF3B0; width: 120%; height: 100%; }
+.tr-fig svg.body { position: relative; height: 200px; width: auto; }
+.bolt { position: absolute; width: 60px; height: 90px; overflow: visible; }
+.bolt path { fill: none; stroke: #DDF6FF; stroke-width: 2.5; filter: drop-shadow(0 0 4px #9fe6ff) drop-shadow(0 0 8px #3CC8FF); }
+.tr-title { font-family: var(--display); font-size: 25px; color: #FFF6D5; text-shadow: 0 0 18px var(--gold), 0 0 4px var(--gold); position: relative; margin-top: 8px; }
+.tr-sub { position: relative; font-size: 12px; color: #FFE7A3; }
+.tr-from { position: relative; font-family: var(--hud); font-size: 11px; color: #FFE7A3; opacity: .8; }
+.btn-gold { position: relative; background: var(--gold); color: #1A1000; font-weight: 800; border-radius: 12px; padding: 10px; width: 100%; margin-top: auto; }
+
+/* pantalla Shenlong */
+.s-sh { background: radial-gradient(70% 40% at 50% 30%, #12432E 0, #06180F 60%, #020805 100%); text-align: center; padding-bottom: 14px; }
+.s-sh svg.dragon { position: absolute; left: 0; top: 18px; width: 100%; height: 300px; }
+.s-sh .ring { position: absolute; left: 50%; top: 318px; transform: translateX(-50%); width: 180px; height: 52px; }
+.s-sh .ring .ball { --s: 20px; position: absolute; box-shadow: 0 0 14px rgba(255, 200, 80, .95); }
+.wish-zone { margin-top: auto; display: grid; gap: 6px; position: relative; }
+.wish-zone h4 { font-family: var(--display); font-weight: 400; font-size: 17px; margin: 0; color: #DFFFE9; text-shadow: 0 0 12px var(--namek); }
+.wish { background: rgba(123, 227, 168, .1); border: 1px solid rgba(123, 227, 168, .45); border-radius: 10px; padding: 7px 10px; text-align: left; font-size: 11px; display: grid; }
+.wish b { font-size: 11.5px; }
+.wish span { color: #A7CDB7; font-size: 10px; }
+
+/* pantalla Radar */
+.radar { position: relative; border-radius: 14px; background: radial-gradient(circle at 50% 50%, #0E2A1F 0, #07140F 70%); border: 1px solid rgba(69, 255, 142, .35); padding: 10px; overflow: hidden; }
+.radar::before { content: ""; position: absolute; inset: 0; background: repeating-radial-gradient(circle at 50% 55%, transparent 0 34px, rgba(69, 255, 142, .14) 34px 35px), linear-gradient(90deg, transparent calc(50% - .5px), rgba(69, 255, 142, .14) 0 calc(50% + .5px), transparent 0), linear-gradient(0deg, transparent calc(45% - .5px), rgba(69, 255, 142, .14) 0 calc(45% + .5px), transparent 0); }
+.radar::after { content: ""; position: absolute; left: 50%; top: 55%; width: 200px; height: 200px; transform: translate(-50%, -50%); background: conic-gradient(from 0deg, rgba(69, 255, 142, .35), transparent 22%); border-radius: 50%; animation: sweep 4s linear infinite; }
+@keyframes sweep { to { transform: translate(-50%, -50%) rotate(360deg); } }
+.cal { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; font-family: var(--hud); font-size: 10px; text-align: center; color: #9FD9B5; }
+.cal .d { aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%; position: relative; }
+.cal .h { color: #5f8f73; font-size: 9px; }
+.cal .x { background: var(--ball); color: #3a1600; font-weight: 700; box-shadow: 0 0 9px rgba(255, 162, 26, .8); }
+.cal .p { border: 1px dashed rgba(69, 255, 142, .7); color: var(--scouter); }
+.cal .t { outline: 2px solid var(--gold); outline-offset: 1px; color: var(--gold); }
+.cal .r { opacity: .45; }
+.seg { display: flex; background: var(--panel); border-radius: 99px; padding: 3px; font-size: 10.5px; font-weight: 700; }
+.seg span { flex: 1; text-align: center; padding: 4px; border-radius: 99px; color: var(--muted); }
+.seg span.on { background: var(--gi); color: #fff; }
+.caps { display: grid; gap: 6px; }
+.cap-row { display: flex; align-items: center; gap: 9px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 7px 9px; }
+.cap-row .capsule { width: 46px; height: 22px; font-size: 8.5px; padding-left: 6px; border-radius: 11px; flex: none; }
+.cap-row .capsule::after { width: 9px; height: 9px; right: 6px; top: 6.5px; }
+.cap-row .mus { color: var(--muted); font-size: 10px; }
+
+/* pantalla Ficha */
+.s-fi { background: radial-gradient(100% 50% at 50% 0%, #2A1B52 0, var(--void) 65%); }
+.idcard { border-radius: 14px; padding: 12px; background: linear-gradient(160deg, #1F2860, #121838); border: 1px solid rgba(255, 210, 63, .4); display: grid; grid-template-columns: 70px 1fr; gap: 12px; align-items: center; position: relative; overflow: hidden; }
+.idcard::after { content: "戦士"; position: absolute; right: 8px; bottom: -8px; font-family: var(--display); font-size: 46px; opacity: .08; }
+.idcard .aura-wrap { width: 70px; height: 86px; align-items: end; }
+.idcard .aura { --ac: var(--gold); }
+.idcard .sil { position: relative; width: 38px; height: 62px; }
+.saga { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; font-size: 8.5px; text-align: center; color: var(--muted); }
+.saga div { display: grid; gap: 4px; justify-items: center; }
+.saga i { height: 5px; width: 100%; border-radius: 3px; background: var(--panel-2); }
+.saga .ok i { background: var(--gi); }
+.saga .now i { background: linear-gradient(90deg, var(--namek) 55%, var(--panel-2) 55%); box-shadow: 0 0 6px var(--namek); }
+.saga .now { color: var(--namek); font-weight: 700; }
+.stats3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.stats3 .card { padding: 8px; text-align: center; }
+.stats3 b { font-family: var(--display); font-weight: 400; font-size: 17px; display: block; }
+.menu { display: grid; }
+.menu div { display: flex; justify-content: space-between; padding: 8px 4px; border-bottom: 1px solid var(--line); font-size: 11.5px; }
+.menu div span { color: var(--muted); font-size: 10px; }
+
+/* ---------- MOMENTOS ---------- */
+.moments { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.moment { background: var(--night); border: 1px solid var(--line); border-radius: 6px; padding: 22px; display: grid; gap: 12px; align-content: start; }
+.moment .trig { font-family: var(--hud); font-size: 12px; color: var(--scouter); }
+.moment ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; border-left: 2px solid var(--line); }
+.moment li { padding-left: 14px; position: relative; font-size: 14px; color: var(--muted); line-height: 1.45; }
+.moment li::before { content: ""; position: absolute; left: -6px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--gi); }
+.moment li b { font-family: var(--hud); font-weight: 400; color: var(--gold); margin-right: 6px; }
+.moment .hap { font-size: 13px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 10px; }
+
+/* ---------- KAIO ---------- */
+.voices { display: grid; gap: 12px; }
+.voice { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 12px; align-items: stretch; }
+@media (max-width: 720px) { .voice { grid-template-columns: 1fr; } }
+.voice .before { background: var(--night); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; color: var(--muted); font-size: 15px; }
+.voice .after { background: var(--panel-2); border-radius: 6px 6px 6px 2px; padding: 14px 16px; font-size: 15px; display: flex; gap: 12px; align-items: flex-start; }
+.voice .after .kaio { width: 34px; height: 34px; font-size: 16px; }
+.voice small { display: block; font-family: var(--hud); font-size: 11px; letter-spacing: .1em; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; }
+
+/* ---------- IP / FASES / DECISIONES ---------- */
+.callout { border: 2px solid var(--red); border-radius: 6px; padding: 22px; display: grid; gap: 14px; background: linear-gradient(135deg, rgba(255, 61, 69, .08), transparent 60%); }
+.phases { display: grid; gap: 12px; }
+.phase { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 18px; background: var(--night); border: 1px solid var(--line); border-radius: 6px; padding: 18px 20px; }
+@media (max-width: 640px) { .phase { grid-template-columns: 1fr; gap: 8px; } }
+.phase .ph { font-family: var(--display); font-size: 22px; color: var(--gi); }
+.phase .ph small { display: block; font-family: var(--hud); font-size: 12px; color: var(--muted); }
+.phase ul { margin: 6px 0 0; padding-left: 18px; color: var(--muted); font-size: 15px; display: grid; gap: 4px; }
+.phase h3 { font-size: 18px; }
+.qs { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; counter-reset: q; }
+.q { background: var(--night); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: grid; gap: 8px; align-content: start; }
+.q h3 { font-size: 17px; font-family: var(--body); font-weight: 800; }
+.q p { color: var(--muted); font-size: 14.5px; }
+.q .rec { font-size: 14px; color: var(--gold); }
+.foot { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-family: var(--hud); font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px 24px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .aura, .radar::after { animation: none; }
+}
+</style>
+
+<div class="wrap">
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <div class="eyebrow">Documento de concepto · Experimento</div>
+  <h1>MACHOKE <span class="z">Z</span></h1>
+  <p class="lead">Tu app de gimnasio, reinterpretada en el universo Dragon Ball. Mismos datos, mismos entrenos y otra forma de vivirlos.</p>
+  <div class="ball-row" aria-label="Las siete esferas">
+    <div class="ball" data-n="1"></div><div class="ball" data-n="2"></div><div class="ball" data-n="3"></div><div class="ball" data-n="4"></div><div class="ball" data-n="5"></div><div class="ball" data-n="6"></div><div class="ball" data-n="7"></div>
+  </div>
+  <div class="meta">
+    <span>Rama <b>dragon-ball</b> · carpeta GymApp-DragonBall</span>
+    <span>main no se toca</span>
+    <span>14 oct 2026</span>
+  </div>
+</header>
+
+<!-- ================= IDEA ================= -->
+<section id="idea">
+  <div class="sec-head">
+    <div class="sec-head kanji">一 · LA IDEA</div>
+    <h2>Entrenar como un guerrero Z</h2>
+    <p class="prose">En Dragon Ball todo gira alrededor de lo mismo que en el gimnasio: <strong>entrenar más duro que ayer, medir tu fuerza y superar tus límites</strong>. La app ya tiene las piezas (rangos por músculo, récords, rachas, volumen semanal, consejos diarios). Lo que proponemos es darles un mundo. No es una capa de pegatinas: cada concepto de Dragon Ball se asigna a algo que la app ya calcula.</p>
+  </div>
+  <div class="pillars">
+    <div class="pillar">
+      <div class="tag">MEDIR</div>
+      <div class="big">Nivel de poder</div>
+      <p>Un único número que resume tu fuerza, calculado a partir de tus rangos reales. Se lee con el <strong style="color:var(--ink)">rastreador</strong> y sube cuando de verdad progresas.</p>
+    </div>
+    <div class="pillar">
+      <div class="tag">PROGRESAR</div>
+      <div class="big" style="color:var(--blue)">Transformaciones</div>
+      <p>Los 8 rangos actuales (Hierro → Maestro) pasan a ser transformaciones: de Terrícola a Ultra Instinto. Cada músculo brilla con el aura de su nivel.</p>
+    </div>
+    <div class="pillar">
+      <div class="tag">CONSTANCIA</div>
+      <div class="big" style="color:var(--ball)">Las 7 esferas</div>
+      <p>Cada semana que cumples tu objetivo de entrenos ganas una esfera. Al reunir las siete aparece el dragón y te concede un deseo.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TRADUCCION ================= -->
+<section id="mapa">
+  <div class="sec-head">
+    <div class="sec-head kanji">二 · EL MAPA</div>
+    <h2>Qué se convierte en qué</h2>
+    <p class="prose">Toda la app, pieza por pieza. La columna de la izquierda es lo que existe hoy; nada se pierde, solo cambia de nombre, de aspecto o gana una capa nueva.</p>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Hoy en Machoke</th><th>En Machoke Z</th><th>Qué hace / cómo se ve</th></tr></thead>
+      <tbody>
+        <tr><td>Inicio</td><td class="new">Kame House</td><td>Tu base. Nivel de poder, esferas, Genkidama de la semana y el mensaje de Kaio-sama. <span class="sm">El fondo cambia según tu saga.</span></td></tr>
+        <tr><td>Planificar (calendario)</td><td class="new">Radar del dragón</td><td>El calendario como pantalla de radar: los días entrenados son esferas encendidas, los planificados son señales por explorar.</td></tr>
+        <tr><td>Rutinas y plantillas</td><td class="new">Cápsulas Hoi-Poi</td><td>Cada rutina es una cápsula numerada (Nº 01, Nº 02…). Las plantillas son "cápsulas de fábrica". Archivar = guardar la cápsula.</td></tr>
+        <tr><td>Entreno</td><td class="new">Cámara de gravedad</td><td>La sesión en vivo. Cuando el motor de progresión sugiere más peso: <em>"sube la gravedad +2,5 kg"</em>.</td></tr>
+        <tr><td>Temporizador de descanso</td><td class="new">Semilla del ermitaño</td><td>El descanso entre series con una semilla que se "come" a medida que pasa el tiempo.</td></tr>
+        <tr><td>Superseries</td><td class="new">Fusión</td><td>Dos ejercicios unidos en uno solo, con su propia tarjeta partida en dos colores.</td></tr>
+        <tr><td>Terminar entreno</td><td class="new">Kamehameha</td><td>Mantener pulsado para cargar y lanzar. Sustituye al diálogo de "¿seguro que quieres terminar?".</td></tr>
+        <tr><td>Resumen de sesión</td><td class="new">¡Combate terminado!</td><td>Viñetas de manga con tu energía gastada, volumen, récords y la esfera conseguida.</td></tr>
+        <tr><td>Récord personal (PR)</td><td class="new">Límite superado</td><td>Viñeta dorada en el resumen y entrada en "Técnicas dominadas".</td></tr>
+        <tr><td>Calorías estimadas</td><td class="new">Ki gastado</td><td>El mismo cálculo MET, contado como energía. Sigue mostrando kcal.</td></tr>
+        <tr><td>Volumen semanal</td><td class="new">Genkidama</td><td>Una esfera de energía que crece con cada serie de la semana. Se llena al igualar tu media de las últimas 4 semanas.</td></tr>
+        <tr><td>Racha / objetivo semanal</td><td class="new">Esferas del dragón</td><td>1 esfera por semana cumplida. 7 esferas = invocación.</td></tr>
+        <tr><td>Rangos</td><td class="new">Poder</td><td>Diagrama corporal con auras por músculo y lectura del rastreador.</td></tr>
+        <tr><td>Subida de rango</td><td class="new">¡Transformación!</td><td>Pantalla completa con aura, rayos y el nombre de tu nueva forma.</td></tr>
+        <tr><td>Consejo del día / notificaciones</td><td class="new">Kaio-sama</td><td>Los mismos consejos con la voz de Kaio-sama, que te habla "por telepatía".</td></tr>
+        <tr><td>Biblioteca de ejercicios</td><td class="new">Técnicas</td><td>Fuerza = <b>Combate</b>. Cardio = <b>Nube Kinton</b>. Isométricos = <b>Concentración de Ki</b> (aguantar la carga). Los GIF animados se mantienen.</td></tr>
+        <tr><td>Perfil</td><td class="new">Ficha de guerrero</td><td>Tu tarjeta con aura, saga actual, peso corporal y técnicas dominadas.</td></tr>
+        <tr><td>Copia de seguridad</td><td class="new">Cápsula de respaldo</td><td>Exportar / importar datos, mismo flujo.</td></tr>
+        <tr><td>Onboarding (4 pasos)</td><td class="new">Escaneo inicial</td><td>El rastreador te "escanea" mientras rellenas nombre, género, fecha y peso. Al final: tu primer nivel de poder.</td></tr>
+        <tr><td>Vuelta tras un parón</td><td class="new">Zenkai</td><td>Sin regañinas por perder la racha. Mensaje de bienvenida y sugerencia de bajar la carga un 10 % el primer día.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================= SISTEMA VISUAL ================= -->
+<section id="visual">
+  <div class="sec-head">
+    <div class="sec-head kanji">三 · LENGUAJE VISUAL</div>
+    <h2>Noche, energía y tinta de manga</h2>
+    <p class="prose">La base es oscura, como entrenar de noche en el desierto. Sobre ella solo brilla la energía: el naranja del gi para las acciones, el dorado y el azul del ki para el progreso, y el verde del rastreador para los datos. Los momentos de celebración cambian de golpe a papel de manga, en blanco y tinta, para que se sientan como una viñeta.</p>
+  </div>
+  <div class="swatches">
+    <div class="sw"><div class="chip" style="background:var(--void)"></div><div class="lab"><b>Noche</b><span>Fondo · #0A0D1C</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--gi)"></div><div class="lab"><b>Gi naranja</b><span>Acciones, botones</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--gold)"></div><div class="lab"><b>Ki dorado</b><span>Progreso, Super Saiyan</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--blue)"></div><div class="lab"><b>Ki azul</b><span>Genkidama, Blue</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--scouter)"></div><div class="lab"><b>Rastreador</b><span>Datos y lecturas</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--red)"></div><div class="lab"><b>Kaioken</b><span>Alertas, sellos</span></div></div>
+    <div class="sw"><div class="chip" style="background:var(--senzu)"></div><div class="lab"><b>Senzu</b><span>Descanso</span></div></div>
+    <div class="sw"><div class="chip" style="background:#FFF8E8"></div><div class="lab"><b>Papel manga</b><span>Celebraciones</span></div></div>
+  </div>
+  <div class="type-spec">
+    <div class="type-card"><div class="who">TITULARES · Dela Gothic One</div><div class="sample" style="font-family:var(--display)">¡Límite superado! 超</div><p class="prose" style="font-size:14px">Pesada, con soporte para kanji. Solo para titulares, números grandes y sellos.</p></div>
+    <div class="type-card"><div class="who">TEXTO · Plus Jakarta Sans (la de ahora)</div><div class="sample" style="font-weight:800">Press de banca 85 kg</div><p class="prose" style="font-size:14px">Ya va incluida en la app sin conexión. Se mantiene para todo lo que se lee.</p></div>
+    <div class="type-card"><div class="who">RASTREADOR · Share Tech Mono</div><div class="sample" style="font-family:var(--hud);color:var(--scouter)">PWR 12.544</div><p class="prose" style="font-size:14px">Para lecturas, cronómetros y etiquetas. Evoca la pantalla del rastreador.</p></div>
+  </div>
+  <div class="motifs">
+    <div class="motif"><div class="stage"><div class="aura-wrap" style="width:70px;height:100px;align-items:end"><div class="aura" style="--ac:var(--gold)"></div><div class="aura b" style="--ac:#FFF3B0"></div></div></div><div class="cap">Aura<span>Rodea a lo que sube de nivel. Cambia de color con la transformación.</span></div></div>
+    <div class="motif"><div class="stage"><div class="speedlines"></div><span style="font-family:var(--display);font-size:22px;position:relative">¡YA!</span></div><div class="cap">Líneas de velocidad<span>Solo en momentos de impacto: récords, final de combate.</span></div></div>
+    <div class="motif"><div class="stage"><div class="ball" data-n="4" style="--s:70px"></div></div><div class="cap">Esfera<span>Contador de constancia. Una por semana cumplida.</span></div></div>
+    <div class="motif"><div class="stage"><div class="scope">PWR<br><span style="font-size:20px;color:#E6FFEE">9.001</span></div></div><div class="cap">Rastreador<span>Marco verde para cualquier lectura de datos.</span></div></div>
+    <div class="motif"><div class="stage"><div class="stamp">超</div></div><div class="cap">Sello kanji<span>Firma de los logros. 超 = "super", 気 = ki.</span></div></div>
+    <div class="motif"><div class="stage"><div class="capsule">Nº 03</div></div><div class="cap">Cápsula<span>Forma de las rutinas y plantillas.</span></div></div>
+  </div>
+</section>
+
+<!-- ================= TRANSFORMACIONES ================= -->
+<section id="transformaciones">
+  <div class="sec-head">
+    <div class="sec-head kanji">四 · TRANSFORMACIONES</div>
+    <h2>De Terrícola a Ultra Instinto</h2>
+    <p class="prose">Los 8 rangos que ya calcula la app (con sus grados I, II y III) se convierten en 8 formas. El cálculo no cambia: cambia el nombre, el color del aura y cómo se celebra. El grado se ve como intensidad del aura: el grado III arde más alto que el I.</p>
+  </div>
+  <div class="ladder">
+    <div class="tier" style="--ac:#C9CFE6"><div class="orb"><div class="aura" style="--ac:#C9CFE6;opacity:.35"></div><div class="core">1</div></div><div><div class="old">HIERRO</div><div class="nm">Terrícola</div><div class="ds">Sin aura, solo un brillo tenue. Estás empezando.</div></div></div>
+    <div class="tier" style="--ac:var(--white-ki)"><div class="orb"><div class="aura" style="--ac:#F2F6FF;opacity:.6"></div><div class="core">2</div></div><div><div class="old">BRONCE</div><div class="nm">Guerrero Z</div><div class="ds">Aura blanca. Ya controlas tu ki.</div></div></div>
+    <div class="tier" style="--ac:var(--red)"><div class="orb"><div class="aura" style="--ac:#FF3D45"></div><div class="core">3</div></div><div><div class="old">PLATA</div><div class="nm">Kaioken</div><div class="ds">Aura roja. Los grados se muestran como ×2, ×3 y ×4.</div></div></div>
+    <div class="tier" style="--ac:var(--gold)"><div class="orb"><div class="aura" style="--ac:#FFD23F"></div><div class="core">4</div></div><div><div class="old">ORO</div><div class="nm">Super Saiyan</div><div class="ds">El primer gran salto. Aura dorada y primera "Transformación" a pantalla completa.</div></div></div>
+    <div class="tier" style="--ac:#FFE066"><div class="orb"><div class="aura" style="--ac:#FFE066"></div><svg class="bolt" style="left:2px;top:6px;width:24px;height:40px" viewBox="0 0 24 40"><path d="M14 0 L6 16 L14 18 L4 40"/></svg><div class="core">5</div></div><div><div class="old">PLATINO</div><div class="nm">Super Saiyan 2</div><div class="ds">Dorado con rayos eléctricos alrededor.</div></div></div>
+    <div class="tier" style="--ac:#FFC21F"><div class="orb"><div class="aura" style="--ac:#FFC21F;height:190%"></div><div class="core">6</div></div><div><div class="old">ESMERALDA</div><div class="nm">Super Saiyan 3</div><div class="ds">El aura dorada más alta e intensa.</div></div></div>
+    <div class="tier" style="--ac:var(--blue)"><div class="orb"><div class="aura" style="--ac:#3CC8FF"></div><div class="core">7</div></div><div><div class="old">DIAMANTE</div><div class="nm">Super Saiyan Blue</div><div class="ds">Aura azul, más tranquila y estable.</div></div></div>
+    <div class="tier" style="--ac:var(--silver)"><div class="orb"><div class="aura" style="--ac:#E6ECF7"></div><div class="aura b" style="--ac:#9FB6FF"></div><div class="core">8</div></div><div><div class="old">MAESTRO</div><div class="nm">Ultra Instinto</div><div class="ds">Plateado con destellos. El techo de la escala.</div></div></div>
+  </div>
+</section>
+
+<!-- ================= NIVEL DE PODER ================= -->
+<section id="poder">
+  <div class="sec-head">
+    <div class="sec-head kanji">五 · NIVEL DE PODER</div>
+    <h2>Un número que de verdad significa algo</h2>
+    <p class="prose">El nivel de poder sale de la <strong>media de tus rangos</strong>, que la app ya calcula (cada rango vale de 1 a 24: tier × 3 + grado). Crece de forma exponencial para que los saltos de transformación se noten, y está calibrado para que <strong>pasar de 9.000 coincida justo con llegar a Super Saiyan</strong>. Prueba a mover la barra.</p>
+  </div>
+  <div class="power">
+    <div class="calc" aria-live="polite">
+      <label for="pw">Media de rangos <span id="pwv">11.0</span> / 24</label>
+      <input id="pw" type="range" min="1" max="24" step="0.1" value="11">
+      <div>NIVEL DE PODER</div>
+      <div class="readout" id="pwout">14.286</div>
+      <div class="tiername" id="pwtier">▸ Super Saiyan · Grado II</div>
+      <div class="over" id="pwover">¡Más de 9.000! (el rastreador estalla la primera vez)</div>
+    </div>
+    <div class="formula">
+      <code>poder = 100 × 1,57 ^ (media de rangos)</code>
+      <ul>
+        <li>Nunca baja de golpe: si tus rangos bajan, el número desciende despacio, como mucho un 2 % por semana.</li>
+        <li>Al ser exponencial, entrenar un músculo flojo (por ejemplo, piernas) sube más el poder que seguir machacando el pecho.</li>
+        <li>Valores de ejemplo calculados con la fórmula:</li>
+      </ul>
+      <table class="mini-table" style="min-width:0">
+        <tbody id="pwtable"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PANTALLAS ================= -->
+<section id="pantallas">
+  <div class="sec-head">
+    <div class="sec-head kanji">六 · PANTALLAS</div>
+    <h2>Así se vería</h2>
+    <p class="prose">Maquetas de las pantallas principales. Los números son de ejemplo. La barra inferior pasa a ser <strong>Kame House · Radar · 気 · Poder · Ficha</strong>, con el botón de entrenar en el centro como una bola de ki.</p>
+  </div>
+
+  <div class="gallery">
+
+    <!-- 1 BASE -->
+    <div class="shot">
+      <div class="phone"><div class="notch"></div>
+        <div class="scr s-base">
+          <div class="sb"><span>9:41</span><span>●●● 87%</span></div>
+          <div class="between">
+            <div><div class="lbl">Kame House · lun 14</div><div style="font-weight:800;font-size:15px">¡Hola, guerrero!</div></div>
+            <div class="av">Z</div>
+          </div>
+          <div class="card" style="background:linear-gradient(160deg,#1E2A66,#151B42);position:relative;overflow:hidden">
+            <div class="lbl hudg">▸ Nivel de poder</div>
+            <div class="between" style="align-items:flex-end">
+              <div class="pl-num">14.286</div>
+              <div style="font-family:var(--hud);font-size:10px;color:var(--scouter)">▲ +318<br>esta semana</div>
+            </div>
+            <div class="row" style="margin-top:6px"><span class="pill" style="--ac:var(--gold)"><i></i>Super Saiyan · II</span><span style="font-size:10px;color:var(--muted)">a 2 grados de SSJ 2</span></div>
+          </div>
+          <div class="card">
+            <div class="between"><div class="lbl">Esferas</div><div style="font-size:10px;color:var(--muted)">esta semana 2/4 entrenos</div></div>
+            <div class="row" style="gap:5px;margin-top:7px">
+              <div class="ball" data-n="1" style="--s:28px"></div><div class="ball" data-n="2" style="--s:28px"></div><div class="ball" data-n="3" style="--s:28px"></div><div class="ball" data-n="4" style="--s:28px"></div><div class="ball off" data-n="5" style="--s:28px"></div><div class="ball off" data-n="6" style="--s:28px"></div><div class="ball off" data-n="7" style="--s:28px"></div>
+            </div>
+          </div>
+          <div class="card row" style="gap:11px">
+            <div class="genki" style="--fill:62%"></div>
+            <div style="flex:1"><div class="lbl" style="color:var(--blue)">Genkidama</div><div style="font-weight:800;font-size:15px">62 %</div><div style="font-size:10px;color:var(--muted)">18.400 de 29.600 kg · tu media semanal</div></div>
+          </div>
+          <div class="bubble"><div class="kaio">界</div><div><b>Kaio-sama:</b> hace 6 días que no entrenas piernas. Un guerrero sin piernas no aguanta ni un asalto.</div></div>
+          <div class="cta"><div>Entrar en la cámara<small>Hoy · Cápsula Nº 01 · Empuje · 6 técnicas</small></div><span>→</span></div>
+        </div>
+        <div class="nav">
+          <div class="on"><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/></svg>Kame House</div>
+          <div><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 12l5.5-5.5"/></svg>Radar</div>
+          <div><span class="ki">気</span></div>
+          <div><svg viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-6 1 1 1 2 2 3 0-3 0-5 1-7z"/></svg>Poder</div>
+          <div><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/></svg>Ficha</div>
+        </div>
+      </div>
+      <div class="cap"><div class="was">ANTES: INICIO</div><h3>Kame House</h3><p>Todo lo importante de un vistazo: tu poder, las esferas de la semana, la Genkidama y el consejo de Kaio-sama. El botón naranja te lleva directo a entrenar.</p></div>
+    </div>
+
+    <!-- 2 CAMARA -->
+    <div class="shot">
+      <div class="phone"><div class="notch"></div>
+        <div class="scr s-cam">
+          <div class="sb"><span>9:41</span><span>●●● 85%</span></div>
+          <div class="between">
+            <div><div class="lbl" style="color:var(--gi)">Cámara de gravedad</div><div style="font-weight:800;font-size:14px">Empuje · técnica 2 de 6</div></div>
+            <div style="font-family:var(--hud);font-size:16px;color:var(--scouter)">34:12</div>
+          </div>
+          <div class="gif">GIF ANIMADO DEL EJERCICIO</div>
+          <div class="between"><div style="font-weight:800;font-size:14px">Press de banca</div><span class="pill" style="--ac:var(--gold)"><i></i>SSJ · I</span></div>
+          <div class="row" style="font-size:10.5px;color:var(--gold);gap:6px"><span style="font-family:var(--hud)">▲ GRAVEDAD +2,5 kg</span><span style="color:var(--muted)">Kaio-sama: hoy toca 85 kg</span></div>
+          <div class="sets">
+            <div class="set head"><span>#</span><span>ANTERIOR</span><span>KG</span><span>REPS</span><span></span></div>
+            <div class="set done"><span>1</span><span style="color:var(--muted)">82,5 × 6</span><span>85</span><span>6</span><span class="chk">✓</span></div>
+            <div class="set done"><span>2</span><span style="color:var(--muted)">82,5 × 6</span><span>85</span><span>5</span><span class="chk">✓</span></div>
+            <div class="set act"><span>3</span><span style="color:var(--muted)">82,5 × 5</span><span>85</span><span>–</span><span class="chk"></span></div>
+          </div>
+          <div class="rest"><div class="senzu"></div><div><div style="font-weight:800;font-size:11px">Semilla del ermitaño</div><div class="bar" style="width:110px;margin-top:4px;--w:40%"><i></i></div></div><div class="t">1:12</div></div>
+          <div class="fusion"><div><b>Aperturas</b><br><span style="color:var(--muted)">3 × 12</span></div><div><b>Fondos</b><br><span style="color:var(--muted)">3 × fallo</span></div></div>
+        </div>
+        <div class="kame"><span>Mantén para lanzar el Kamehameha <small>62 %</small></span></div>
+        <div class="nav">
+          <div><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/></svg>Kame House</div>
+          <div><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 12l5.5-5.5"/></svg>Radar</div>
+          <div><span class="ki on">気</span></div>
+          <div><svg viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-6 1 1 1 2 2 3 0-3 0-5 1-7z"/></svg>Poder</div>
+          <div><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/></svg>Ficha</div>
+        </div>
+      </div>
+      <div class="cap"><div class="was">ANTES: ENTRENO</div><h3>Cámara de gravedad</h3><p>Las series hechas arden en naranja. El descanso es una semilla del ermitaño, la superserie es una Fusión y para terminar mantienes pulsado hasta cargar el Kamehameha.</p></div>
+    </div>
+
+    <!-- 3 COMBATE TERMINADO -->
+    <div class="shot">
+      <div class="phone"><div class="notch"></div>
+        <div class="scr s-end">
+          <div class="speedlines"></div>
+          <div class="burst">¡COMBATE<br>TERMINADO!</div>
+          <div style="text-align:center;font-family:var(--hud);font-size:10px;position:relative;color:#5b5f7a">EMPUJE · 52 MIN · 6 TÉCNICAS</div>
+          <div class="panels">
+            <div class="pn a"><span class="lbl">Ki gastado</span><b>412</b><span style="font-size:10px">kcal</span></div>
+            <div class="pn b"><span class="lbl">Volumen</span><b>6.840</b><span style="font-size:10px">kg · Genkidama +23 %</span></div>
+            <div class="pn wide"><span class="lbl">¡Límite superado!</span><b>Press de banca 85 × 6</b><small>1RM estimado 102 kg · nueva técnica dominada</small></div>
+            <div class="pn a" style="display:flex;gap:8px;align-items:center;grid-column:1/-1;clip-path:polygon(0 0,100% 6%,98% 100%,2% 94%)"><div class="ball" data-n="4" style="--s:40px"></div><div><span class="lbl">Semana cumplida</span><br><b style="font-size:15px">Esfera de 4 estrellas</b></div></div>
+          </div>
+          <div class="btn-dark">Volver a la Kame House</div>
+        </div>
+      </div>
+      <div class="cap"><div class="was">ANTES: RESUMEN DE SESIÓN</div><h3>¡Combate terminado!</h3><p>El único momento en que la app pasa a papel de manga. Cada dato es una viñeta, y el récord ocupa la viñeta grande en negro y dorado.</p></div>
+    </div>
+
+    <!-- 4 PODER -->
+    <div class="shot">
+      <div class="phone"><div class="notch"></div>
+        <div class="scr s-pow">
+          <div class="sb"><span>9:41</span><span>●●● 84%</span></div>
+          <div class="between"><div style="font-family:var(--display);font-size:20px">Poder</div><div class="seg" style="width:120px"><span class="on">Frente</span><span>Espalda</span></div></div>
+          <div class="body-wrap">
+            <svg class="body" viewBox="0 0 120 230" aria-hidden="true">
+              <defs><filter id="g1" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+              <g fill="#232C5E">
+                <circle cx="60" cy="18" r="12"/><rect x="54" y="28" width="12" height="10" rx="3"/>
+                <path d="M40 40 Q60 34 80 40 L84 70 L78 112 L42 112 L36 70 Z"/>
+                <path d="M42 112 L78 112 L80 126 L40 126 Z"/>
+              </g>
+              <g filter="url(#g1)">
+                <ellipse cx="35" cy="48" rx="10" ry="9" fill="#FFD23F"/><ellipse cx="85" cy="48" rx="10" ry="9" fill="#FFD23F"/>
+                <path d="M42 44 Q50 41 59 44 L59 64 Q49 68 42 62 Z" fill="#FFE066"/><path d="M78 44 Q70 41 61 44 L61 64 Q71 68 78 62 Z" fill="#FFE066"/>
+                <ellipse cx="28" cy="74" rx="7" ry="14" fill="#FF3D45"/><ellipse cx="92" cy="74" rx="7" ry="14" fill="#FF3D45"/>
+                <ellipse cx="24" cy="104" rx="5.5" ry="14" fill="#FF6E74"/><ellipse cx="96" cy="104" rx="5.5" ry="14" fill="#FF6E74"/>
+                <g fill="#F2F6FF"><rect x="51" y="70" width="8" height="10" rx="3"/><rect x="61" y="70" width="8" height="10" rx="3"/><rect x="51" y="83" width="8" height="10" rx="3"/><rect x="61" y="83" width="8" height="10" rx="3"/><rect x="51" y="96" width="8" height="11" rx="3"/><rect x="61" y="96" width="8" height="11" rx="3"/></g>
+                <ellipse cx="49" cy="156" rx="10" ry="28" fill="#F2F6FF" opacity=".75"/><ellipse cx="71" cy="156" rx="10" ry="28" fill="#F2F6FF" opacity=".75"/>
+                <ellipse cx="48" cy="203" rx="6.5" ry="17" fill="#C9CFE6" opacity=".5"/><ellipse cx="72" cy="203" rx="6.5" ry="17" fill="#C9CFE6" opacity=".5"/>
+              </g>
+            </svg>
+            <div class="target" style="left:104px;top:72px"></div>
+            <div class="lens">ESCANEANDO…<br>PECHO<b>SSJ 2 · III</b>PWR 86.795</div>
+          </div>
+          <div class="mrow"><span style="font-weight:700">Pecho</span><span class="pill" style="--ac:#FFE066"><i></i>SSJ 2</span><div class="bar" style="--w:88%;--ac:#FFE066"><i></i></div></div>
+          <div class="mrow"><span style="font-weight:700">Hombros</span><span class="pill" style="--ac:var(--gold)"><i></i>SSJ</span><div class="bar" style="--w:70%;--ac:var(--gold)"><i></i></div></div>
+          <div class="mrow"><span style="font-weight:700">Bíceps</span><span class="pill" style="--ac:var(--red)"><i></i>Kaioken ×3</span><div class="bar" style="--w:52%;--ac:var(--red)"><i></i></div></div>
+          <div class="mrow"><span style="font-weight:700">Cuádriceps</span><span class="pill" style="--ac:var(--white-ki)"><i></i>Guerrero Z</span><div class="bar" style="--w:34%;--ac:var(--white-ki)"><i></i></div></div>
+        </div>
+        <div class="nav">
+          <div><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/></svg>Kame House</div>
+          <div><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 12l5.5-5.5"/></svg>Radar</div>
+          <div><span class="ki">気</span></div>
+          <div class="on"><svg viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-6 1 1 1 2 2 3 0-3 0-5 1-7z"/></svg>Poder</div>
+          <div><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/></svg>Ficha</div>
+        </div>
+      </div>
+      <div class="cap"><div class="was">ANTES: RANGOS</div><h3>Poder</h3><p>El diagrama corporal que ya existe, pero cada músculo brilla con el color de su transformación. Al tocar uno, la lente del rastreador lo escanea. (Esquema simplificado: en la app se usan tus máscaras reales.)</p></div>
+    </div>
+
+    <!-- 5 TRANSFORMACION -->
+    <div class="shot">
+      <div class="phone"><div class="notch"></div>
+        <div class="scr s-tr">
+          <div class="speedlines"></div>
+          <div class="bigk">超</div>
+          <div class="tr-fig">
+            <div class="aura"></div><div class="aura b"></div>
+            <svg class="bolt" style="left:-6px;top:30px" viewBox="0 0 60 90"><path d="M30 0 L14 34 L30 38 L8 90"/></svg>
+            <svg class="bolt" style="right:-10px;top:60px" viewBox="0 0 60 90"><path d="M40 0 L50 30 L36 34 L52 80"/></svg>
+            <svg class="body" viewBox="0 0 120 230" aria-hidden="true"><g fill="#1A1000"><circle cx="60" cy="18" r="12"/><rect x="54" y="28" width="12" height="10" rx="3"/><path d="M38 40 Q60 34 82 40 L96 60 L100 116 L90 118 L84 72 L80 112 L82 220 L66 220 L60 130 L54 220 L38 220 L40 112 L36 72 L30 118 L20 116 L24 60 Z"/></g><path d="M42 44 Q50 41 59 44 L59 64 Q49 68 42 62 Z M78 44 Q70 41 61 44 L61 64 Q71 68 78 62 Z" fill="#FFF3B0"/></svg>
+          </div>
+          <div class="tr-title">¡TRANSFORMACIÓN!</div>
+          <div class="tr-sub"><b>Pecho</b> alcanza <b>Super Saiyan</b></div>
+          <div class="tr-from">KAIOKEN ×4 → <span style="color:#fff">SUPER SAIYAN I</span></div>
+          <div class="btn-gold">Seguir entrenando</div>
+        </div>
+      </div>
+      <div class="cap"><div class="was">ANTES: LOGRO DE RANGO</div><h3>¡Transformación!</h3><p>El momento estrella. Aparece cuando un músculo sube de tier (no de grado). La pantalla se tiñe del color de la nueva forma, el aura crece desde los pies y, a partir de SSJ 2, saltan rayos.</p></div>
+    </div>
+
+    <!-- 6 SHENLONG -->
+    <div class="shot">
+      <div class="phone"><div class="notch"></div>
+        <div class="scr s-sh">
+          <svg class="dragon" viewBox="0 0 270 300" aria-hidden="true">
+            <defs>
+              <linearGradient id="dg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#1E8F55"/><stop offset="1" stop-color="#8CF5B8"/></linearGradient>
+              <filter id="dglow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <g opacity=".5" stroke="#9fffc9" stroke-width="1.2" fill="none"><path d="M10 40 L30 70 L22 72 L40 110"/><path d="M250 20 L236 54 L246 56 L226 96"/></g>
+            <path d="M135 300 C 60 270, 230 230, 150 190 S 40 150, 120 110 S 230 70, 160 40" fill="none" stroke="url(#dg)" stroke-width="22" stroke-linecap="round" filter="url(#dglow)"/>
+            <path d="M135 300 C 60 270, 230 230, 150 190 S 40 150, 120 110 S 230 70, 160 40" fill="none" stroke="#D9FFE9" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round" opacity=".7"/>
+            <path d="M160 40 C 150 22, 168 10, 186 18 L 200 6 M186 18 L 206 24" fill="none" stroke="#8CF5B8" stroke-width="5" stroke-linecap="round" filter="url(#dglow)"/>
+            <circle cx="163" cy="33" r="3.2" fill="#FF2A2A" filter="url(#dglow)"/><circle cx="176" cy="30" r="3.2" fill="#FF2A2A" filter="url(#dglow)"/>
+          </svg>
+          <div class="ring">
+            <div class="ball" data-n="1" style="left:0;top:16px"></div><div class="ball" data-n="2" style="left:26px;top:4px"></div><div class="ball" data-n="3" style="left:54px;top:0"></div><div class="ball" data-n="4" style="left:80px;top:-2px"></div><div class="ball" data-n="5" style="left:106px;top:0"></div><div class="ball" data-n="6" style="left:134px;top:4px"></div><div class="ball" data-n="7" style="left:160px;top:16px"></div>
+          </div>
+          <div class="wish-zone">
+            <h4>Has reunido las 7 esferas.<br>Pide un deseo.</h4>
+            <div class="wish"><b>Un aura nueva</b><span>Desbloquea el aura plateada para tu ficha y tu avatar</span></div>
+            <div class="wish"><b>Una semana de descanso</b><span>Tu racha queda protegida 7 días, sin perder nada</span></div>
+            <div class="wish"><b>Un título</b><span>"Guerrero de las 7 esferas" junto a tu nombre</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="cap"><div class="was">NUEVO</div><h3>La invocación</h3><p>Tras 7 semanas cumpliendo tu objetivo. El cielo se oscurece, las esferas brillan una a una y aparece el dragón. Los deseos son cosas que la app puede cumplir de verdad. Luego las esferas se dispersan y la cuenta vuelve a empezar.</p></div>
+    </div>
+
+    <!-- 7 RADAR -->
+    <div class="shot">
+      <div class="phone"><div class="notch"></div>
+        <div class="scr" style="background:var(--void)">
+          <div class="sb"><span>9:41</span><span>●●● 83%</span></div>
+          <div class="between"><div style="font-family:var(--display);font-size:20px">Radar</div><div class="seg" style="width:120px"><span>Semana</span><span class="on">Mes</span></div></div>
+          <div class="radar">
+            <div class="between" style="position:relative;z-index:1;font-family:var(--hud);font-size:10px;color:var(--scouter);margin-bottom:6px"><span>◂ OCTUBRE 2026 ▸</span><span>9 ESFERAS · 3 SEÑALES</span></div>
+            <div class="cal">
+              <span class="h">L</span><span class="h">M</span><span class="h">X</span><span class="h">J</span><span class="h">V</span><span class="h">S</span><span class="h">D</span>
+              <span class="d"></span><span class="d"></span><span class="d x">1</span><span class="d">2</span><span class="d x">3</span><span class="d r">4</span><span class="d r">5</span>
+              <span class="d x">6</span><span class="d">7</span><span class="d x">8</span><span class="d">9</span><span class="d x">10</span><span class="d r">11</span><span class="d r">12</span>
+              <span class="d x">13</span><span class="d t">14</span><span class="d x">15</span><span class="d">16</span><span class="d p">17</span><span class="d r">18</span><span class="d r">19</span>
+              <span class="d p">20</span><span class="d">21</span><span class="d p">22</span><span class="d">23</span><span class="d">24</span><span class="d r">25</span><span class="d r">26</span>
+            </div>
+          </div>
+          <div class="between"><div class="lbl">Cápsulas</div><div style="font-size:10.5px;color:var(--gi);font-weight:700">+ Nueva cápsula</div></div>
+          <div class="caps">
+            <div class="cap-row"><div class="capsule">Nº01</div><div style="flex:1"><b>Empuje</b><div class="mus">Pecho · hombros · tríceps</div></div><span style="color:var(--muted)">⋮</span></div>
+            <div class="cap-row"><div class="capsule">Nº02</div><div style="flex:1"><b>Tirón</b><div class="mus">Espalda · bíceps</div></div><span style="color:var(--muted)">⋮</span></div>
+            <div class="cap-row"><div class="capsule">Nº03</div><div style="flex:1"><b>Pierna</b><div class="mus">Cuádriceps · femoral · gemelos</div></div><span style="color:var(--muted)">⋮</span></div>
+          </div>
+        </div>
+        <div class="nav">
+          <div><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/></svg>Kame House</div>
+          <div class="on"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 12l5.5-5.5"/></svg>Radar</div>
+          <div><span class="ki">気</span></div>
+          <div><svg viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-6 1 1 1 2 2 3 0-3 0-5 1-7z"/></svg>Poder</div>
+          <div><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/></svg>Ficha</div>
+        </div>
+      </div>
+      <div class="cap"><div class="was">ANTES: PLANIFICAR</div><h3>Radar del dragón</h3><p>El calendario mensual sobre una pantalla de radar con barrido. Días entrenados = esferas, días planificados = señales por recoger. Debajo, tus rutinas como cápsulas.</p></div>
+    </div>
+
+    <!-- 8 FICHA -->
+    <div class="shot">
+      <div class="phone"><div class="notch"></div>
+        <div class="scr s-fi">
+          <div class="sb"><span>9:41</span><span>●●● 82%</span></div>
+          <div style="font-family:var(--display);font-size:20px">Ficha de guerrero</div>
+          <div class="idcard">
+            <div class="aura-wrap"><div class="aura"></div><svg class="sil" viewBox="0 0 38 62"><circle cx="19" cy="9" r="7" fill="#0A0D1C"/><path d="M6 24 Q19 17 32 24 L34 62 L4 62 Z" fill="#0A0D1C"/></svg></div>
+            <div>
+              <div style="font-weight:800;font-size:15px">Guerrero</div>
+              <div style="font-family:var(--hud);font-size:10px;color:var(--scouter)">PWR 14.286 · SSJ II</div>
+              <div class="pill" style="--ac:var(--namek);margin-top:6px"><i></i>Saga de Namek</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="between"><div class="lbl">Progreso de saga</div><div style="font-size:10px;color:var(--muted)">58 de 75 entrenos</div></div>
+            <div class="saga" style="margin-top:8px">
+              <div class="ok"><i></i>Saiyan</div><div class="now"><i></i>Namek</div><div><i></i>Androides</div><div><i></i>Buu</div><div><i></i>Super</div>
+            </div>
+          </div>
+          <div class="stats3">
+            <div class="card"><b>78,4</b><span class="lbl">kg</span></div>
+            <div class="card"><b>58</b><span class="lbl">Combates</span></div>
+            <div class="card"><b>41</b><span class="lbl">Técnicas</span></div>
+          </div>
+          <div class="menu">
+            <div>Técnicas dominadas <span>récords ›</span></div>
+            <div>Peso corporal <span>›</span></div>
+            <div>Objetivos <span>›</span></div>
+            <div>Cápsula de respaldo <span>exportar ›</span></div>
+            <div>Ajustes <span>›</span></div>
+          </div>
+        </div>
+        <div class="nav">
+          <div><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/></svg>Kame House</div>
+          <div><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><path d="M12 12l5.5-5.5"/></svg>Radar</div>
+          <div><span class="ki">気</span></div>
+          <div><svg viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-6 1 1 1 2 2 3 0-3 0-5 1-7z"/></svg>Poder</div>
+          <div class="on"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/></svg>Ficha</div>
+        </div>
+      </div>
+      <div class="cap"><div class="was">ANTES: PERFIL</div><h3>Ficha de guerrero</h3><p>Tu tarjeta con el aura de tu forma actual y la saga en la que estás. Las sagas avanzan con los entrenos completados y cambian el fondo de la Kame House.</p></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================= SAGAS ================= -->
+<section id="sagas">
+  <div class="sec-head">
+    <div class="sec-head kanji">七 · SAGAS</div>
+    <h2>Un viaje largo, contado en entrenos</h2>
+    <p class="prose">Las transformaciones miden la fuerza. Las sagas miden el camino: avanzan solo con entrenos completados, nunca retroceden y cada una cambia el cielo de la Kame House.</p>
+  </div>
+  <div class="ladder">
+    <div class="tier" style="--ac:#6FB8FF;grid-template-columns:1fr"><div><div class="old">0 – 24 ENTRENOS</div><div class="nm">Saga Saiyan</div><div class="ds">Cielo azul de isla, mar al fondo. El comienzo.</div><div class="bar" style="margin-top:10px;--w:100%;--ac:linear-gradient(90deg,#1C4E9E,#6FB8FF)"><i></i></div></div></div>
+    <div class="tier" style="--ac:var(--namek);grid-template-columns:1fr"><div><div class="old">25 – 74</div><div class="nm">Saga de Namek</div><div class="ds">Cielo verde y tres soles.</div><div class="bar" style="margin-top:10px;--w:100%;--ac:linear-gradient(90deg,#1E6B48,#7BE3A8)"><i></i></div></div></div>
+    <div class="tier" style="--ac:#E0B07A;grid-template-columns:1fr"><div><div class="old">75 – 149</div><div class="nm">Saga de los Androides</div><div class="ds">Paisaje rocoso al atardecer.</div><div class="bar" style="margin-top:10px;--w:100%;--ac:linear-gradient(90deg,#7A3E1C,#E0B07A)"><i></i></div></div></div>
+    <div class="tier" style="--ac:#FF8FC8;grid-template-columns:1fr"><div><div class="old">150 – 299</div><div class="nm">Saga de Buu</div><div class="ds">Tonos rosados y humo.</div><div class="bar" style="margin-top:10px;--w:100%;--ac:linear-gradient(90deg,#7A1E5A,#FF8FC8)"><i></i></div></div></div>
+    <div class="tier" style="--ac:#B69CFF;grid-template-columns:1fr"><div><div class="old">300 +</div><div class="nm">Saga Super</div><div class="ds">Espacio profundo, morado y estrellas.</div><div class="bar" style="margin-top:10px;--w:100%;--ac:linear-gradient(90deg,#2B1E7A,#B69CFF)"><i></i></div></div></div>
+  </div>
+</section>
+
+<!-- ================= MOMENTOS ================= -->
+<section id="momentos">
+  <div class="sec-head">
+    <div class="sec-head kanji">八 · MOMENTOS</div>
+    <h2>Siete momentos que hay que sentir</h2>
+    <p class="prose">La app normal es tranquila y rápida. La espectacularidad se reserva para siete momentos concretos, coreografiados al milisegundo y con vibración. Todos se pueden saltar con un toque y respetan el modo de "reducir movimiento".</p>
+  </div>
+  <div class="moments">
+    <div class="moment"><div class="trig">CUANDO UN MÚSCULO SUBE DE TIER</div><h3>¡Transformación!</h3>
+      <ol><li><b>0 ms</b>La pantalla se oscurece y vibra un instante.</li><li><b>300</b>El aura nace en los pies y sube; partículas hacia arriba.</li><li><b>900</b>Destello blanco. A partir de SSJ 2, rayos.</li><li><b>1200</b>Sello 超 y "¡TRANSFORMACIÓN!" con líneas de velocidad.</li><li><b>2000</b>Nombre de la nueva forma y del músculo.</li></ol>
+      <div class="hap">Vibración: corta · pausa · larga en el destello.</div></div>
+    <div class="moment"><div class="trig">AL TERMINAR EL ENTRENO</div><h3>Kamehameha</h3>
+      <ol><li><b>0 ms</b>Mantienes pulsado el botón inferior; se carga en azul.</li><li><b>0–1500</b>La vibración aumenta con la carga.</li><li><b>1500</b>Sueltas: un haz cruza la pantalla de izquierda a derecha.</li><li><b>1900</b>El haz se convierte en la pantalla "¡Combate terminado!".</li></ol>
+      <div class="hap">Además evita terminar sin querer: si sueltas antes de tiempo, no pasa nada.</div></div>
+    <div class="moment"><div class="trig">AL ABRIR "PODER"</div><h3>Escaneo del rastreador</h3>
+      <ol><li><b>0 ms</b>La lente verde entra desde la esquina.</li><li><b>200</b>Los números giran al azar, como un contador roto.</li><li><b>700</b>Se fijan en tu valor real; los rombos apuntan a cada músculo.</li></ol>
+      <div class="hap">Solo la primera vez del día; después es instantáneo.</div></div>
+    <div class="moment"><div class="trig">CADA SERIE COMPLETADA</div><h3>Energía para la Genkidama</h3>
+      <ol><li><b>0 ms</b>Al marcar ✓, la fila se enciende en naranja.</li><li><b>100</b>Una chispa sale de la fila y sube hacia arriba.</li><li><b>400</b>La Genkidama de la Kame House ya está un poco más llena.</li></ol>
+      <div class="hap">Toque muy suave por serie, nada que distraiga.</div></div>
+    <div class="moment"><div class="trig">AL CONSEGUIR LA 7.ª ESFERA</div><h3>La invocación</h3>
+      <ol><li><b>0 ms</b>Las 7 esferas se iluminan una a una.</li><li><b>1400</b>El cielo se vuelve negro y cae un rayo.</li><li><b>2000</b>El dragón se enrosca y aparece desde abajo.</li><li><b>3200</b>Pide un deseo. Al elegir, las esferas salen volando en 7 direcciones.</li></ol>
+      <div class="hap">Ocurre como mucho una vez cada 7 semanas. Tiene que ser épico.</div></div>
+    <div class="moment"><div class="trig">PODER SUPERA 9.000 (UNA VEZ)</div><h3>¡Más de 9.000!</h3>
+      <ol><li><b>0 ms</b>El contador del rastreador sube sin parar.</li><li><b>600</b>La lente se agrieta y estalla en pedazos.</li><li><b>1200</b>Mensaje: has llegado a Super Saiyan. El guiño para quien conoce el meme.</li></ol>
+      <div class="hap">Easter egg: no se vuelve a repetir.</div></div>
+    <div class="moment"><div class="trig">VOLVER TRAS 10 DÍAS O MÁS SIN ENTRENAR</div><h3>Zenkai</h3>
+      <ol><li><b>0 ms</b>En vez de "has perdido la racha": "Los saiyans vuelven más fuertes".</li><li><b>—</b>Kaio-sama sugiere bajar la gravedad un 10 % en la primera sesión.</li></ol>
+      <div class="hap">Motivar la vuelta en lugar de castigar el parón.</div></div>
+  </div>
+</section>
+
+<!-- ================= KAIO-SAMA ================= -->
+<section id="kaio">
+  <div class="sec-head">
+    <div class="sec-head kanji">九 · LA VOZ</div>
+    <h2>Kaio-sama te habla</h2>
+    <p class="prose">Los consejos diarios y las notificaciones ya existen y están calculados con tus datos reales. Solo cambia la voz: cercana, con humor y sin perder la información útil.</p>
+  </div>
+  <div class="voices">
+    <div class="voice"><div class="before"><small>Hoy</small>Has aumentado un 12 % el volumen esta semana.</div><div class="after"><div class="kaio">界</div><div><small>Kaio-sama</small>Tu Genkidama es un 12 % más grande que la semana pasada. Sigue reuniendo energía.</div></div></div>
+    <div class="voice"><div class="before"><small>Hoy</small>Hace 6 días que no entrenas piernas.</div><div class="after"><div class="kaio">界</div><div><small>Kaio-sama</small>Seis días sin piernas. Un guerrero sin piernas no aguanta ni un asalto.</div></div></div>
+    <div class="voice"><div class="before"><small>Hoy</small>Press de banca: prueba con 85 kg × 6.</div><div class="after"><div class="kaio">界</div><div><small>Kaio-sama</small>Press de banca: sube la gravedad a 85 kg × 6. Tu cuerpo ya está preparado.</div></div></div>
+    <div class="voice"><div class="before"><small>Hoy · notificación</small>Recordatorio: hoy toca Pierna.</div><div class="after"><div class="kaio">界</div><div><small>Kaio-sama · notificación</small>Hoy toca Pierna. Te espero en la cámara de gravedad.</div></div></div>
+    <div class="voice"><div class="before"><small>Hoy · sin datos</small>Registra un entrenamiento para empezar a ver tus progresos aquí.</div><div class="after"><div class="kaio">界</div><div><small>Kaio-sama</small>Todavía no he sentido tu energía. Entrena una vez y empezaré a leer tu nivel de poder.</div></div></div>
+  </div>
+</section>
+
+<!-- ================= IP ================= -->
+<section id="ip">
+  <div class="callout">
+    <div class="eyebrow" style="color:var(--red)">Línea roja · propiedad intelectual</div>
+    <h3 style="font-size:24px">Para uso personal, adelante. Para publicar, cambiamos los nombres.</h3>
+    <p class="prose">Dragon Ball, sus personajes, nombres y su arte pertenecen a sus dueños. En este experimento <strong>no usaremos imágenes, sonidos ni dibujos oficiales</strong>: todo (auras, esferas, dragón, rastreador) se dibuja con código y formas originales. Aun así, los nombres son reconocibles. Si algún día la app se publicara en Google Play, haría falta pasar a la columna de la derecha. Si lo diseñamos con los textos centralizados, el cambio es inmediato.</p>
+    <div class="table-wrap">
+      <table style="min-width:520px">
+        <thead><tr><th>Nombre fan (experimento)</th><th>Nombre publicable</th></tr></thead>
+        <tbody>
+          <tr><td>Super Saiyan / SSJ 2 / SSJ 3 / Blue</td><td>Despertar dorado I / II / III, Despertar azul</td></tr>
+          <tr><td>Ultra Instinto</td><td>Instinto plateado</td></tr>
+          <tr><td>Esferas del dragón · Shenlong</td><td>Orbes estelares · El Dragón</td></tr>
+          <tr><td>Kaio-sama</td><td>El Maestro</td></tr>
+          <tr><td>Kamehameha · Genkidama</td><td>Onda de energía · Esfera de energía</td></tr>
+          <tr><td>Semilla del ermitaño · Rastreador</td><td>Semilla de descanso · Visor</td></tr>
+          <tr><td>Kame House · Cápsulas Hoi-Poi</td><td>La Base · Cápsulas</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CONSTRUCCION ================= -->
+<section id="construccion">
+  <div class="sec-head">
+    <div class="sec-head kanji">十 · CÓMO SE CONSTRUYE</div>
+    <h2>Lo que cambia y lo que no</h2>
+    <p class="prose"><strong>No cambia:</strong> tus datos, la base de datos, los cálculos de rangos, récords, calorías y progresión, los GIF de los ejercicios, el modo sin conexión. <strong>Cambia:</strong> la piel, los textos y unas capas nuevas que se calculan a partir de lo que ya existe. Todo vive en la rama <code style="font-family:var(--hud);color:var(--gold)">dragon-ball</code>; la app que usas ahora no se toca y la web publicada solo se actualiza desde main.</p>
+  </div>
+  <div class="phases">
+    <div class="phase"><div class="ph">A<small>La piel</small></div><div><h3>Tema, tipografías y textos</h3><ul><li>Nuevo tema "Noche Z" con los colores de arriba y las fuentes Dela Gothic One y Share Tech Mono incluidas sin conexión, igual que las actuales.</li><li>Todos los nombres nuevos en un único archivo de textos (para poder cambiarlos a la versión publicable).</li><li>Barra inferior con el botón 気 central.</li></ul></div></div>
+    <div class="phase"><div class="ph">B<small>El poder</small></div><div><h3>Nivel de poder y transformaciones</h3><ul><li>Fórmula del nivel de poder como función pura, con tests.</li><li>Rangos → transformaciones: nombres, colores de aura y diagrama corporal brillante.</li><li>Lente del rastreador en la pantalla Poder.</li></ul></div></div>
+    <div class="phase"><div class="ph">C<small>Constancia</small></div><div><h3>Esferas, Genkidama y sagas</h3><ul><li>Esferas calculadas a partir del historial de objetivos semanales.</li><li>Genkidama a partir del volumen semanal que ya se calcula.</li><li>Sagas por número de entrenos y fondos de la Kame House.</li><li>Lo único que necesita guardar datos nuevos: los deseos pedidos y lo desbloqueado (una tabla pequeña en la base de datos).</li></ul></div></div>
+    <div class="phase"><div class="ph">D<small>Los momentos</small></div><div><h3>Animaciones y vibración</h3><ul><li>Transformación, Kamehameha, escaneo, chispas de Genkidama, invocación, "más de 9.000" y Zenkai.</li><li>Dibujadas con código (sin vídeos ni imágenes pesadas), respetando "reducir movimiento".</li></ul></div></div>
+    <div class="phase"><div class="ph">E<small>La voz</small></div><div><h3>Kaio-sama</h3><ul><li>Reescritura de consejos diarios, notificaciones, estados vacíos y mensajes de error con la voz nueva.</li></ul></div></div>
+  </div>
+  <p class="prose">Como prefieres las funciones grandes de una sola vez, la idea es hacer A–E en un único bloque, probarlo en el móvil con Codemagic desde la rama <code style="font-family:var(--hud);color:var(--gold)">dragon-ball</code>, y retocar desde ahí.</p>
+</section>
+
+<!-- ================= DECISIONES ================= -->
+<section id="decisiones">
+  <div class="sec-head">
+    <div class="sec-head kanji">十一 · TU TURNO</div>
+    <h2>Lo que necesito que decidas</h2>
+  </div>
+  <div class="qs">
+    <div class="q"><h3>1. ¿Nombre de la app?</h3><p>"Machoke Z" mantiene la marca y añade el guiño. Otras opciones: "Kame Gym", "Cápsula".</p><div class="rec">Propuesta: Machoke Z</div></div>
+    <div class="q"><h3>2. ¿Conversión total o tema elegible?</h3><p>Opción 1: toda la app es Dragon Ball. Opción 2: "Noche Z" es un tema más en Ajustes y, si gusta, algún día podría volver a main sin molestar a nadie.</p><div class="rec">Propuesta: conversión total en el experimento, pero construida como tema para no cerrar la puerta.</div></div>
+    <div class="q"><h3>3. ¿Nombres fan o publicables?</h3><p>Para el experimento, los nombres fan son mucho más divertidos. El interruptor queda preparado.</p><div class="rec">Propuesta: nombres fan</div></div>
+    <div class="q"><h3>4. ¿Cómo se ganan las esferas?</h3><p>Por semana cumplida (7 semanas para invocar) o por entreno (7 entrenos, más frecuente pero menos especial).</p><div class="rec">Propuesta: por semana cumplida</div></div>
+    <div class="q"><h3>5. ¿Sonido?</h3><p>Efectos propios (no del anime) para la transformación, el Kamehameha y la invocación, con un interruptor para silenciarlos.</p><div class="rec">Propuesta: sí, desactivado por defecto</div></div>
+    <div class="q"><h3>6. ¿Algo que sobre o falte?</h3><p>Ideas que dejé fuera: torneos mensuales contra tu "yo" del mes pasado, combates contra jefes (Freezer, Cell) como retos de 4 semanas, la Habitación del Tiempo para semanas de descarga.</p><div class="rec">Dime cuáles te gustan</div></div>
+  </div>
+  <div class="foot"><span>Machoke Z · documento de concepto v1</span><span>Experimento en la rama dragon-ball</span><span>Maquetas con datos de ejemplo</span></div>
+</section>
+
+</div>
+
+<script>
+(function () {
+  // Estrellas de las esferas
+  document.querySelectorAll('.ball[data-n]').forEach(function (b) {
+    var n = +b.getAttribute('data-n');
+    var s = document.createElement('span');
+    s.className = 'stars';
+    s.textContent = '★'.repeat(n);
+    b.appendChild(s);
+  });
+
+  // Nivel de poder
+  var tiers = ['Terrícola', 'Guerrero Z', 'Kaioken', 'Super Saiyan', 'Super Saiyan 2', 'Super Saiyan 3', 'Super Saiyan Blue', 'Ultra Instinto'];
+  function power(score) { return Math.round(100 * Math.pow(1.57, score)); }
+  function tierOf(score) {
+    var s = Math.max(1, Math.min(24, Math.round(score)));
+    var t = Math.floor((s - 1) / 3);
+    var g = ((s - 1) % 3) + 1;
+    return tiers[t] + ' · Grado ' + ['I', 'II', 'III'][g - 1];
+  }
+  var fmt = new Intl.NumberFormat('es-ES', { useGrouping: 'always' });
+  function f(n) { try { return fmt.format(n); } catch (e) { return String(n); } }
+  var input = document.getElementById('pw');
+  function render() {
+    var v = +input.value;
+    var p = power(v);
+    document.getElementById('pwv').textContent = v.toFixed(1);
+    document.getElementById('pwout').textContent = f(p);
+    document.getElementById('pwtier').textContent = '▸ ' + tierOf(v);
+    document.getElementById('pwover').textContent = p > 9000 ? '¡Más de 9.000! (el rastreador estalla la primera vez)' : 'A ' + f(9001 - p) + ' de los 9.000';
+  }
+  input.addEventListener('input', render);
+  render();
+  var rows = [1, 4, 7, 10, 12, 13, 16, 19, 22, 24];
+  document.getElementById('pwtable').innerHTML = rows.map(function (r) {
+    return '<tr><td>' + r + '</td><td>' + tierOf(r) + '</td><td>' + f(power(r)) + '</td></tr>';
+  }).join('');
+})();
+</script>
