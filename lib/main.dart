@@ -11,6 +11,7 @@ import 'data/seed/exercise_seeder.dart';
 import 'router/app_router.dart';
 import 'services/notifications/notification_service.dart';
 import 'services/notifications/reminder_scheduler.dart';
+import 'services/z/campaign_service.dart';
 import 'services/z/media_pack.dart';
 
 void main() async {
@@ -23,6 +24,9 @@ void main() async {
   await syncSeedExercises(db);
   await db.userSettingsDao.ensureDefaultRow();
   await db.sessionLoggingDao.deleteUncompletedSetsOfFinishedSessions();
+  // Starts the campaign at Raditz on first run and resolves any week that
+  // ended while the app was closed (shown in "Anteriormente en GymZ…").
+  await loadCampaign(db);
   final onboardingDone = await db.userSettingsDao.isOnboardingCompleted();
   unawaited(refreshDailyReminders(db));
 

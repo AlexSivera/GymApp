@@ -1,5 +1,5 @@
 import '../../data/database/app_database.dart';
-import 'dragon_balls.dart' show weekStartOf;
+import 'dragon_balls.dart' show addWeeks, weekStartOf;
 
 // La Genkidama: this week's training volume gathered into a sphere, full
 // once it matches the average of the previous 4 weeks (weeks with no
@@ -25,12 +25,12 @@ class Genkidama {
 Future<Genkidama> computeGenkidama(AppDatabase db, {DateTime? now}) async {
   final thisWeek = weekStartOf(now ?? DateTime.now());
   final volumeThisWeek =
-      await db.progressDao.totalVolumeInRange(thisWeek, thisWeek.add(const Duration(days: 7)));
+      await db.progressDao.totalVolumeInRange(thisWeek, addWeeks(thisWeek, 1));
 
   final previous = <double>[];
   for (var i = 1; i <= 4; i++) {
-    final start = thisWeek.subtract(Duration(days: 7 * i));
-    final volume = await db.progressDao.totalVolumeInRange(start, start.add(const Duration(days: 7)));
+    final start = addWeeks(thisWeek, -i);
+    final volume = await db.progressDao.totalVolumeInRange(start, addWeeks(start, 1));
     if (volume > 0) previous.add(volume);
   }
   final average = previous.isEmpty ? 0.0 : previous.reduce((a, b) => a + b) / previous.length;

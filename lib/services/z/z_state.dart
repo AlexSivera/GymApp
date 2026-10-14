@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:ui' show Color;
 
-import 'dragon_balls.dart' show weekStartOf;
+import 'campaign.dart';
+import 'dragon_balls.dart' show addWeeks, weekStartOf;
+import 'masters.dart';
 
 // Keys of the ZKeyValues table.
 class ZKeys {
@@ -12,6 +14,22 @@ class ZKeys {
   static const title = 'title';
   static const aura = 'aura';
   static const wishes = 'wishes';
+  static const campaign = 'campaign';
+  // [{id, at}] — masters beaten in their training combat ('kaio' = the
+  // Genkidama was taught).
+  static const masters = 'masters';
+  static const mainMaster = 'main_master';
+  static const attack = 'attack';
+  static const episodes = 'episodes_enabled';
+  static const recapWeek = 'recap_week';
+  static const peekDay = 'peek_day';
+}
+
+class JoinedMaster {
+  const JoinedMaster(this.id, this.at);
+
+  final String id;
+  final DateTime at;
 }
 
 enum WishType { aura, freeWeek, title }
@@ -52,12 +70,21 @@ class ZAura {
   final Color color;
 }
 
+// Auras Shenlong can grant.
 const zUnlockableAuras = [
   ZAura('ultra_instinto', 'Ultra Instinto', Color(0xFFE6ECF7)),
   ZAura('ssj_blue', 'Super Saiyan Blue', Color(0xFF3CC8FF)),
   ZAura('divino', 'Ki divino', Color(0xFFFF4F8B)),
   ZAura('kaioken', 'Kaioken', Color(0xFFFF3D45)),
 ];
+
+// Auras won in the campaign.
+const zCampaignAuras = [
+  ZAura('majin', 'Aura Majin', Color(0xFFFF5FA8)),
+  ZAura('dorada', 'Aura dorada', Color(0xFFFFC21F)),
+];
+
+const zAllAuras = [...zUnlockableAuras, ...zCampaignAuras];
 
 const zUnlockableTitles = [
   'Guerrero de las 7 esferas',
@@ -79,7 +106,55 @@ class ZState {
   // Chosen cosmetic aura id; null = follow the current transformation.
   String? get auraId => raw[ZKeys.aura];
 
-  ZAura? get aura => zUnlockableAuras.where((a) => a.id == auraId).firstOrNull;
+  ZAura? get aura => zAllAuras.where((a) => a.id == auraId).firstOrNull;
+
+  CampaignState? get campaign => CampaignState.decode(raw[ZKeys.campaign]);
+
+  List<JoinedMaster> get joinedMasters {
+    final source = raw[ZKeys.masters];
+    if (source == null) return const [];
+    try {
+      final list = jsonDecode(source);
+      if (list is! List) return const [];
+      return [
+        for (final item in list)
+          if (item is Map && item['id'] is String)
+            JoinedMaster(item['id'] as String, DateTime.tryParse('${item['at']}') ?? DateTime(2000)),
+      ];
+    } on FormatException {
+      return const [];
+    }
+  }
+
+  // Masters on your side: Kaio-sama from the start, plus everyone beaten.
+  Set<String> get unlockedMasterIds => {'kaio', for (final m in joinedMasters) m.id};
+
+  String get mainMasterId {
+    final id = raw[ZKeys.mainMaster];
+    return id != null && unlockedMasterIds.contains(id) ? id : 'kaio';
+  }
+
+  Set<String> get unlockedAttackIds => {
+        defaultAttackId,
+        for (final m in joinedMasters) masterById(m.id).attackId,
+        for (final fight in campaign?.defeated ?? const <CampaignFight>[])
+          if (fight.reward.attackId != null) fight.reward.attackId!,
+      };
+
+  String get attackId {
+    final id = raw[ZKeys.attack];
+    return id != null && unlockedAttackIds.contains(id) ? id : _bestDefaultAttack;
+  }
+
+  // Until the user picks one, the most iconic attack they have.
+  String get _bestDefaultAttack => unlockedAttackIds.contains('kamehameha') ? 'kamehameha' : defaultAttackId;
+
+  bool get episodesEnabled => raw[ZKeys.episodes] != 'false';
+
+  DateTime? get recapWeek => DateTime.tryParse(raw[ZKeys.recapWeek] ?? '');
+
+  static String encodeMasters(List<JoinedMaster> list) =>
+      jsonEncode([for (final m in list) {'id': m.id, 'at': m.at.toIso8601String()}]);
 
   List<GrantedWish> get wishes {
     final source = raw[ZKeys.wishes];
@@ -107,11 +182,15 @@ class ZState {
   List<String> get ownedTitles => [
         for (final wish in wishes)
           if (wish.type == WishType.title && wish.value != null) wish.value!,
+        for (final fight in campaign?.defeated ?? const <CampaignFight>[])
+          if (fight.reward.title != null) fight.reward.title!,
       ];
 
   List<ZAura> get ownedAuras => [
         for (final wish in wishes)
           if (wish.type == WishType.aura) ...zUnlockableAuras.where((a) => a.id == wish.value),
+        for (final fight in campaign?.defeated ?? const <CampaignFight>[])
+          if (fight.reward.auraId != null) ...zCampaignAuras.where((a) => a.id == fight.reward.auraId),
       ];
 
   // What each wish would grant right now (null = nothing left to unlock).
@@ -122,7 +201,7 @@ class ZState {
   // hasn't earned its esfera yet, otherwise next week.
   static DateTime freeWeekFor({required DateTime now, required bool thisWeekMet}) {
     final week = weekStartOf(now);
-    return thisWeekMet ? week.add(const Duration(days: 7)) : week;
+    return thisWeekMet ? addWeeks(week, 1) : week;
   }
 
   static String encodeWishes(List<GrantedWish> wishes) => jsonEncode([for (final w in wishes) w.toJson()]);

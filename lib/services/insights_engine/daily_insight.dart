@@ -4,10 +4,21 @@ import '../progression_engine/previous_performance.dart';
 import '../progression_engine/suggest_next_load.dart';
 import 'weekly_summary.dart';
 
+// What the tip is about. GymZ's masters each phrase it their own way (see
+// lib/services/z/mentor_lines.dart); [message] is the neutral wording.
+enum InsightKind { zenkai, volumeUp, volumeDown, muscleGap, loadTip, empty }
+
 class DailyInsight {
-  const DailyInsight(this.message);
+  const DailyInsight(this.message, {this.kind = InsightKind.empty, this.number, this.subject, this.detail});
 
   final String message;
+  final InsightKind kind;
+  // Days off (zenkai), % change (volume), days since (muscle gap).
+  final int? number;
+  // Muscle (gap) or exercise (load tip).
+  final String? subject;
+  // Suggested weight, already formatted (load tip).
+  final String? detail;
 }
 
 // Picks exactly one insight to show on the home screen — never a list.
@@ -16,7 +27,7 @@ class DailyInsight {
 // by the date) so it doesn't flicker between opens of the app on the same day.
 Future<DailyInsight> computeDailyInsight(AppDatabase db, {DateTime? now, WeightUnit unit = WeightUnit.kg}) async {
   final today = now ?? DateTime.now();
-  final candidates = <String>[];
+  final candidates = <DailyInsight>[];
 
   // Zenkai: after a long break, a welcome back instead of a stat — Saiyans
   // come back stronger, but the first day back should be lighter.
@@ -29,6 +40,8 @@ Future<DailyInsight> computeDailyInsight(AppDatabase db, {DateTime? now, WeightU
       return DailyInsight(
         '¡Zenkai! Llevas $daysOff días sin entrenar, y los saiyans vuelven más fuertes. '
         'Hoy baja la gravedad un 10 % y deja que el cuerpo despierte.',
+        kind: InsightKind.zenkai,
+        number: daysOff,
       );
     }
   }
@@ -36,16 +49,23 @@ Future<DailyInsight> computeDailyInsight(AppDatabase db, {DateTime? now, WeightU
   final weekly = await computeWeeklySummary(db, now: today);
   final volumeChange = weekly.volumeChangePercent;
   if (volumeChange != null && volumeChange.abs() >= 3) {
-    final pct = volumeChange.abs().toStringAsFixed(0);
+    final pct = volumeChange.abs().round();
     candidates.add(volumeChange >= 0
-        ? 'Tu Genkidama es un $pct % más grande que la semana pasada. ¡Sigue reuniendo energía!'
-        : 'Tu Genkidama va un $pct % por debajo de la semana pasada. Aún estás a tiempo de cargarla.');
+        ? DailyInsight('Tu Genkidama es un $pct % más grande que la semana pasada. ¡Sigue reuniendo energía!',
+            kind: InsightKind.volumeUp, number: pct)
+        : DailyInsight('Tu Genkidama va un $pct % por debajo de la semana pasada. Aún estás a tiempo de cargarla.',
+            kind: InsightKind.volumeDown, number: pct));
   }
 
   final muscleGap = await _mostNeglectedMuscle(db, today);
   if (muscleGap != null && muscleGap.daysSince >= 6) {
-    candidates.add('Hace ${muscleGap.daysSince} días que no entrenas ${muscleGap.muscle.toLowerCase()}. '
-        'Un guerrero desequilibrado no aguanta ni un asalto.');
+    candidates.add(DailyInsight(
+      'Hace ${muscleGap.daysSince} días que no entrenas ${muscleGap.muscle.toLowerCase()}. '
+      'Un guerrero desequilibrado no aguanta ni un asalto.',
+      kind: InsightKind.muscleGap,
+      number: muscleGap.daysSince,
+      subject: muscleGap.muscle.toLowerCase(),
+    ));
   }
 
   final loadTip = await _topExerciseLoadTip(db, today, unit);
@@ -53,12 +73,13 @@ Future<DailyInsight> computeDailyInsight(AppDatabase db, {DateTime? now, WeightU
 
   if (candidates.isEmpty) {
     return const DailyInsight(
-        'Todavía no he sentido tu energía. Entrena una vez y empezaré a leer tu nivel de poder.');
+        'Todavía no he sentido tu energía. Entrena una vez y empezaré a leer tu nivel de poder.',
+        kind: InsightKind.empty);
   }
 
   final seed = today.year * 10000 + today.month * 100 + today.day;
   final index = seed % candidates.length;
-  return DailyInsight(candidates[index]);
+  return candidates[index];
 }
 
 class _MuscleGap {
@@ -103,7 +124,7 @@ Future<_MuscleGap?> _mostNeglectedMuscle(AppDatabase db, DateTime today) async {
   return _MuscleGap(muscle: worstMuscle, daysSince: worstGap);
 }
 
-Future<String?> _topExerciseLoadTip(AppDatabase db, DateTime today, WeightUnit unit) async {
+Future<DailyInsight?> _topExerciseLoadTip(AppDatabase db, DateTime today, WeightUnit unit) async {
   final start = today.subtract(const Duration(days: 30));
   final volumeByExercise = await db.progressDao.volumeByExerciseInRange(start, today);
   if (volumeByExercise.isEmpty) return null;
@@ -128,6 +149,11 @@ Future<String?> _topExerciseLoadTip(AppDatabase db, DateTime today, WeightUnit u
     targetRepsMax: maxRepsUsed,
   );
   if (suggestion.suggestedWeight == null) return null;
-  return '${exercise.name}: sube la gravedad a ${formatWeight(suggestion.suggestedWeight!, unit)}. '
-      'Tu cuerpo ya está preparado.';
+  final weight = formatWeight(suggestion.suggestedWeight!, unit);
+  return DailyInsight(
+    '${exercise.name}: sube la gravedad a $weight. Tu cuerpo ya está preparado.',
+    kind: InsightKind.loadTip,
+    subject: exercise.name,
+    detail: weight,
+  );
 }

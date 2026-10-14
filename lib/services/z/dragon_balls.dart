@@ -25,8 +25,12 @@ class DragonBallProgress {
 
 DateTime weekStartOf(DateTime date) {
   final day = DateTime(date.year, date.month, date.day);
-  return day.subtract(Duration(days: day.weekday - 1));
+  return DateTime(day.year, day.month, day.day - (day.weekday - 1));
 }
+
+// Calendar arithmetic (not Duration): adding 7×24 h across a daylight-saving
+// change lands an hour off midnight and breaks week keys.
+DateTime addWeeks(DateTime week, int weeks) => DateTime(week.year, week.month, week.day + 7 * weeks);
 
 // [completedDates]: dates of every completed session (any order).
 // [countFrom]: when the last wish was granted — only weeks after that one
@@ -54,7 +58,7 @@ DragonBallProgress computeDragonBalls({
   final thisWeekMet = thisWeekCompleted >= target || protected.contains(currentWeek);
 
   // Weeks strictly after the wish's week.
-  final firstCountedWeek = countFrom == null ? null : weekStartOf(countFrom).add(const Duration(days: 7));
+  final firstCountedWeek = countFrom == null ? null : addWeeks(weekStartOf(countFrom), 1);
   bool counts(DateTime week) => firstCountedWeek == null || !week.isBefore(firstCountedWeek);
 
   final metWeeks = <DateTime>{

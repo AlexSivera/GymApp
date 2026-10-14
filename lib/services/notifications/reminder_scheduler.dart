@@ -1,5 +1,8 @@
 import '../../core/utils/streak.dart';
 import '../../data/database/app_database.dart';
+import '../z/masters.dart';
+import '../z/mentor_lines.dart';
+import '../z/z_state.dart';
 import 'notification_service.dart';
 
 const todayReminderNotificationId = 2001;
@@ -21,6 +24,9 @@ Future<void> refreshDailyReminders(AppDatabase db) async {
 
   final now = DateTime.now();
   final reminderTime = DateTime(now.year, now.month, now.day, 18, 0);
+  // Reminders come from the user's main master, in their voice.
+  final zState = ZState(await db.zStateDao.watchAll().first);
+  final master = masterById(zState.mainMasterId);
 
   await NotificationService.cancelReminder(todayReminderNotificationId);
   final todaySession = await db.workoutSessionsDao.watchSessionForDate(now).first;
@@ -29,8 +35,8 @@ Future<void> refreshDailyReminders(AppDatabase db) async {
       reminderTime.isAfter(now)) {
     await NotificationService.scheduleReminder(
       id: todayReminderNotificationId,
-      title: 'Kaio-sama',
-      body: 'Hoy toca combate. Te espero en la cámara de gravedad.',
+      title: master.name,
+      body: plannedTodayReminder(master.id),
       fireAt: reminderTime,
     );
   }
@@ -49,8 +55,8 @@ Future<void> refreshDailyReminders(AppDatabase db) async {
     if (daysSince >= 6 && reminderTime.isAfter(now)) {
       await NotificationService.scheduleReminder(
         id: streakRiskNotificationId,
-        title: 'Kaio-sama: tu racha está en peligro',
-        body: 'Llevas $daysSince días sin entrenar. Entrena hoy o tu ki se enfriará.',
+        title: '${master.name}: tu racha está en peligro',
+        body: streakRiskReminder(master.id, daysSince),
         fireAt: reminderTime,
       );
     }

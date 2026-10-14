@@ -55,6 +55,9 @@ class PersonalRecordsDao extends DatabaseAccessor<AppDatabase>
 
   Future<int> insert(PersonalRecordsCompanion entry) => into(personalRecords).insert(entry);
 
+  // Every record row ever stored (each time a best was beaten adds one).
+  Stream<List<PersonalRecord>> watchAllRows() => select(personalRecords).watch();
+
   // How many of the *current* records (best per exercise+type, the same
   // list the Récords personales screen shows) were set in the range. Counting
   // every row instead double-counted a record beaten twice in one week, so
