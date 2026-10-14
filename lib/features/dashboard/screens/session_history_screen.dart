@@ -15,7 +15,7 @@ class SessionHistoryScreen extends ConsumerWidget {
     final sessions = ref.watch(sessionHistoryProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Historial de combates')),
+      appBar: AppBar(title: const Text('Historial de entrenamientos')),
       body: sessions.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Padding(

@@ -23,11 +23,11 @@ class RecentActivityCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('ÚLTIMOS COMBATES', style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 0.6)),
+          Text('ÚLTIMOS ENTRENAMIENTOS', style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 0.6)),
           const SizedBox(height: AppSpacing.md),
           if (sessions.isEmpty)
             Text(
-              'Todavía no has librado ningún combate. Tu primer entreno aparecerá aquí.',
+              'Todavía no has hecho ningún entrenamiento. El primero aparecerá aquí.',
               style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             )
           else

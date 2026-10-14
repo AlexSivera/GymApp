@@ -32,7 +32,7 @@ const Map<String, Map<InsightKind, (String, MentorMood)>> _tips = {
     InsightKind.volumeDown: ('Un {n} % menos de volumen… El caparazón de tortuga no se lleva solo, muchacho.', _p),
     InsightKind.muscleGap: ('{n} días sin entrenar {m}. Un buen artista marcial entrena todo el cuerpo, no solo lo que se ve en la playa.', _s),
     InsightKind.loadTip: ('{e}: prueba con {w}. Trabaja duro, come bien, descansa… y sube el peso.', _c),
-    InsightKind.empty: ('Ponte el caparazón y haz tu primer combate. La leche no se reparte sola.', _p),
+    InsightKind.empty: ('Ponte el caparazón y haz tu primer entrenamiento. La leche no se reparte sola.', _p),
   },
   'krilin': {
     InsightKind.zenkai: ('¡Vaya, {n} días! Bueno, yo también me tomé mis vacaciones… Hoy ve con calma, ¿vale?', _r),
@@ -40,7 +40,7 @@ const Map<String, Map<InsightKind, (String, MentorMood)>> _tips = {
     InsightKind.volumeDown: ('Un {n} % menos esta semana… No pasa nada, a mí también me cuesta seguir el ritmo. ¡Venga!', _p),
     InsightKind.muscleGap: ('Llevas {n} días sin entrenar {m}. ¡Entrénalo, que luego todo son sustos!', _s),
     InsightKind.loadTip: ('{e}: ¿probamos con {w}? Yo creo que puedes. Bueno, casi seguro.', _c),
-    InsightKind.empty: ('¡Hola! ¿Empezamos con un combate suave? Prometo no reírme.', _c),
+    InsightKind.empty: ('¡Hola! ¿Empezamos con un entreno suave? Prometo no reírme.', _c),
   },
   'piccolo': {
     InsightKind.zenkai: ('{n} días. Inaceptable. Hoy vuelves, pero con un 10 % menos de carga. No me hagas repetirlo.', _s),
@@ -99,11 +99,11 @@ MentorLine mentorTip(String masterId, DailyInsight insight) {
 // What each master says when you beat their trial and they join you.
 const masterUnlockSpeech = <String, String>{
   'kaio': '¡Has reunido las siete esferas! Te has ganado mi técnica secreta: la Genkidama.',
-  'roshi': '¡Has aguantado cinco combates! Te enseñaré la técnica de la Escuela Tortuga: el Kamehameha.',
+  'roshi': '¡Has aguantado cinco entrenamientos! Te enseñaré la técnica de la Escuela Tortuga: el Kamehameha.',
   'krilin': '¡Dos semanas seguidas! Vale, vale, me has ganado. Toma, mi Kienzan. ¡Cuidado con los dedos!',
   'piccolo': 'Cuatro semanas sin fallar. Me has vencido. A partir de ahora te entreno yo. Aprende el Makankosappo.',
   'gohan': '¡Todos tus grupos musculares tienen lectura! Eso es equilibrio. Te enseño el Masenko.',
-  'trunks': 'Veinticinco combates. Con guerreros como tú, el futuro tiene esperanza. Toma, el Burning Attack.',
+  'trunks': 'Veinticinco entrenamientos. Con guerreros como tú, el futuro tiene esperanza. Toma, el Burning Attack.',
   'vegeta': 'Diez límites superados… Tsk. Está bien, lo admito: eres fuerte. Te enseñaré el Galick Gun. No lo malgastes.',
   'goku': '¡Ya eres Super Saiyan! ¡Esto hay que celebrarlo! Te enseño mi Kamehameha instantáneo.',
 };
@@ -114,12 +114,12 @@ const gokuTransformCameo = '¡Increíble, te has transformado! ¡Ahora sí que t
 
 // Reminder notifications, in the main master's voice.
 const _plannedToday = <String, String>{
-  'kaio': 'Hoy toca combate. Te espero en la cámara de gravedad.',
+  'kaio': 'Hoy toca entrenar. Te espero en la cámara de gravedad.',
   'roshi': 'Hoy toca entrenar. ¡Al caparazón!',
   'krilin': '¡Hoy toca entreno! ¿Vamos juntos?',
   'piccolo': 'Hoy entrenas. Punto.',
   'gohan': 'Hoy tienes entreno planificado. ¡Yo ya he estirado!',
-  'trunks': 'Hoy hay combate. El futuro depende de ello.',
+  'trunks': 'Hoy toca entrenar. El futuro depende de ello.',
   'vegeta': 'Hoy entrenas, insecto. No me hagas ir a buscarte.',
   'goku': '¡Hoy toca entrenar! ¡Qué ganas!',
 };

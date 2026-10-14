@@ -43,7 +43,7 @@ class NextEpisodeInput {
 }
 
 EpisodeText nextEpisode(NextEpisodeInput i) {
-  final footer = i.nextSessionLabel == null ? null : 'Próximo combate: ${i.nextSessionLabel}';
+  final footer = i.nextSessionLabel == null ? null : 'Próximo entrenamiento: ${i.nextSessionLabel}';
   final combat = i.todaysCombat;
   if (combat != null) {
     final next = combat.nextFight;
@@ -97,7 +97,7 @@ EpisodeText nextEpisode(NextEpisodeInput i) {
     final left = (i.weeklyTarget - i.doneThisWeek).clamp(0, i.weeklyTarget);
     return EpisodeText(
       headline: '¡La séptima esfera!',
-      body: 'A ${i.name} le ${left == 1 ? 'queda 1 combate' : 'quedan $left combates'} esta semana para reunir las siete esferas e invocar a Shenlong. ¡No te lo pierdas!',
+      body: 'A ${i.name} le ${left == 1 ? 'queda 1 entrenamiento' : 'quedan $left entrenamientos'} esta semana para reunir las siete esferas e invocar a Shenlong. ¡No te lo pierdas!',
       footer: footer,
     );
   }
@@ -188,7 +188,7 @@ List<RecapPage> recapPages(RecapInput i) {
   return [
     RecapPage(kicker: 'ANTERIORMENTE EN GYMZ…', title: cover),
     RecapPage(kicker: 'LA SEMANA', title: ratio >= 1 ? 'Semana cumplida' : 'Semana a medias', lines: [
-      ('${i.done}', 'combates de ${i.target}'),
+      ('${i.done}', 'entrenamientos de ${i.target}'),
       (i.ballEarned ? '★' : '—', i.ballEarned ? 'Esfera conseguida' : 'Sin esfera esta vez'),
       ('${i.genkidamaPercent} %', 'de Genkidama'),
       ('${i.records}', i.records == 1 ? 'límite superado' : 'límites superados'),
@@ -196,7 +196,7 @@ List<RecapPage> recapPages(RecapInput i) {
     RecapPage(kicker: 'LA CAMPAÑA', title: i.combats.any((c) => c.defeated) ? '¡Victoria!' : 'El combate sigue', lines: campaignLines),
     RecapPage(kicker: 'ESTA SEMANA', title: current == null ? 'Campaña completada' : 'Te espera ${current.displayName}', lines: [
       if (current != null) ('${(i.campaign.hp * 100).round()} %', 'de vida de tu rival'),
-      ('${i.target}', 'combates para vencerle'),
+      ('${i.target}', 'entrenamientos esta semana para vencerle'),
       ('${i.dragonBalls}/7', 'esferas reunidas'),
     ]),
   ];

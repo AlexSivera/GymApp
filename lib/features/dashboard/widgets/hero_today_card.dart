@@ -92,11 +92,11 @@ class HeroTodayCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('EL COMBATE DE HOY',
+            Text('EL ENTRENAMIENTO DE HOY',
                 style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 0.6)),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              isRest ? 'Hoy toca descansar en la Kame House.' : 'Hoy no tienes ningún combate programado.',
+              isRest ? 'Hoy toca descansar en la Kame House.' : 'Hoy no tienes ningún entrenamiento programado.',
               style: theme.textTheme.headlineMedium,
             ),
             if (!isRest) ...[
@@ -144,7 +144,7 @@ class HeroTodayCard extends ConsumerWidget {
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Text(
-                    isCompleted ? 'COMBATE TERMINADO' : 'COMBATE SALTADO',
+                    isCompleted ? 'ENTRENAMIENTO TERMINADO' : 'ENTRENAMIENTO SALTADO',
                     style: theme.textTheme.labelMedium?.copyWith(color: stateColor, letterSpacing: 0.6),
                   ),
                 ),
@@ -170,7 +170,7 @@ class HeroTodayCard extends ConsumerWidget {
                   onPressed: () => _viewSession(context, ref, session),
                   iconAlignment: IconAlignment.end,
                   icon: const Icon(Icons.arrow_forward_rounded),
-                  label: const Text('Ver el combate'),
+                  label: const Text('Ver el entrenamiento'),
                 ),
               ),
             SizedBox(
@@ -179,7 +179,7 @@ class HeroTodayCard extends ConsumerWidget {
                 padding: EdgeInsets.only(top: isCompleted ? AppSpacing.sm : 0),
                 child: OutlinedButton(
                   onPressed: () => _startAnotherSession(context, ref),
-                  child: const Text('+ Otro combate hoy'),
+                  child: const Text('+ Otro entrenamiento hoy'),
                 ),
               ),
             ),
@@ -209,7 +209,7 @@ class HeroTodayCard extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('EL COMBATE DE HOY',
+              Text('EL ENTRENAMIENTO DE HOY',
                   style: theme.textTheme.labelMedium?.copyWith(color: colors.accent, letterSpacing: 0.6)),
               if (session.status == SessionStatus.planned)
                 TextButton(

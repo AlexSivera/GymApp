@@ -74,7 +74,7 @@ class RankingScreen extends ConsumerWidget {
                       const SizedBox(height: AppSpacing.sm),
                       Text(
                         predicted == null
-                            ? 'Termina un combate para que el rastreador lea tu poder.'
+                            ? 'Termina un entrenamiento para que el rastreador lea tu poder.'
                             : 'Media de la transformación de tus músculos. Solo se compara contigo mismo.',
                         style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                       ),
@@ -141,7 +141,7 @@ class _RankingEmptyState extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           Text(
             'Cada técnica que completes te acerca a una transformación, de Terrícola a Ultra Instinto. '
-            'Termina tu primer combate para que el rastreador te lea.',
+            'Termina tu primer entrenamiento para que el rastreador te lea.',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),

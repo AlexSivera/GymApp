@@ -53,7 +53,7 @@ class ProfileScreen extends ConsumerWidget {
               children: [
                 Expanded(child: _SummaryMetric(value: bodyWeightText ?? '—', label: 'Peso')),
                 _SummaryDivider(),
-                Expanded(child: _SummaryMetric(value: totalWorkouts?.toString() ?? '—', label: 'Combates')),
+                Expanded(child: _SummaryMetric(value: totalWorkouts?.toString() ?? '—', label: 'Entrenos')),
                 _SummaryDivider(),
                 Expanded(
                   child: _SummaryMetric(

@@ -153,7 +153,7 @@ class DashboardScreen extends ConsumerWidget {
                     data: (sessions) => RecentActivityCard(sessions: sessions),
                     loading: () => const ShimmerBox(height: 160),
                     error: (e, _) => ErrorRetryCard(
-                      message: 'No se han podido cargar tus últimos combates.',
+                      message: 'No se han podido cargar tus últimos entrenamientos.',
                       onRetry: () => ref.invalidate(recentActivityProvider),
                     ),
                   ),

@@ -75,7 +75,7 @@ class MastersScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.xl),
           Text('Ataque final', style: theme.textTheme.titleLarge),
           const SizedBox(height: AppSpacing.xs),
-          Text('El que lanzas al terminar cada combate. Son estéticos: todos hacen el mismo daño.',
+          Text('El que lanzas al terminar cada entrenamiento. Son estéticos: todos hacen el mismo daño.',
               style: theme.textTheme.bodySmall?.copyWith(color: ZColors.muted)),
           const SizedBox(height: AppSpacing.md),
           GridView.count(

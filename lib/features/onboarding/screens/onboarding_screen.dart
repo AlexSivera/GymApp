@@ -255,7 +255,7 @@ class _WelcomeViewState extends State<_WelcomeView> with SingleTickerProviderSta
       curve: const Interval(0, 0.55, curve: Curves.easeOutBack),
     );
     const features = [
-      (Icons.radar_rounded, 'Planifica tus combates en el radar con tus propias cápsulas'),
+      (Icons.radar_rounded, 'Planifica tus entrenamientos en el radar con tus propias cápsulas'),
       (Icons.local_fire_department_rounded, 'Transfórmate: de Terrícola a Ultra Instinto, músculo a músculo'),
       (Icons.auto_awesome_rounded, 'Reúne las 7 esferas cumpliendo tus semanas y pide un deseo'),
     ];

@@ -318,7 +318,7 @@ class SessionSummaryScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.md),
                 reveal(AppCard(
                   child: Text(
-                    'Kaio-sama ha tomado nota. El próximo combate se medirá contra este.',
+                    'Kaio-sama ha tomado nota. El próximo entrenamiento se medirá contra este.',
                     style: theme.textTheme.bodyMedium?.copyWith(color: muted),
                   ),
                 )),
@@ -366,9 +366,9 @@ class _MangaBurst extends StatelessWidget {
                 child: Stack(
                   children: [
                     Text(
-                      '¡COMBATE\nTERMINADO!',
+                      '¡ENTRENAMIENTO\nTERMINADO!',
                       textAlign: TextAlign.center,
-                      style: ZText.display(size: 32, height: 0.95).copyWith(
+                      style: ZText.display(size: 26, height: 0.95).copyWith(
                         foreground: Paint()
                           ..style = PaintingStyle.stroke
                           ..strokeWidth = 5
@@ -376,9 +376,9 @@ class _MangaBurst extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '¡COMBATE\nTERMINADO!',
+                      '¡ENTRENAMIENTO\nTERMINADO!',
                       textAlign: TextAlign.center,
-                      style: ZText.display(size: 32, height: 0.95, color: ZColors.gi),
+                      style: ZText.display(size: 26, height: 0.95, color: ZColors.gi),
                     ),
                   ],
                 ),

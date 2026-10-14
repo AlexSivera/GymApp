@@ -170,7 +170,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               child: SwitchListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                 title: const Text('Recordatorios'),
-                subtitle: const Text('Que Kaio-sama me avise si hoy toca combate o si mi racha está en peligro'),
+                subtitle: const Text('Que mi maestro me avise si hoy toca entrenar o si mi racha está en peligro'),
                 value: _remindersEnabled,
                 onChanged: (value) => setState(() => _remindersEnabled = value),
               ),

@@ -252,7 +252,7 @@ class WeeklyBossBanner extends ConsumerWidget {
                 const SizedBox(height: 3),
                 Text(
                   week.resolved
-                      ? 'Este combate le quitará un 10 % por adelantado'
+                      ? 'Este entrenamiento le quitará un 10 % por adelantado'
                       : combatToday
                           ? 'Al terminar lanzarás tu ataque: ${(projectedDamage(week.done + 1, week.target) * 100).round()} % de daño'
                           : 'Semana ${week.done}/${week.target} · faltan ${_days(week.remaining)} para el combate',

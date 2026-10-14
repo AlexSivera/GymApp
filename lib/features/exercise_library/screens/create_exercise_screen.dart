@@ -76,7 +76,7 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
           const SizedBox(height: AppSpacing.sm),
           SegmentedButton<ExerciseCategory>(
             segments: const [
-              ButtonSegment(value: ExerciseCategory.strength, label: Text('Combate')),
+              ButtonSegment(value: ExerciseCategory.strength, label: Text('Fuerza')),
               ButtonSegment(value: ExerciseCategory.cardio, label: Text('Kinton')),
               ButtonSegment(value: ExerciseCategory.isometric, label: Text('Ki')),
             ],

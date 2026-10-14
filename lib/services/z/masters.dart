@@ -84,8 +84,8 @@ final masters = <Master>[
     color: const Color(0xFFFF8A3D),
     attackId: 'kamehameha',
     personality: 'Viejo sabio con guasa',
-    trialText: 'Tus primeros 5 combates',
-    trial: (s) => MasterTrial(s.sessions, 5, '${s.sessions.clamp(0, 5)}/5 combates'),
+    trialText: 'Tus primeros 5 entrenamientos',
+    trial: (s) => MasterTrial(s.sessions, 5, '${s.sessions.clamp(0, 5)}/5 entrenamientos'),
   ),
   Master(
     id: 'krilin',
@@ -124,8 +124,8 @@ final masters = <Master>[
     color: const Color(0xFFB69CFF),
     attackId: 'burning_attack',
     personality: 'Serio, viene del futuro',
-    trialText: '25 combates',
-    trial: (s) => MasterTrial(s.sessions, 25, '${s.sessions.clamp(0, 25)}/25 combates'),
+    trialText: '25 entrenamientos',
+    trial: (s) => MasterTrial(s.sessions, 25, '${s.sessions.clamp(0, 25)}/25 entrenamientos'),
   ),
   Master(
     id: 'vegeta',
