@@ -167,10 +167,14 @@ Future<PackImageShape> packImageShape(String slot) {
       }
       final figure = bottom - top;
       if (top < 0 || figure < 8) return const PackImageShape(cutout: true);
-      // Horizontal centre of the top of the figure (hair and head).
+      // The face sits a bit below the top of the figure (spiky hair above);
+      // the crop covers the whole head. Tuned on the Sparking! Zero art.
+      final side = figure * 0.38;
+      final centreY = top + figure * 0.18;
+      // Horizontal centre of what the crop covers.
       var sumX = 0;
       var count = 0;
-      for (var y = top; y < top + figure * 0.18; y++) {
+      for (var y = top; y < centreY + side / 2; y++) {
         for (var x = 0; x < w; x++) {
           if (alphaAt(x, y) > 128) {
             sumX += x;
@@ -178,11 +182,10 @@ Future<PackImageShape> packImageShape(String slot) {
           }
         }
       }
-      final side = figure * 0.30;
       return PackImageShape(
         cutout: true,
         face: Rect.fromCenter(
-          center: Offset(sumX / count / w, (top + figure * 0.13) / h),
+          center: Offset(sumX / count / w, centreY / h),
           width: side / w,
           height: side / h,
         ),
