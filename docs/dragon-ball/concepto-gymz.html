@@ -1039,6 +1039,7 @@ td .sm { color: var(--muted); font-size: 14px; }
         <li><b>Si sobrevive, se cura</b> cada semana un porcentaje de su vida máxima, distinto para cada jefe. Cell y Buu se regeneran mucho, como en el anime.</li>
         <li><b>Cuándo se resuelve:</b> en tu último entreno del objetivo, lanzando tu ataque. Si no llegas, el domingo por la noche con lo que hiciste, y lo ves el lunes en "Anteriormente en GymZ…".</li>
         <li><b>Días extra</b> (5 de 4): el daño no pasa del 100 %, pero el día extra le quita un 10 % por adelantado al siguiente jefe.</li>
+        <li><b>Villanos con varias formas</b> (Vegeta, Zarbon, Freezer, Cell, Buu, Goku Black, Jiren): cada forma es un combate semanal; al derrotarla, el villano se transforma y la siguiente forma te espera la semana próxima. La recompensa llega con la forma final (Cell y Buu dan también una a mitad).</li>
         <li><b>Cumplir la semana te da a la vez</b> la esfera y el golpe al jefe.</li>
         <li><b>Sin pack</b> se ve el nombre del jefe sobre fondo rojo; con pack, su recorte.</li>
       </ul>
@@ -1048,33 +1049,47 @@ td .sm { color: var(--muted); font-size: 14px; }
 
   <!-- TABLA DE JEFES -->
   <div class="sec-head" style="padding-top:12px">
-    <h3 style="font-size:24px">La campaña: 15 jefes</h3>
-    <p class="prose">Como el daño es un porcentaje, la vida es el número que se ve y <strong>lo que hace duro a un jefe es cuánto se cura</strong>. La última columna dice qué necesitas para rematarlo la semana siguiente si te quedaste en 3/4 (le queda un 25 % más lo que se cure): con un 15 % basta un 2/4, hasta un 50 % basta un 3/4, y por encima hace falta la semana perfecta. Mínimo 15 semanas de campaña.</p>
+    <h3 style="font-size:24px">La campaña: 15 villanos, 29 combates</h3>
+    <p class="prose">Cada fila es <strong>un combate semanal</strong>. Los villanos grandes tienen varias formas: al derrotar una, se transforma (clip de su transformación) y la siguiente forma es tu rival la semana próxima. El daño que sobra no pasa a la forma siguiente; los días extra sí le quitan su 10 %. Las formas finales se curan más. La columna "Tras un 3/4" dice qué necesitas para rematar esa forma si una semana te quedaste en 3/4. Como mínimo son <strong>29 semanas</strong> (unos 7 meses) haciendo semanas perfectas.</p>
   </div>
   <div class="table-wrap">
     <table class="bosses">
-      <thead><tr><th>Saga</th><th>Jefe</th><th>Vida</th><th>Se cura</th><th>Tras un 3/4</th><th>Recompensa</th></tr></thead>
+      <thead><tr><th>Saga</th><th>Villano</th><th>Forma</th><th>Vida</th><th>Se cura</th><th>Tras un 3/4</th><th>Recompensa</th></tr></thead>
       <tbody>
-        <tr><td class="saga-cell" style="color:#6FB8FF">Saiyan</td><td>Raditz</td><td>800</td><td>15 %</td><td>2/4 basta</td><td>Ataque <b>Makankosappo</b> · <b>Piccolo</b> se une</td></tr>
-        <tr><td></td><td>Nappa</td><td>1.500</td><td>20 %</td><td>3/4</td><td>Ataque <b>Kienzan</b> · <b>Krilin</b> se une</td></tr>
-        <tr><td></td><td>Vegeta</td><td>3.000</td><td>25 %</td><td>3/4</td><td>Ataque <b>Galick Gun</b> · <b>Vegeta</b> se une</td></tr>
-        <tr><td class="saga-cell" style="color:var(--namek)">Namek</td><td>Dodoria</td><td>1.500</td><td>15 %</td><td>2/4 basta</td><td>Título «Guerrero de Namek»</td></tr>
-        <tr><td></td><td>Ginyu</td><td>3.500</td><td>25 %</td><td>3/4</td><td>Ataque <b>Masenko</b> · <b>Gohan</b> se une</td></tr>
-        <tr><td></td><td>Freezer</td><td>5.000</td><td>30 %</td><td>3/4</td><td>Ataque <b>Rayo mortal de Freezer</b> · aura dorada</td></tr>
-        <tr><td class="saga-cell" style="color:#E0B07A">Androides</td><td>Androide 19</td><td>3.000</td><td>30 %</td><td>3/4</td><td>Ataque <b>Burning Attack</b> · <b>Trunks</b> se une</td></tr>
-        <tr><td></td><td>Cell imperfecto</td><td>6.000</td><td>45 %</td><td>3/4</td><td>Ataque <b>Final Flash</b></td></tr>
-        <tr><td></td><td>Cell perfecto</td><td>8.000</td><td>55 %</td><td><b>4/4</b></td><td>Ataque <b>Kamehameha Padre-Hijo</b></td></tr>
-        <tr><td class="saga-cell" style="color:#FF8FC8">Buu</td><td>Dabura</td><td>5.000</td><td>30 %</td><td>3/4</td><td>Ataque <b>Ataque Kamikaze de Fantasmas</b> · <b>Gotenks</b> se une</td></tr>
-        <tr><td></td><td>Majin Vegeta</td><td>7.000</td><td>35 %</td><td>3/4</td><td>Ataque <b>Explosión final</b></td></tr>
-        <tr><td></td><td>Kid Buu</td><td>10.000</td><td>60 %</td><td><b>4/4</b></td><td>Ataque <b>Genkidama</b></td></tr>
-        <tr><td class="saga-cell" style="color:#B69CFF">Super</td><td>Freezer Dorado</td><td>9.000</td><td>20 %</td><td>3/4 (se agota)</td><td>Título «Resurrección F»</td></tr>
-        <tr><td></td><td>Goku Black</td><td>10.000</td><td>45 %</td><td>3/4</td><td>Ataque <b>Final Kamehameha</b> · <b>Vegetto</b> se une</td></tr>
-        <tr><td></td><td>Jiren</td><td>12.000</td><td>55 %</td><td><b>4/4</b></td><td>Ataque <b>Kamehameha Ultra Instinto</b> · final de la campaña</td></tr>
+        <tr><td class="saga-cell" style="color:#6FB8FF">Saiyan</td><td><b>Raditz</b></td><td style="color:var(--muted)">única</td><td>800</td><td>15 %</td><td>2/4 basta</td><td>Ataque <b>Makankosappo</b> · <b>Piccolo</b> se une</td></tr>
+        <tr><td></td><td><b>Nappa</b></td><td style="color:var(--muted)">única</td><td>1.500</td><td>20 %</td><td>3/4</td><td>Ataque <b>Kienzan</b> · <b>Krilin</b> se une</td></tr>
+        <tr><td></td><td><b>Vegeta</b></td><td>Normal</td><td>3.000</td><td>25 %</td><td>3/4</td><td style="color:var(--muted)">se transforma ↓</td></tr>
+        <tr><td></td><td></td><td>Ozaru</td><td>4.000</td><td>35 %</td><td>3/4</td><td>Ataque <b>Galick Gun</b> · <b>Vegeta</b> se une</td></tr>
+        <tr><td class="saga-cell" style="color:var(--namek)">Namek</td><td><b>Dodoria</b></td><td style="color:var(--muted)">única</td><td>1.500</td><td>15 %</td><td>2/4 basta</td><td>Título «Guerrero de Namek»</td></tr>
+        <tr><td></td><td><b>Zarbon</b></td><td>Normal</td><td>2.000</td><td>20 %</td><td>3/4</td><td style="color:var(--muted)">se transforma ↓</td></tr>
+        <tr><td></td><td></td><td>Monstruo</td><td>2.500</td><td>25 %</td><td>3/4</td><td>Título «El más bello del universo»</td></tr>
+        <tr><td></td><td><b>Ginyu</b></td><td style="color:var(--muted)">única</td><td>3.500</td><td>25 %</td><td>3/4</td><td>Ataque <b>Masenko</b> · <b>Gohan</b> se une</td></tr>
+        <tr><td></td><td><b>Freezer</b></td><td>1.ª forma</td><td>4.000</td><td>25 %</td><td>3/4</td><td style="color:var(--muted)">se transforma ↓</td></tr>
+        <tr><td></td><td></td><td>2.ª forma</td><td>5.000</td><td>30 %</td><td>3/4</td><td style="color:var(--muted)">se transforma ↓</td></tr>
+        <tr><td></td><td></td><td>3.ª forma</td><td>6.000</td><td>35 %</td><td>3/4</td><td style="color:var(--muted)">se transforma ↓</td></tr>
+        <tr><td></td><td></td><td>Forma final</td><td>7.000</td><td>40 %</td><td>3/4</td><td style="color:var(--muted)">se transforma ↓</td></tr>
+        <tr><td></td><td></td><td>Al 100 %</td><td>9.000</td><td>50 %</td><td>3/4</td><td>Ataque <b>Rayo mortal</b> · Título «Superviviente de Namek»</td></tr>
+        <tr><td class="saga-cell" style="color:#E0B07A">Androides</td><td><b>Androide 19</b></td><td style="color:var(--muted)">única</td><td>3.000</td><td>30 %</td><td>3/4</td><td>Ataque <b>Burning Attack</b> · <b>Trunks</b> se une</td></tr>
+        <tr><td></td><td><b>Cell</b></td><td>Imperfecto</td><td>6.000</td><td>35 %</td><td>3/4</td><td style="color:var(--muted)">se transforma ↓</td></tr>
+        <tr><td></td><td></td><td>Semiperfecto</td><td>7.000</td><td>40 %</td><td>3/4</td><td style="color:var(--muted)">se transforma ↓</td></tr>
+        <tr><td></td><td></td><td>Perfecto</td><td>8.000</td><td>50 %</td><td>3/4</td><td>Ataque <b>Final Flash</b></td></tr>
+        <tr><td></td><td></td><td>Superperfecto</td><td>10.000</td><td>60 %</td><td><b>4/4</b></td><td>Ataque <b>Kamehameha Padre-Hijo</b></td></tr>
+        <tr><td class="saga-cell" style="color:#FF8FC8">Buu</td><td><b>Dabura</b></td><td style="color:var(--muted)">única</td><td>5.000</td><td>30 %</td><td>3/4</td><td>Título «Vencedor del Reino Demoníaco»</td></tr>
+        <tr><td></td><td><b>Majin Vegeta</b></td><td style="color:var(--muted)">única</td><td>7.000</td><td>35 %</td><td>3/4</td><td>Ataque <b>Explosión final</b></td></tr>
+        <tr><td></td><td><b>Majin Buu</b></td><td>Gordo</td><td>7.000</td><td>40 %</td><td>3/4</td><td style="color:var(--muted)">se transforma ↓</td></tr>
+        <tr><td></td><td></td><td>Malo</td><td>8.000</td><td>45 %</td><td>3/4</td><td style="color:var(--muted)">se transforma ↓</td></tr>
+        <tr><td></td><td></td><td>Super Buu</td><td>9.000</td><td>50 %</td><td>3/4</td><td>Ataque <b>Kamikaze de Fantasmas</b> · <b>Gotenks</b> se une</td></tr>
+        <tr><td></td><td></td><td>Kid Buu</td><td>10.000</td><td>60 %</td><td><b>4/4</b></td><td>Ataque <b>Genkidama</b> · <b>Vegetto</b> se une</td></tr>
+        <tr><td class="saga-cell" style="color:#B69CFF">Super</td><td><b>Freezer</b></td><td>Dorado</td><td>9.000</td><td>20 %</td><td>3/4</td><td>Aura dorada para tu avatar</td></tr>
+        <tr><td></td><td><b>Goku Black</b></td><td>Normal</td><td>9.000</td><td>40 %</td><td>3/4</td><td style="color:var(--muted)">se transforma ↓</td></tr>
+        <tr><td></td><td></td><td>Rosé</td><td>10.000</td><td>50 %</td><td>3/4</td><td>Ataque <b>Final Kamehameha</b></td></tr>
+        <tr><td></td><td><b>Jiren</b></td><td>Normal</td><td>11.000</td><td>45 %</td><td>3/4</td><td style="color:var(--muted)">se transforma ↓</td></tr>
+        <tr><td></td><td></td><td>Máximo poder</td><td>12.000</td><td>60 %</td><td><b>4/4</b></td><td>Ataque <b>Kamehameha Ultra Instinto</b> · fin de la campaña</td></tr>
       </tbody>
     </table>
   </div>
 
-<!-- 3 · K.O. Y ATAQUES -->
+  <!-- 3 · K.O. Y ATAQUES -->
   <div class="feature">
     <div class="phone"><div class="notch"></div>
       <div class="scr s-ko">
