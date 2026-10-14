@@ -40,10 +40,9 @@ class WarriorAvatar extends ConsumerWidget {
     final name = ref.watch(userSettingsProvider).valueOrNull?.name?.trim();
     final color = ref.watch(warriorAuraColorProvider);
     final intensity = (ref.watch(powerReadingProvider)?.rank.subTier ?? 1) / 3;
-    return KiAura(
+    return _PulsingGlow(
       color: color,
       intensity: intensity,
-      spread: 1.6,
       child: Container(
         width: size,
         height: size,
@@ -58,6 +57,65 @@ class WarriorAvatar extends ConsumerWidget {
           style: ZText.display(size: size * 0.42, color: color),
         ),
       ),
+    );
+  }
+}
+
+// The avatar's aura at small sizes: a ring of ki that breathes.
+class _PulsingGlow extends StatefulWidget {
+  const _PulsingGlow({required this.color, required this.intensity, required this.child});
+
+  final Color color;
+  final double intensity;
+  final Widget child;
+
+  @override
+  State<_PulsingGlow> createState() => _PulsingGlowState();
+}
+
+class _PulsingGlowState extends State<_PulsingGlow> with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 1400));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.of(context).disableAnimations) {
+      _pulse.stop();
+      _pulse.value = 0.5;
+    } else if (!_pulse.isAnimating) {
+      _pulse.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _pulse,
+      builder: (context, child) {
+        final t = Curves.easeInOut.transform(_pulse.value);
+        final strength = 0.45 + 0.35 * widget.intensity;
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: widget.color.withValues(alpha: strength * (0.6 + 0.4 * t)),
+                blurRadius: 10 + 10 * t,
+                spreadRadius: 1 + 3 * t,
+              ),
+            ],
+          ),
+          child: child,
+        );
+      },
+      child: widget.child,
     );
   }
 }

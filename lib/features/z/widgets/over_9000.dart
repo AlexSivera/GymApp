@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/z_palette.dart';
+import '../../../services/ranking_engine/rank_tier.dart';
 import '../../../services/z/power_level.dart';
 import '../../../services/z/z_sound.dart';
 import '../providers/z_providers.dart';
@@ -26,7 +27,12 @@ class _Over9000WatcherState extends ConsumerState<Over9000Watcher> {
   Widget build(BuildContext context) {
     final reading = ref.watch(powerReadingProvider);
     final state = ref.watch(zStateProvider).valueOrNull;
-    if (!_shownThisRun &&
+    // Only on the screen the user is actually looking at: inactive tabs keep
+    // building with tickers muted, and a route may be covered by another
+    // (the post-workout transformation screen).
+    final visible = TickerMode.valuesOf(context).enabled && (ModalRoute.of(context)?.isCurrent ?? true);
+    if (visible &&
+        !_shownThisRun &&
         state != null &&
         !state.over9000Seen &&
         reading != null &&
@@ -37,14 +43,14 @@ class _Over9000WatcherState extends ConsumerState<Over9000Watcher> {
         // Let the scouter count up first.
         await Future<void>.delayed(const Duration(milliseconds: 1100));
         if (!mounted) return;
-        await showOver9000(this.context, reading.level);
+        await showOver9000(this.context, reading.level, reading.rank.tier.label);
       });
     }
     return const SizedBox.shrink();
   }
 }
 
-Future<void> showOver9000(BuildContext context, int level) {
+Future<void> showOver9000(BuildContext context, int level, String transformation) {
   ZSound.play('scouter_explode');
   ZHaptics.boom();
   return showGeneralDialog(
@@ -52,14 +58,15 @@ Future<void> showOver9000(BuildContext context, int level) {
     barrierDismissible: false,
     barrierColor: Colors.black.withValues(alpha: 0.85),
     transitionDuration: const Duration(milliseconds: 300),
-    pageBuilder: (context, _, _) => _Over9000(level: level),
+    pageBuilder: (context, _, _) => _Over9000(level: level, transformation: transformation),
   );
 }
 
 class _Over9000 extends StatefulWidget {
-  const _Over9000({required this.level});
+  const _Over9000({required this.level, required this.transformation});
 
   final int level;
+  final String transformation;
 
   @override
   State<_Over9000> createState() => _Over9000State();
@@ -125,10 +132,10 @@ class _Over9000State extends State<_Over9000> with SingleTickerProviderStateMixi
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                const Text(
-                  'Tu nivel de poder ha roto el rastreador. Ya eres Super Saiyan.',
+                Text(
+                  'Tu nivel de poder ha roto el rastreador. Ya eres ${widget.transformation}.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white, fontSize: 15),
+                  style: const TextStyle(color: Colors.white, fontSize: 15),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 FilledButton(

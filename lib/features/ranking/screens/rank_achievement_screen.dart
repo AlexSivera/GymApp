@@ -151,11 +151,14 @@ class _RankAchievementScreenState extends ConsumerState<RankAchievementScreen>
                           offset: Offset(0, 24 * (1 - text)),
                           child: Column(
                             children: [
-                              Text(
-                                transformation ? '¡TRANSFORMACIÓN!' : '¡MÁS PODER!',
-                                textAlign: TextAlign.center,
-                                style: ZText.display(size: 30, color: Colors.white).copyWith(
-                                  shadows: [Shadow(color: color, blurRadius: 18), Shadow(color: color, blurRadius: 4)],
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  transformation ? '¡TRANSFORMACIÓN!' : '¡MÁS PODER!',
+                                  maxLines: 1,
+                                  style: ZText.display(size: 30, color: Colors.white).copyWith(
+                                    shadows: [Shadow(color: color, blurRadius: 18), Shadow(color: color, blurRadius: 4)],
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: AppSpacing.sm),

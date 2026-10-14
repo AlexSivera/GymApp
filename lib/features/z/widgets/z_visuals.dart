@@ -319,6 +319,89 @@ class KaioAvatar extends StatelessWidget {
   }
 }
 
+// The dragon radar behind the calendar: faint green rings and a slow
+// sweep. Static with "reduce motion".
+class RadarBackdrop extends StatefulWidget {
+  const RadarBackdrop({super.key});
+
+  @override
+  State<RadarBackdrop> createState() => _RadarBackdropState();
+}
+
+class _RadarBackdropState extends State<RadarBackdrop> with SingleTickerProviderStateMixin {
+  late final AnimationController _sweep =
+      AnimationController(vsync: this, duration: const Duration(seconds: 6));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.of(context).disableAnimations) {
+      _sweep.stop();
+    } else if (!_sweep.isAnimating) {
+      _sweep.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _sweep.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: _sweep,
+          builder: (context, _) => CustomPaint(painter: _RadarPainter(_sweep.value)),
+        ),
+      ),
+    );
+  }
+}
+
+class _RadarPainter extends CustomPainter {
+  _RadarPainter(this.t);
+
+  final double t;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = size.longestSide * 0.62;
+    final ring = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1
+      ..color = ZColors.scouter.withValues(alpha: 0.10);
+    for (var r = 34.0; r < radius; r += 34) {
+      canvas.drawCircle(center, r, ring);
+    }
+    canvas.drawLine(Offset(0, center.dy), Offset(size.width, center.dy), ring);
+    canvas.drawLine(Offset(center.dx, 0), Offset(center.dx, size.height), ring);
+
+    final angle = t * 2 * math.pi;
+    canvas.save();
+    canvas.clipRect(Offset.zero & size);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..shader = SweepGradient(
+          startAngle: 0,
+          endAngle: 2 * math.pi,
+          colors: [ZColors.scouter.withValues(alpha: 0), ZColors.scouter.withValues(alpha: 0.14)],
+          stops: const [0.8, 1],
+          transform: GradientRotation(angle),
+        ).createShader(Rect.fromCircle(center: center, radius: radius)),
+    );
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _RadarPainter old) => old.t != t;
+}
+
 // The scouter's green read-out frame (top-right corner cut big, like the
 // lens).
 class ScouterFrame extends StatelessWidget {

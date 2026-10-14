@@ -5,6 +5,7 @@ import 'package:table_calendar/table_calendar.dart';
 import '../../../core/constants/muscle_groups.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/z_palette.dart';
+import '../../z/widgets/z_visuals.dart';
 import '../../../core/theme/app_motion.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_card.dart';
@@ -60,10 +61,10 @@ class CalendarScreen extends ConsumerWidget {
       final label = session == null
           ? null
           : session.routineDayId != null
-              ? ref.watch(routineDaySessionTitleProvider(session.routineDayId))
-              : session.status == SessionStatus.rest
-                  ? 'Descanso'
-                  : null;
+          ? ref.watch(routineDaySessionTitleProvider(session.routineDayId))
+          : session.status == SessionStatus.rest
+          ? 'Descanso'
+          : null;
 
       return _DayCell(
         day: normalized,
@@ -81,9 +82,8 @@ class CalendarScreen extends ConsumerWidget {
           IconButton(
             tooltip: 'Ver técnicas',
             icon: const Icon(Icons.menu_book_outlined),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const ExerciseLibraryScreen()),
-            ),
+            onPressed: () =>
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ExerciseLibraryScreen())),
           ),
         ],
       ),
@@ -102,67 +102,67 @@ class CalendarScreen extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.md),
             child: AppCard(
               padding: const EdgeInsets.fromLTRB(AppSpacing.sm, AppSpacing.md, AppSpacing.sm, 0),
-              child: Column(
+              child: Stack(
                 children: [
-                  TableCalendar<WorkoutSession>(
-                    locale: 'es',
-                    startingDayOfWeek: StartingDayOfWeek.monday,
-                    firstDay: DateTime(2020, 1, 1),
-                    lastDay: DateTime(2035, 12, 31),
-                    focusedDay: focusedMonth,
-                    calendarFormat: calendarFormat,
-                    availableCalendarFormats: const {
-                      CalendarFormat.week: 'Semana',
-                      CalendarFormat.month: 'Mes',
-                    },
-                    selectedDayPredicate: (_) => false,
-                    onDaySelected: (selected, focused) {
-                      final normalized = DateTime(selected.year, selected.month, selected.day);
-                      ref.read(selectedDayProvider.notifier).state = normalized;
-                      ref.read(focusedMonthProvider.notifier).state = focused;
+                  const Positioned.fill(child: RadarBackdrop()),
+                  Column(
+                    children: [
+                      TableCalendar<WorkoutSession>(
+                        locale: 'es',
+                        startingDayOfWeek: StartingDayOfWeek.monday,
+                        firstDay: DateTime(2020, 1, 1),
+                        lastDay: DateTime(2035, 12, 31),
+                        focusedDay: focusedMonth,
+                        calendarFormat: calendarFormat,
+                        availableCalendarFormats: const {CalendarFormat.week: 'Semana', CalendarFormat.month: 'Mes'},
+                        selectedDayPredicate: (_) => false,
+                        onDaySelected: (selected, focused) {
+                          final normalized = DateTime(selected.year, selected.month, selected.day);
+                          ref.read(selectedDayProvider.notifier).state = normalized;
+                          ref.read(focusedMonthProvider.notifier).state = focused;
 
-                      if (selectionMode) {
-                        final current = {...ref.read(calendarSelectedDaysProvider)};
-                        if (!current.remove(normalized)) current.add(normalized);
-                        ref.read(calendarSelectedDaysProvider.notifier).state = current;
-                        return;
-                      }
-                      _openDay(context, ref, normalized, sessionsByDay[normalized]);
-                    },
-                    onDayLongPressed: (selected, focused) {
-                      final normalized = DateTime(selected.year, selected.month, selected.day);
-                      ref.read(calendarSelectionModeProvider.notifier).state = true;
-                      ref.read(calendarSelectedDaysProvider.notifier).state = {normalized};
-                    },
-                    onPageChanged: (focused) => ref.read(focusedMonthProvider.notifier).state = focused,
-                    headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
-                    rowHeight: 58,
-                    // Week ↔ month grows/shrinks visibly instead of snapping.
-                    formatAnimationDuration: AppMotion.slow,
-                    formatAnimationCurve: AppMotion.curve,
-                    pageAnimationCurve: AppMotion.curve,
-                    calendarBuilders: CalendarBuilders(
-                      defaultBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
-                      todayBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
-                      outsideBuilder: (context, day, focusedDay) => Opacity(
-                        opacity: 0.35,
-                        child: dayCellBuilder(context, day, focusedDay),
+                          if (selectionMode) {
+                            final current = {...ref.read(calendarSelectedDaysProvider)};
+                            if (!current.remove(normalized)) current.add(normalized);
+                            ref.read(calendarSelectedDaysProvider.notifier).state = current;
+                            return;
+                          }
+                          _openDay(context, ref, normalized, sessionsByDay[normalized]);
+                        },
+                        onDayLongPressed: (selected, focused) {
+                          final normalized = DateTime(selected.year, selected.month, selected.day);
+                          ref.read(calendarSelectionModeProvider.notifier).state = true;
+                          ref.read(calendarSelectedDaysProvider.notifier).state = {normalized};
+                        },
+                        onPageChanged: (focused) => ref.read(focusedMonthProvider.notifier).state = focused,
+                        headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true),
+                        rowHeight: 58,
+                        // Week ↔ month grows/shrinks visibly instead of snapping.
+                        formatAnimationDuration: AppMotion.slow,
+                        formatAnimationCurve: AppMotion.curve,
+                        pageAnimationCurve: AppMotion.curve,
+                        calendarBuilders: CalendarBuilders(
+                          defaultBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
+                          todayBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
+                          outsideBuilder: (context, day, focusedDay) =>
+                              Opacity(opacity: 0.35, child: dayCellBuilder(context, day, focusedDay)),
+                          selectedBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
+                        ),
                       ),
-                      selectedBuilder: (context, day, focusedDay) => dayCellBuilder(context, day, focusedDay),
-                    ),
-                  ),
-                  Center(
-                    child: IconButton(
-                      tooltip: calendarFormat == CalendarFormat.week ? 'Ver mes completo' : 'Ver semana',
-                      onPressed: () => ref.read(calendarFormatProvider.notifier).state =
-                          calendarFormat == CalendarFormat.week ? CalendarFormat.month : CalendarFormat.week,
-                      icon: AnimatedRotation(
-                        duration: AppMotion.fast,
-                        curve: AppMotion.curve,
-                        turns: calendarFormat == CalendarFormat.week ? 0 : 0.5,
-                        child: const Icon(Icons.keyboard_arrow_down),
+                      Center(
+                        child: IconButton(
+                          tooltip: calendarFormat == CalendarFormat.week ? 'Ver mes completo' : 'Ver semana',
+                          onPressed: () => ref.read(calendarFormatProvider.notifier).state =
+                              calendarFormat == CalendarFormat.week ? CalendarFormat.month : CalendarFormat.week,
+                          icon: AnimatedRotation(
+                            duration: AppMotion.fast,
+                            curve: AppMotion.curve,
+                            turns: calendarFormat == CalendarFormat.week ? 0 : 0.5,
+                            child: const Icon(Icons.keyboard_arrow_down),
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
@@ -189,8 +189,8 @@ class CalendarScreen extends ConsumerWidget {
               children: [
                 Text('Tus cápsulas', style: theme.textTheme.titleMedium),
                 TextButton(
-                  onPressed: () => Navigator.of(context)
-                      .push(MaterialPageRoute(builder: (_) => const ArchivedRoutinesScreen())),
+                  onPressed: () =>
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ArchivedRoutinesScreen())),
                   child: const Text('Archivadas'),
                 ),
               ],
@@ -234,12 +234,7 @@ class CalendarScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _openDay(
-    BuildContext context,
-    WidgetRef ref,
-    DateTime day,
-    WorkoutSession? session,
-  ) async {
+  Future<void> _openDay(BuildContext context, WidgetRef ref, DateTime day, WorkoutSession? session) async {
     final today = DateTime.now();
     final isOverdue = day.isBefore(DateTime(today.year, today.month, today.day));
     if (session != null && session.status == SessionStatus.planned && isOverdue) {
@@ -259,9 +254,9 @@ class CalendarScreen extends ConsumerWidget {
     ref.read(calendarFormatProvider.notifier).state = CalendarFormat.month;
     switch (action) {
       case AssignDaysAction.manual:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Toca un día del radar para asignarle una cápsula.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Toca un día del radar para asignarle una cápsula.')));
       case AssignDaysAction.selectMultiple:
         ref.read(calendarSelectionModeProvider.notifier).state = true;
       case AssignDaysAction.quickAssign:
@@ -286,10 +281,7 @@ class _EmptyRoutines extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         SizedBox(
           width: double.infinity,
-          child: OutlinedButton(
-            onPressed: onCreate,
-            child: const Text('Crear tu primera cápsula'),
-          ),
+          child: OutlinedButton(onPressed: onCreate, child: const Text('Crear tu primera cápsula')),
         ),
       ],
     );
@@ -312,9 +304,8 @@ class _RoutineCard extends ConsumerWidget {
     return AppCard(
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => RoutineEditorScreen(routineId: routine.id)),
-        ),
+        onTap: () =>
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => RoutineEditorScreen(routineId: routine.id))),
         child: Row(
           children: [
             CapsuleChip(number: number),
@@ -436,8 +427,8 @@ class _DayCell extends StatelessWidget {
                 color: isSelectedForBulk
                     ? colors.accent.withValues(alpha: 0.32)
                     : isBall
-                        ? null
-                        : fill?.withValues(alpha: 0.22) ?? colors.statusEmpty.withValues(alpha: 0.5),
+                    ? null
+                    : fill?.withValues(alpha: 0.22) ?? colors.statusEmpty.withValues(alpha: 0.5),
                 gradient: isBall
                     ? const RadialGradient(
                         center: Alignment(-0.3, -0.4),
@@ -450,8 +441,8 @@ class _DayCell extends StatelessWidget {
                 border: isSelectedForBulk
                     ? Border.all(color: theme.colorScheme.onSurface, width: 2)
                     : isToday
-                        ? Border.all(color: colors.statusToday, width: 2)
-                        : null,
+                    ? Border.all(color: colors.statusToday, width: 2)
+                    : null,
               ),
               alignment: Alignment.center,
               child: Stack(
@@ -460,7 +451,10 @@ class _DayCell extends StatelessWidget {
                   Text(
                     '${day.day}',
                     style: isBall
-                        ? theme.textTheme.bodyMedium?.copyWith(color: const Color(0xFF3A1600), fontWeight: FontWeight.w800)
+                        ? theme.textTheme.bodyMedium?.copyWith(
+                            color: const Color(0xFF3A1600),
+                            fontWeight: FontWeight.w800,
+                          )
                         : theme.textTheme.bodyMedium,
                   ),
                   if (isSelectedForBulk)
@@ -573,8 +567,7 @@ class _SelectionActionBar extends ConsumerWidget {
     final created = await assignRoutineDayToDates(db, routineDayId: day.id, dates: selectedDays);
     _exit(ref);
     if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Rutina asignada a $created días.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Rutina asignada a $created días.')));
     }
   }
 
@@ -585,8 +578,9 @@ class _SelectionActionBar extends ConsumerWidget {
     final created = await assignRoutineRotationToDates(db, routineIds: routineIds, dates: selectedDays);
     _exit(ref);
     if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Asignación rápida aplicada a $created días.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Asignación rápida aplicada a $created días.')));
     }
   }
 
@@ -595,8 +589,7 @@ class _SelectionActionBar extends ConsumerWidget {
     final created = await markDatesAsRest(db, dates: selectedDays);
     _exit(ref);
     if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('$created días marcados como descanso.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$created días marcados como descanso.')));
     }
   }
 
@@ -610,8 +603,7 @@ class _SelectionActionBar extends ConsumerWidget {
     if (ids.isNotEmpty) await db.workoutSessionsDao.deleteSessions(ids);
     _exit(ref);
     if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('${ids.length} asignaciones eliminadas.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${ids.length} asignaciones eliminadas.')));
     }
   }
 }
