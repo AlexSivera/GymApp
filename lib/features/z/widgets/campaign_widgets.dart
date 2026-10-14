@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,6 +9,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../services/insights_engine/daily_insight.dart';
 import '../../../services/z/campaign.dart';
 import '../../../services/z/masters.dart';
+import '../../../services/z/media_pack.dart';
 import '../../../services/z/mentor_lines.dart';
 import '../../../services/z/z_sound.dart';
 import '../providers/z_providers.dart';
@@ -22,7 +25,19 @@ class MentorPortrait extends StatelessWidget {
   final Master master;
   final MentorMood mood;
   final double size;
+  // false = the big version that peeks in: a cut-out (transparent
+  // background) shows as is; a screen capture shows in a telepathy window.
   final bool circle;
+
+  // The first filled slot: this mood, then any other face of theirs.
+  String? _filledSlot() {
+    final candidates = [
+      'maestro_${master.id}_${mood.name}',
+      for (final m in MentorMood.values) 'maestro_${master.id}_${m.name}',
+      if (master.id == 'kaio') 'kaio',
+    ];
+    return candidates.where(zHasPackImage).firstOrNull;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,11 +52,70 @@ class MentorPortrait extends StatelessWidget {
       alignment: Alignment.center,
       child: Text(master.kanji, style: ZText.display(size: size * 0.45)),
     );
-    Widget slot(String name, Widget fallback) => ZImage(name, fit: BoxFit.contain, alignment: Alignment.bottomCenter, fallback: fallback);
-    final legacy = master.id == 'kaio' ? slot('kaio', orb) : orb;
-    final image = slot('maestro_${master.id}_${mood.name}', slot('maestro_${master.id}_contento', legacy));
-    return SizedBox.square(dimension: size, child: circle ? ClipOval(child: image) : image);
+    final slot = _filledSlot();
+    if (slot == null) return SizedBox.square(dimension: size, child: orb);
+    if (circle) {
+      return SizedBox.square(
+        dimension: size,
+        child: ClipOval(child: ZImage(slot, fit: BoxFit.cover, alignment: const Alignment(0, -0.4), fallback: orb)),
+      );
+    }
+    return SizedBox.square(
+      dimension: size,
+      child: FutureBuilder<bool>(
+        future: packImageIsCutout(slot),
+        builder: (context, snapshot) => snapshot.data == true
+            ? ZImage(slot, fit: BoxFit.contain, alignment: Alignment.bottomCenter, fallback: orb)
+            : _TelepathyWindow(
+                color: master.color,
+                child: ZImage(slot, fit: BoxFit.cover, alignment: const Alignment(0, -0.3), fallback: orb),
+              ),
+      ),
+    );
   }
+}
+
+// A screen capture of a master, framed like a telepathic call.
+class _TelepathyWindow extends StatelessWidget {
+  const _TelepathyWindow({required this.color, required this.child});
+
+  final Color color;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color, width: 2),
+        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.6), blurRadius: 16, spreadRadius: 1)],
+      ),
+      child: ClipRRect(borderRadius: BorderRadius.circular(14), child: child),
+    );
+  }
+}
+
+// Whether a pack image has a transparent background (a cut-out): looks at
+// the corners of a tiny decoded copy. Cached per file.
+final _cutoutCache = <String, Future<bool>>{};
+
+Future<bool> packImageIsCutout(String slot) {
+  final file = MediaPack.file(slot, ZMediaKind.image);
+  if (file == null) return Future.value(false);
+  return _cutoutCache.putIfAbsent(file.path, () async {
+    try {
+      final codec = await ui.instantiateImageCodec(await file.readAsBytes(), targetWidth: 24);
+      final image = (await codec.getNextFrame()).image;
+      final data = await image.toByteData();
+      if (data == null) return false;
+      final w = image.width;
+      final h = image.height;
+      int alphaAt(int x, int y) => data.getUint8((y * w + x) * 4 + 3);
+      return [alphaAt(0, 0), alphaAt(w - 1, 0), alphaAt(0, h - 1), alphaAt(w - 1, h - 1)].any((a) => a < 200);
+    } catch (_) {
+      return false;
+    }
+  });
 }
 
 bool mentorHasCutout(Master master) =>
