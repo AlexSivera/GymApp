@@ -66,10 +66,14 @@ class VillainPortrait extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(6),
       alignment: Alignment.center,
-      child: Text(
-        fight.villain.toUpperCase(),
-        textAlign: TextAlign.center,
-        style: ZText.display(size: 14, color: const Color(0xFFFFB3B3)),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          fight.villain.toUpperCase(),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          style: ZText.display(size: 14, color: const Color(0xFFFFB3B3)),
+        ),
       ),
     );
     return SizedBox(
@@ -104,6 +108,7 @@ class HpBar extends StatelessWidget {
       alignment: Alignment.centerLeft,
       child: FractionallySizedBox(
         widthFactor: fraction.clamp(0.0, 1.0),
+        heightFactor: 1,
         child: DecoratedBox(
           decoration: BoxDecoration(
             gradient: const LinearGradient(colors: [ZColors.kaioken, Color(0xFFFF8A3D)]),

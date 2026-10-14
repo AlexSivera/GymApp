@@ -72,7 +72,7 @@ class _MasterUnlockScreenState extends ConsumerState<MasterUnlockScreen> with Si
           ),
           SpeedLines(color: master.color, focus: const Alignment(0, -0.3), opacity: 0.15),
           SafeArea(
-            child: Padding(
+            child: FitOrScroll(child: Padding(
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: AnimatedBuilder(
                 animation: _in,
@@ -118,13 +118,17 @@ class _MasterUnlockScreenState extends ConsumerState<MasterUnlockScreen> with Si
                                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
                             const SizedBox(height: AppSpacing.sm),
                             Container(
-                              height: 44,
+                              constraints: const BoxConstraints(minHeight: 44),
+                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
                                 gradient: LinearGradient(colors: [attack.colors.first.withValues(alpha: 0.2), attack.colors.first, attack.colors.last]),
                               ),
                               alignment: Alignment.center,
-                              child: Text('Nuevo ataque: ${attack.name}', style: ZText.display(size: 15, color: ZColors.night)),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text('Nuevo ataque: ${attack.name}', maxLines: 1, style: ZText.display(size: 15, color: ZColors.night)),
+                              ),
                             ),
                           ],
                         ),
@@ -159,7 +163,7 @@ class _MasterUnlockScreenState extends ConsumerState<MasterUnlockScreen> with Si
                   );
                 },
               ),
-            ),
+            )),
           ),
         ],
       ),

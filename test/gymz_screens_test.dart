@@ -13,7 +13,7 @@ import 'package:gymapp/services/z/z_state.dart';
 void main() {
   testWidgets('Shenlong appears, offers three wishes and grants one', (tester) async {
     await initializeDateFormatting('es');
-    tester.view.physicalSize = const Size(375 * 3, 812 * 3);
+    tester.view.physicalSize = const Size(360 * 3, 740 * 3);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
 

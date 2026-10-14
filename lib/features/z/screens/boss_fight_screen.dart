@@ -103,7 +103,7 @@ class _BossFightScreenState extends State<BossFightScreen> with SingleTickerProv
               ),
               if (event.defeated) SpeedLines(color: ZColors.kaioken, focus: const Alignment(0, -0.35), opacity: 0.18 * result),
               SafeArea(
-                child: Padding(
+                child: FitOrScroll(child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   child: Column(
                     children: [
@@ -173,7 +173,7 @@ class _BossFightScreenState extends State<BossFightScreen> with SingleTickerProv
                       ),
                     ],
                   ),
-                ),
+                )),
               ),
               // The attack crossing the screen.
               if (beam > 0 && beam < 1)

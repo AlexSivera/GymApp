@@ -121,7 +121,7 @@ class _ShenlongScreenState extends ConsumerState<ShenlongScreen> with TickerProv
                 ),
               ),
               SafeArea(
-                child: Padding(
+                child: FitOrScroll(child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   child: Column(
                     children: [
@@ -208,7 +208,7 @@ class _ShenlongScreenState extends ConsumerState<ShenlongScreen> with TickerProv
                         ),
                     ],
                   ),
-                ),
+                )),
               ),
               IgnorePointer(child: ColoredBox(color: Colors.white.withValues(alpha: flash * 0.9))),
             ],

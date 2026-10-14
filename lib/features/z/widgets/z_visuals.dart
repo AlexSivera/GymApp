@@ -402,6 +402,26 @@ class _RadarPainter extends CustomPainter {
   bool shouldRepaint(covariant _RadarPainter old) => old.t != t;
 }
 
+// Full-screen moments: the content fills the screen (so Spacers work) but
+// scrolls instead of overflowing on short phones.
+class FitOrScroll extends StatelessWidget {
+  const FitOrScroll({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: IntrinsicHeight(child: child),
+        ),
+      ),
+    );
+  }
+}
+
 // The scouter's green read-out frame (top-right corner cut big, like the
 // lens).
 class ScouterFrame extends StatelessWidget {

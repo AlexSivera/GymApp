@@ -117,7 +117,7 @@ class _RankAchievementScreenState extends ConsumerState<RankAchievementScreen>
             child: Text('超', style: ZText.display(size: 240, color: color.withValues(alpha: 0.07))),
           ),
           SafeArea(
-            child: Padding(
+            child: FitOrScroll(child: Padding(
               padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.lg),
               child: AnimatedBuilder(
                 animation: _burst,
@@ -261,7 +261,7 @@ class _RankAchievementScreenState extends ConsumerState<RankAchievementScreen>
                   );
                 },
               ),
-            ),
+            )),
           ),
           // White flash at the instant of the transformation.
           IgnorePointer(

@@ -51,3 +51,111 @@ Consejo: vídeos cortos (2–5 s) y de poco peso (menos de 10 MB cada uno), en v
 | `dragon_ball` | sonido (.mp3/.ogg/.wav) | Esfera conseguida |
 | `summon` | sonido (.mp3/.ogg/.wav) | Invocación de Shenlong |
 | `wish` | sonido (.mp3/.ogg/.wav) | Deseo concedido |
+
+## Fase 2: villanos, maestros, ataques y episodios
+
+### Villanos (recortes con fondo transparente)
+
+Un archivo por forma. Si además pones un vídeo con el mismo nombre (`.mp4`), se usa para su aparición o transformación. Si falta una forma, se usa la imagen genérica del villano.
+
+| Nombre | Villano y forma |
+|---|---|
+| `jefe_raditz` | Raditz |
+| `jefe_nappa` | Nappa |
+| `jefe_vegeta_normal` | Vegeta · Normal |
+| `jefe_vegeta_ozaru` | Vegeta · Ozaru |
+| `jefe_dodoria` | Dodoria |
+| `jefe_zarbon_normal` | Zarbon · Normal |
+| `jefe_zarbon_monstruo` | Zarbon · Monstruo |
+| `jefe_ginyu` | Ginyu |
+| `jefe_freezer_1` | Freezer · 1.ª forma |
+| `jefe_freezer_2` | Freezer · 2.ª forma |
+| `jefe_freezer_3` | Freezer · 3.ª forma |
+| `jefe_freezer_final` | Freezer · Forma final |
+| `jefe_freezer_100` | Freezer · Al 100 % |
+| `jefe_a19` | Androide 19 |
+| `jefe_a18` | Androide 18 |
+| `jefe_a17` | Androide 17 |
+| `jefe_cell_imperfecto` | Cell · Imperfecto |
+| `jefe_cell_semiperfecto` | Cell · Semiperfecto |
+| `jefe_cell_perfecto` | Cell · Perfecto |
+| `jefe_cell_superperfecto` | Cell · Superperfecto |
+| `jefe_dabura` | Dabura |
+| `jefe_majin_vegeta` | Majin Vegeta |
+| `jefe_buu_gordo` | Majin Buu · Gordo |
+| `jefe_buu_malo` | Majin Buu · Malo |
+| `jefe_super_buu` | Majin Buu · Super Buu |
+| `jefe_kid_buu` | Majin Buu · Kid Buu |
+| `jefe_freezer_dorado` | Freezer · Dorado |
+| `jefe_black_normal` | Goku Black · Normal |
+| `jefe_black_rose` | Goku Black · Rosé |
+| `jefe_jiren_normal` | Jiren · Normal |
+| `jefe_jiren_maximo` | Jiren · Máximo poder |
+
+| Imagen genérica | Villano |
+|---|---|
+| `jefe_raditz` | Raditz |
+| `jefe_nappa` | Nappa |
+| `jefe_vegeta` | Vegeta |
+| `jefe_dodoria` | Dodoria |
+| `jefe_zarbon` | Zarbon |
+| `jefe_ginyu` | Ginyu |
+| `jefe_freezer` | Freezer |
+| `jefe_a19` | Androide 19 |
+| `jefe_a18` | Androide 18 |
+| `jefe_a17` | Androide 17 |
+| `jefe_cell` | Cell |
+| `jefe_dabura` | Dabura |
+| `jefe_majin_vegeta` | Majin Vegeta |
+| `jefe_buu` | Majin Buu |
+| `jefe_freezer_dorado` | Freezer |
+| `jefe_black` | Goku Black |
+| `jefe_jiren` | Jiren |
+
+`ko.mp3`: sonido del golpe final del combate semanal.
+
+### Maestros (recortes con fondo transparente, de cintura para arriba)
+
+Cuatro caras por maestro y, opcionalmente, una imagen o vídeo para su combate de entrenamiento.
+
+| Maestro | Archivos |
+|---|---|
+| Kaio-sama | `maestro_kaio_contento` · `maestro_kaio_serio` · `maestro_kaio_riendo` · `maestro_kaio_preocupado` · `maestro_kaio_combate` (imagen o vídeo) |
+| Roshi | `maestro_roshi_contento` · `maestro_roshi_serio` · `maestro_roshi_riendo` · `maestro_roshi_preocupado` · `maestro_roshi_combate` (imagen o vídeo) |
+| Krilin | `maestro_krilin_contento` · `maestro_krilin_serio` · `maestro_krilin_riendo` · `maestro_krilin_preocupado` · `maestro_krilin_combate` (imagen o vídeo) |
+| Piccolo | `maestro_piccolo_contento` · `maestro_piccolo_serio` · `maestro_piccolo_riendo` · `maestro_piccolo_preocupado` · `maestro_piccolo_combate` (imagen o vídeo) |
+| Gohan | `maestro_gohan_contento` · `maestro_gohan_serio` · `maestro_gohan_riendo` · `maestro_gohan_preocupado` · `maestro_gohan_combate` (imagen o vídeo) |
+| Trunks | `maestro_trunks_contento` · `maestro_trunks_serio` · `maestro_trunks_riendo` · `maestro_trunks_preocupado` · `maestro_trunks_combate` (imagen o vídeo) |
+| Vegeta | `maestro_vegeta_contento` · `maestro_vegeta_serio` · `maestro_vegeta_riendo` · `maestro_vegeta_preocupado` · `maestro_vegeta_combate` (imagen o vídeo) |
+| Goku | `maestro_goku_contento` · `maestro_goku_serio` · `maestro_goku_riendo` · `maestro_goku_preocupado` · `maestro_goku_combate` (imagen o vídeo) |
+
+### Ataques (clip corto `.mp4` y grito `.mp3` con el mismo nombre)
+
+| Nombre | Ataque | Quién lo enseña |
+|---|---|---|
+| `ataque_rafaga` | Ráfaga de ki | Tu primer ataque |
+| `ataque_kamehameha` | Kamehameha | Roshi |
+| `ataque_kienzan` | Kienzan | Krilin |
+| `ataque_makankosappo` | Makankosappo | Piccolo |
+| `ataque_masenko` | Masenko | Gohan |
+| `ataque_burning_attack` | Burning Attack | Trunks |
+| `ataque_galick_gun` | Galick Gun | Vegeta |
+| `ataque_kamehameha_instantaneo` | Kamehameha instantáneo | Goku |
+| `ataque_genkidama` | Genkidama | Kaio-sama |
+| `ataque_double_sunday` | Double Sunday | Raditz |
+| `ataque_bomber_dx` | Bomber DX | Nappa |
+| `ataque_rayo_mortal` | Rayo mortal | Freezer |
+| `ataque_barrera_explosiva` | Barrera explosiva | Androide 17 |
+| `ataque_kamehameha_cell` | Kamehameha de Cell | Cell |
+| `ataque_explosion_final` | Explosión final | Majin Vegeta |
+| `ataque_rayo_chocolate` | Rayo chocolate | Super Buu |
+| `ataque_kamehameha_black` | Kamehameha Black | Goku Black |
+
+### Episodios
+
+| Nombre | Para qué |
+|---|---|
+| `escena_01` … `escena_20` | Escenas del anime (imágenes) que se usan al azar en «¡En el próximo episodio!» y «Anteriormente en GymZ…» |
+| `narrador_1` … `narrador_5` | Voces cortas del narrador que se alternan (sonido) |
+| `anteriormente` | Narrador diciendo «Anteriormente en…» (sonido; si está, tiene prioridad) |
+| `proximo_episodio` | Narrador diciendo «En el próximo episodio…» (sonido; si está, tiene prioridad) |
