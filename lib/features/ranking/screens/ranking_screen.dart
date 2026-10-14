@@ -29,8 +29,9 @@ class RankingScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final predicted = ref.watch(overallPredictedRankProvider);
     final reading = ref.watch(powerReadingProvider);
+    // Same whole-body reading as the power level number.
+    final predicted = reading?.rank;
     final muscleRanks = ref.watch(muscleRanksProvider);
     final available = ref.watch(availableMusclesProvider);
     // Every muscle of the body diagram is always listed (unranked ones as
